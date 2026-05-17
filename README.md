@@ -29,6 +29,31 @@ Lancer1911 TTS Offline runs Qwen3-TTS entirely on your Mac via the MLX framework
 
 ---
 
+## Screenshots
+
+<p align="center">
+  <img src="images/screenshot_main.png" alt="Main interface — plain text synthesis" width="800">
+  <br><em>Main interface — plain text synthesis with voice selection and playback</em>
+</p>
+<p align="center">
+  <img src="images/screenshot_main_en.png" alt="Dialog Table mode — multi-character audiobook production" width="800">
+  <br><em>Dialog Table mode — per-line voice, emotion instruction, and text for audiobook production</em>
+</p>
+<p align="center">
+  <img src="images/screenshot_playback.png" alt="Playback bar with follow and reverse-follow" width="800">
+  <br><em>Playback bar — follow mode highlights the current sentence; click any line to seek</em>
+</p>
+<p align="center">
+  <img src="images/screenshot_settings.png" alt="Model tab and advanced settings" width="480">
+  <br><em>Model tab and Advanced Settings — model selection, output format, and TTS parameters</em>
+</p>
+<p align="center">
+  <img src="images/installation.png" alt="Installation in macOS" width="600">
+  <br><em>Installation in macOS</em>
+</p>
+
+---
+
 ## What Can It Do?
 
 Lancer1911 TTS Offline is more than a text-to-speech converter. Its dialog table mode enables **sentence-level, per-character, per-emotion production** of long-form audio — a capability that most commercial TTS tools charge premium rates for:
