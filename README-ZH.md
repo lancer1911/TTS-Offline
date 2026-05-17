@@ -29,6 +29,31 @@ Lancer1911 TTS Offline 通过 MLX 框架在本机运行 Qwen3-TTS。合成过程
 
 ---
 
+## 界面截图
+
+<p align="center">
+  <img src="images/screenshot_main.png" alt="Main interface — plain text synthesis" width="800">
+  <br><em>主界面</em>
+</p>
+<p align="center">
+  <img src="images/screenshot_main_en.png" alt="Dialog Table mode — multi-character audiobook production" width="800">
+  <br><em>对话表格模式</em>
+</p>
+<p align="center">
+  <img src="images/screenshot_playback.png" alt="Playback bar with follow and reverse-follow" width="800">
+  <br><em>回放模式</em>
+</p>
+<p align="center">
+  <img src="images/screenshot_settings.png" alt="Model tab and advanced settings" width="480">
+  <br><em>高级设置</em>
+</p>
+<p align="center">
+  <img src="images/installation.png" alt="Installation in macOS" width="600">
+  <br><em>macOS安装界面</em>
+</p>
+
+---
+
 ## 能做什么？
 
 Lancer1911 TTS Offline 不只是一个 TTS 转换工具。其**对话表格模式**支持**逐句、多角色、逐情绪**地制作长篇音频——这正是大多数商业 TTS 平台收取高额费用才能提供的能力：
