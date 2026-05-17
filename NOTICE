@@ -1,0 +1,20 @@
+Lancer1911 TTS Offline
+Copyright 2026 Lancer1911
+
+This product was originally developed by Lancer1911.
+
+When redistributing this software or a derivative work, please retain this NOTICE file or include a reasonable attribution in the accompanying documentation, About/Credits page, or other customary attribution location.
+
+This project uses or may depend on third-party open-source projects, including but not limited to:
+
+- mlx-audio
+- FastAPI
+- uvicorn
+- pywebview
+- ffmpeg
+- Qwen3-TTS
+- python-docx
+- pdfminer.six
+- numpy
+
+Each third-party component remains subject to its own license terms.
