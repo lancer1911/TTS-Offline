@@ -1,0 +1,49 @@
+# ── macOS system files ─────────────────────────────────────
+.DS_Store
+.DS_Store?
+**/.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+Icon?
+
+# ── Project-specific excludes ───────────────────────────────
+ASR_Live_Guide_EN_ZH.docx
+Lancer1911_ASR_Live_Guide_EN_ZH.docx
+*.docx
+
+# ── Python ──────────────────────────────────────────────────
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual environments ─────────────────────────────────────
+venv/
+venv_build/
+.venv/
+env/
+
+# ── py2app build artifacts ───────────────────────────────────
+build/
+dist/
+
+# ── Recordings & session files (user data) ───────────────────
+*.mp3
+*.asr
+*.jsonl
+
+# ── Logs ────────────────────────────────────────────────────
+*.log
+
+# ── Editor & IDE ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store

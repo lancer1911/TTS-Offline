@@ -1,0 +1,3563 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lancer1911 TTS Offline v0.3a</title>
+<style>
+/* ── CSS Variables ─────────────────────────────────────────── */
+:root{
+  --bg:#0d0f14;--bg2:#14171f;--bg3:#1c2029;--bg4:#232835;
+  --b1:#2a3040;--b2:#343d50;
+  --ac:#a78bfa;--acd:rgba(167,139,250,.12);--ac2:#c084fc;
+  --tx:#dde3ea;--su:#9aa8b8;--hi:#5a6e82;
+  --red:#e05050;--grn:#a78bfa;--ok:#a78bfa;--warn:#e8a020;
+  --tx-strong:#f0f4f8;
+  --r:6px;--r2:10px;--r3:14px;
+}
+:root.light{
+  --bg:#f2f0eb;--bg2:#fff;--bg3:#e8e4da;--bg4:#ddd8cc;
+  --b1:#ccc5b5;--b2:#b8b0a0;
+  --ac:#7c3aed;--acd:rgba(124,58,237,.10);--ac2:#6d28d9;
+  --tx:#1a1a0f;--su:#3a3520;--hi:#6a6050;
+  --red:#c03030;--grn:#7c3aed;--ok:#7c3aed;--warn:#c07810;
+  --tx-strong:#0d0d00;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);
+  font-family:-apple-system,'PingFang SC','Hiragino Sans GB',sans-serif;
+  font-size:15px;height:100vh;display:flex;flex-direction:column;
+  overflow:hidden;-webkit-app-region:drag}
+
+/* ── Topbar ─────────────────────────────────────────────────── */
+.top{display:flex;align-items:center;gap:12px;
+  padding:9px 16px;border-bottom:0.5px solid var(--b1);
+  background:var(--bg2);flex-shrink:0;min-height:52px}
+.brand{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;
+  font-weight:600;color:var(--ac);letter-spacing:.08em;flex-shrink:0;
+  display:flex;flex-direction:column;gap:3px;text-decoration:none}
+.brand:hover{opacity:.8}
+.brand-title{display:flex;align-items:center;gap:0;color:var(--ac)}
+.brand-title .slash{color:var(--hi);margin:0 4px;font-weight:300}
+.brand-sub{display:flex;align-items:center;gap:6px;letter-spacing:0;
+  font-size:10px;color:var(--hi)}
+.brand-ver{color:var(--hi)}
+.brand-badge{display:inline-flex;align-items:center;gap:3px;
+  border:0.5px solid var(--ac);border-radius:3px;padding:0 4px;
+  font-size:9px;color:var(--ac);letter-spacing:.05em}
+.tmid{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--hi);
+  flex-shrink:0;transition:all .3s}
+.dot.on{background:var(--ac);box-shadow:0 0 7px var(--ac);animation:dp 1.8s infinite}
+.dot.warn{background:var(--warn);box-shadow:0 0 7px var(--warn)}
+.dot.err{background:var(--red);box-shadow:0 0 7px var(--red)}
+@keyframes dp{0%,100%{opacity:1}55%{opacity:.3}}
+.tst{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;
+  color:var(--su);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr{display:flex;gap:6px;flex-shrink:0;-webkit-app-region:no-drag}
+.btn{padding:5px 10px;border:0.5px solid var(--b2);border-radius:var(--r);
+  background:none;color:var(--su);font-size:13px;
+  font-family:ui-monospace,'SF Mono',Menlo,monospace;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  cursor:pointer;transition:all .12s;white-space:nowrap;-webkit-app-region:no-drag}
+.btn:hover{border-color:var(--ac);color:var(--ac)}
+.btn.act{border-color:var(--ac);color:var(--ac);background:var(--acd)}
+.btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.btn-primary{background:var(--ac)!important;color:#000!important;
+  border-color:var(--ac)!important;font-weight:600}
+.btn-primary:hover{opacity:.88}
+.btn-danger{border-color:var(--red)!important;color:var(--red)!important}
+.btn-danger:hover{background:rgba(224,80,80,.1)!important}
+
+/* ── Layout ─────────────────────────────────────────────────── */
+.layout{display:flex;flex:1;min-height:0;gap:0}
+.sidebar{width:300px;flex-shrink:0;border-right:0.5px solid var(--b1);
+  display:flex;flex-direction:column;background:var(--bg2);overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+.sb-section{padding:12px 14px;border-bottom:0.5px solid var(--b1)}
+.sb-title{font-size:11px;font-weight:700;color:var(--hi);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.sb-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sb-label{font-size:12px;color:var(--su);flex:1;min-width:0}
+.sb-val{font-size:12px;color:var(--tx-strong);font-family:ui-monospace,'SF Mono',Menlo,monospace}
+
+/* Voice selector */
+.voice-grid{display:flex;flex-direction:column;gap:5px}
+.voice-card{display:flex;align-items:center;gap:8px;padding:7px 9px;
+  border:0.5px solid var(--b1);border-radius:var(--r2);cursor:pointer;
+  transition:all .12s;background:var(--bg3)}
+.voice-card:hover{border-color:var(--b2)}
+.voice-card.selected{border-color:var(--ac);background:var(--acd)}
+.voice-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;background:var(--bg4)}
+.voice-info{flex:1;min-width:0}
+.voice-name{font-size:13px;color:var(--tx-strong);font-weight:600}
+.voice-desc{font-size:11px;color:var(--su);margin-top:1px}
+.voice-badge{font-size:10px;padding:1px 5px;border-radius:3px;
+  background:var(--bg4);color:var(--hi);font-family:ui-monospace,'SF Mono',Menlo,monospace;
+  flex-shrink:0}
+
+/* Speed slider */
+.speed-row{display:flex;align-items:center;gap:8px}
+.speed-slider{flex:1;accent-color:var(--ac)}
+.speed-val{font-size:12px;color:var(--ac);font-family:ui-monospace,'SF Mono',Menlo,monospace;
+  min-width:34px;text-align:right}
+
+/* Model row */
+.model-input{background:var(--bg3);border:0.5px solid var(--b1);border-radius:var(--r);
+  color:var(--tx);padding:5px 8px;font-size:12px;
+  font-family:ui-monospace,'SF Mono',Menlo,monospace;width:100%}
+.model-input:focus{outline:none;border-color:var(--ac)}
+
+/* ── Main area ─────────────────────────────────────────────── */
+.upload-zone{margin:16px;border:1.5px dashed var(--b2);border-radius:var(--r3);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:130px;cursor:pointer;transition:all .2s;padding:20px;
+  background:var(--bg3)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--ac);background:var(--acd)}
+.upload-zone.has-file{border-style:solid;border-color:var(--b2)}
+.upload-icon{font-size:32px;margin-bottom:8px;opacity:.6}
+.upload-label{font-size:14px;color:var(--su)}
+.upload-label strong{color:var(--ac)}
+.upload-exts{font-size:11px;color:var(--hi);margin-top:4px}
+.upload-filename{font-size:13px;color:var(--tx-strong);font-weight:600;margin-bottom:2px}
+.upload-meta{font-size:11px;color:var(--su)}
+input[type=file]{display:none}
+
+/* Text editor area */
+.text-area-wrap{flex:1;display:flex;flex-direction:column;margin:0 16px 16px;min-height:0}
+.text-area-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.text-area-label{font-size:12px;color:var(--hi);font-weight:600;flex:1}
+.text-count{font-size:11px;color:var(--hi);
+  font-family:ui-monospace,'SF Mono',Menlo,monospace}
+.text-editor-wrap{background:var(--bg3);border:0.5px solid var(--b1);
+  border-radius:var(--r2);overflow:hidden}
+.text-editor-wrap:focus-within{border-color:var(--ac)}
+.text-editor{width:100%;background:transparent;border:none;
+  color:var(--tx);font-size:14px;line-height:1.7;
+  padding:12px 14px;resize:none;font-family:inherit;min-height:0;flex:1}
+.text-editor:focus{outline:none}
+mark.tts-hl{background:rgba(255,220,0,.45);color:inherit;border-radius:2px}
+
+.dialog-tools{display:none;align-items:center;gap:6px}
+body.dialog-capable .dialog-tools{display:flex}
+.dialog-table-wrap{display:none;flex:1;min-height:0;overflow:auto;background:var(--bg3);border:0.5px solid var(--b1);border-radius:var(--r2)}
+.dialog-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.dialog-table th{position:sticky;top:0;background:var(--bg4);color:var(--hi);font-weight:600;text-align:left;padding:7px 8px;border-bottom:0.5px solid var(--b1);z-index:1}
+.dialog-table td{padding:5px 6px;border-bottom:0.5px solid var(--b0);vertical-align:top}
+.dialog-table select,.dialog-table input,.dialog-table textarea{width:100%;box-sizing:border-box;background:var(--bg2);color:var(--tx);border:0.5px solid var(--b1);border-radius:6px;padding:5px 6px;font:inherit;font-size:12px}
+.dialog-table textarea{min-height:44px;resize:vertical;line-height:1.45}
+.dialog-table tr.dialog-row-current td{background:rgba(139,92,246,.20)!important;box-shadow:inset 3px 0 0 var(--ac)}.dialog-table tbody tr{cursor:pointer}.dialog-table tbody tr:hover td{background:rgba(139,92,246,.07)}.dialog-table tbody tr.dialog-row-current:hover td{background:rgba(139,92,246,.26)!important}
+.dialog-time-cell{display:none}
+.dialog-row-actions{display:flex;gap:4px;justify-content:center}
+body.dialog-mode #TEXT_EDITOR_WRAP{display:none!important}
+body.dialog-mode #DIALOG_TABLE_WRAP{display:block!important}
+body.dialog-mode #UPLOAD_ZONE{display:none!important}
+body.dialog-mode #UPLOAD_LABEL strong::after{content:""}
+
+
+/* Progress / Output */
+.output-panel{margin:0 16px 16px;background:var(--bg3);
+  border:0.5px solid var(--b1);border-radius:var(--r2);
+  display:none;flex-direction:column;overflow:visible}
+.output-panel.visible{display:flex}
+.output-header{display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border-bottom:0.5px solid var(--b1)}
+.output-title{font-size:13px;color:var(--tx-strong);font-weight:600;flex:1}
+.output-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.progress-bar-wrap{height:6px;background:var(--b1);border-radius:3px;overflow:hidden;margin-bottom:2px}
+.progress-bar{height:100%;background:var(--ac);border-radius:3px;
+  transition:width .4s ease;width:0%;min-width:0}
+.progress-bar.active{background:linear-gradient(90deg,var(--ac),var(--ac2),var(--ac));
+  background-size:200% 100%;animation:pbflow 1.2s linear infinite}
+@keyframes pbflow{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.progress-log{font-size:12px;color:var(--su);
+  font-family:ui-monospace,'SF Mono',Menlo,monospace;
+  max-height:100px;overflow-y:auto;line-height:1.6}
+audio{width:100%;accent-color:var(--ac)}
+
+/* ── Playback — same compact mode as ASR Offline ─────────────── */
+.player{height:52px;padding:0 0;background:transparent;flex-shrink:0;
+  display:flex;align-items:center;gap:9px;-webkit-app-region:no-drag}
+.play-btn,.vol-btn{width:30px;height:30px;border-radius:50%;border:0.5px solid var(--b2);
+  background:none;color:var(--ac);cursor:pointer;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;transition:all .12s;font-size:14px;padding:0}
+.play-btn:hover,.vol-btn:hover{border-color:var(--ac);background:var(--acd)}
+.player-time{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;
+  color:var(--su);white-space:nowrap;flex-shrink:0;min-width:88px;text-align:right}
+.player-seek{flex:1;height:3px;border-radius:2px;background:var(--b2);
+  cursor:pointer;position:relative;overflow:visible}
+.player-seek-fill{height:100%;background:var(--ac);border-radius:2px;
+  pointer-events:none;transition:width .1s linear}
+.player-seek-thumb{width:13px;height:13px;border-radius:50%;background:var(--ac);
+  position:absolute;top:50%;transform:translate(-50%,-50%);
+  pointer-events:none;opacity:1;transition:left .1s linear,box-shadow .15s;
+  box-shadow:0 0 5px color-mix(in srgb,var(--ac) 45%,transparent)}
+.vol-wrap{display:flex;align-items:center;gap:0;flex-shrink:0}
+.vol-slider-wrap{width:0;overflow:visible;transition:width .2s ease,opacity .16s ease;display:flex;align-items:center;opacity:0;position:relative}
+.vol-wrap:hover .vol-slider-wrap,.vol-wrap:focus-within .vol-slider-wrap{width:80px;opacity:1}
+.vol-slider{width:66px;margin:0 5px;height:3px;-webkit-appearance:none;appearance:none;
+  background:linear-gradient(to right,var(--ac) 100%,var(--b2) 100%);
+  border-radius:2px;outline:none;cursor:pointer;position:relative;z-index:1}
+.vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:0;height:0;opacity:0}
+.vol-slider::-moz-range-thumb{width:0;height:0;border:none;opacity:0;background:transparent}
+.vol-thumb{width:13px;height:13px;border-radius:50%;background:var(--ac);
+  position:absolute;top:50%;transform:translate(-50%,-50%);
+  pointer-events:none;opacity:0;transition:opacity .15s,box-shadow .15s,left .0s;
+  box-shadow:0 0 5px color-mix(in srgb,var(--ac) 45%,transparent);z-index:2}
+.vol-wrap:hover .vol-thumb,.vol-wrap:focus-within .vol-thumb{opacity:1}
+.follow-wrap{display:flex;align-items:center;gap:6px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;color:var(--su);white-space:nowrap;flex-shrink:0}
+.sw{position:relative;width:32px;height:18px;flex-shrink:0}.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw-track{position:absolute;inset:0;border-radius:9px;background:var(--b2);transition:background .2s;cursor:pointer}.sw input:checked+.sw-track{background:var(--ac)}
+.sw-track::after{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}.sw input:checked+.sw-track::after{transform:translateX(14px)}
+
+.chunk-list{max-height:80px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.chunk-item{font-size:11px;color:var(--su);
+  font-family:ui-monospace,'SF Mono',Menlo,monospace;
+  display:flex;gap:6px;align-items:center}
+.chunk-item .ci-idx{color:var(--hi);min-width:24px}
+.chunk-item .ci-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chunk-item .ci-time{color:var(--ac);flex-shrink:0}
+
+/* ── Advanced settings modal ───────────────────────────────── */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.46);display:none;
+  align-items:center;justify-content:center;z-index:9000;-webkit-app-region:no-drag}
+.modal-mask.visible{display:flex}
+.adv-modal{width:min(860px,calc(100vw - 34px));max-height:88vh;overflow:hidden;
+  background:var(--bg2);border:0.5px solid var(--b1);border-radius:var(--r3);
+  box-shadow:0 20px 70px rgba(0,0,0,.42);display:flex;flex-direction:column}
+.adv-head{display:flex;align-items:center;gap:10px;padding:14px 16px;
+  border-bottom:0.5px solid var(--b1)}
+.adv-title{font-size:15px;color:var(--tx-strong);font-weight:650;flex:1}
+.adv-body{padding:14px 16px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.adv-foot{display:flex;gap:8px;padding:12px 16px;
+  border-top:0.5px solid var(--b1);justify-content:flex-end}
+.adv-intro{font-size:12px;color:var(--su);line-height:1.65;background:var(--bg3);
+  border:0.5px solid var(--b1);border-radius:var(--r2);padding:10px 12px}
+.adv-preset-box{background:var(--bg3);border:0.5px solid var(--b1);
+  border-radius:var(--r2);padding:10px 12px}
+.adv-preset-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.adv-preset-label{font-size:12px;color:var(--tx-strong);font-weight:650;margin-right:2px}
+.adv-preset-select{min-width:200px;flex:1;background:var(--bg2);
+  border:0.5px solid var(--b2);border-radius:7px;
+  color:var(--tx);padding:6px 8px;font-size:12px;
+  font-family:ui-monospace,'SF Mono',Menlo,monospace}
+.adv-preset-help{font-size:11px;color:var(--su);line-height:1.55;margin-top:8px}
+.adv-section-title{font-size:13px;color:var(--ac);font-weight:650;margin:2px 0 8px}
+.adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.adv-card{background:var(--bg3);border:0.5px solid var(--b1);
+  border-radius:var(--r2);padding:10px 12px}
+.adv-card.preset-preview{border-color:var(--ac);background:var(--acd)}
+.adv-preview-val{font-size:11px;color:var(--ac);font-weight:600;margin-left:6px;padding:1px 5px;border-radius:3px;background:rgba(139,92,246,.15);white-space:nowrap}
+.adv-row{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.adv-name{font-size:12px;color:var(--tx-strong);font-weight:600;flex:1;min-width:0}
+.adv-key{font-size:10px;color:var(--hi);
+  font-family:ui-monospace,'SF Mono',Menlo,monospace;margin-top:1px;word-break:break-all}
+.adv-input{background:var(--bg2);border:0.5px solid var(--b2);border-radius:5px;
+  color:var(--tx);padding:4px 6px;font-size:12px;
+  font-family:ui-monospace,'SF Mono',Menlo,monospace;
+  width:90px;text-align:right}
+.adv-input:focus{outline:none;border-color:var(--ac)}
+.adv-checkbox{accent-color:var(--ac);width:14px;height:14px}
+
+
+/* ── App HTML confirm dialog ───────────────────────────────── */
+.app-confirm{width:min(440px,calc(100vw - 42px));background:var(--bg2);
+  border:0.5px solid var(--b1);border-radius:22px;
+  box-shadow:0 24px 80px rgba(0,0,0,.42);padding:20px 22px 18px;
+  display:flex;flex-direction:column;align-items:center;text-align:center}
+.app-confirm-icon{width:46px;height:46px;border-radius:16px;background:var(--bg3);
+  border:0.5px solid var(--b1);display:flex;align-items:center;justify-content:center;
+  color:var(--ac);margin-bottom:14px;box-shadow:0 8px 22px rgba(0,0,0,.16)}
+.app-confirm-icon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.app-confirm-title{font-size:15px;font-weight:700;color:var(--tx-strong);line-height:1.55;
+  margin:0 0 18px;word-break:break-word}
+.app-confirm-actions{display:flex;gap:12px;width:100%}
+.app-confirm-actions .btn{flex:1;border-radius:999px;padding:9px 16px;font-size:14px}
+.app-confirm-actions .btn-primary{box-shadow:0 6px 18px color-mix(in srgb,var(--ac) 28%,transparent)}
+
+/* Clone voice modal */
+.clone-modal{width:min(520px,calc(100vw - 34px));background:var(--bg2);
+  border:0.5px solid var(--b1);border-radius:var(--r3);
+  box-shadow:0 20px 70px rgba(0,0,0,.42);padding:20px}
+.clone-title{font-size:15px;font-weight:650;color:var(--tx-strong);margin-bottom:14px}
+.clone-row{margin-bottom:12px}
+.clone-label{font-size:12px;color:var(--su);margin-bottom:5px}
+.clone-input{background:var(--bg3);border:0.5px solid var(--b1);border-radius:var(--r);
+  color:var(--tx);padding:7px 10px;font-size:13px;width:100%}
+.clone-input:focus{outline:none;border-color:var(--ac)}
+.clone-audio-zone{border:1.5px dashed var(--b2);border-radius:var(--r2);
+  padding:16px;text-align:center;cursor:pointer;transition:all .2s;
+  background:var(--bg3)}
+.clone-audio-zone:hover{border-color:var(--ac)}
+.clone-audio-zone.has-file{border-style:solid;border-color:var(--grn)}
+.clone-hint{font-size:11px;color:var(--hi);margin-top:10px;line-height:1.6}
+
+/* Tabs in sidebar */
+.sb-tabs{display:flex;border-bottom:0.5px solid var(--b1)}
+.sb-tab{flex:1;padding:9px 4px;text-align:center;font-size:12px;
+  color:var(--hi);cursor:pointer;transition:all .12s;
+  border-bottom:2px solid transparent;margin-bottom:-0.5px}
+.sb-tab.active{color:var(--ac);border-bottom-color:var(--ac)}
+.sb-tab:hover:not(.active){color:var(--su)}
+.sb-pane{display:none;flex:1;overflow-y:auto}
+.sb-pane.active{display:flex;flex-direction:column}
+
+/* Notification toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg4);
+  border:0.5px solid var(--b2);border-radius:var(--r2);
+  padding:10px 14px;font-size:13px;color:var(--tx-strong);
+  box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:9999;
+  transform:translateY(60px);opacity:0;transition:all .25s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:var(--grn)}
+.toast.err{border-color:var(--red)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--hi)}
+
+select,option{background:var(--bg2);color:var(--tx)}
+/* ── SVG icon buttons ─────────────────────────────────────── */
+.icon-btn{background:none;border:none;cursor:pointer;padding:5px;
+  border-radius:5px;display:inline-flex;align-items:center;justify-content:center;
+  transition:all .12s;flex-shrink:0;color:var(--hi)}
+.icon-btn:hover{background:var(--bg4);color:var(--tx)}
+.icon-btn.danger:hover{background:rgba(224,80,80,.12);color:var(--red)}
+.icon-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab-icon{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;vertical-align:-2px;margin-right:5px;font-size:14px;line-height:1;color:currentColor}.tab-icon svg{width:14px;height:14px;vertical-align:top}
+.clone-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;font-size:15px;line-height:1;color:var(--ac)}.clone-icon svg{width:16px;height:16px}
+.voice-avatar .clone-icon{width:18px;height:18px;font-size:16px}
+select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{width:min(520px,calc(100vw - 32px));background:var(--bg2);
+  border:0.5px solid var(--b2);border-radius:var(--r3);padding:24px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.dl-wizard h2{font-size:15px;font-weight:650;color:var(--tx-strong);margin:0 0 8px}
+.dl-wizard p{font-size:13px;color:var(--su);margin:0 0 16px;line-height:1.6}
+.dl-model-row{display:flex;align-items:center;gap:10px;padding:8px 12px;
+  background:var(--bg3);border-radius:var(--r2);margin-bottom:8px;cursor:pointer;
+  border:1.5px solid transparent;transition:border-color .12s}
+.dl-model-row:hover{border-color:var(--b2)}
+.dl-model-row.selected{border-color:var(--ac);background:var(--acd)}
+.dl-model-name{font-size:13px;font-weight:600;color:var(--tx-strong)}
+.dl-model-desc{font-size:11px;color:var(--su);margin-top:2px}
+.dl-model-badge{font-size:10px;padding:2px 6px;border-radius:3px;
+  background:var(--acd);color:var(--ac);font-weight:600;white-space:nowrap}
+.dl-cmd-box{background:var(--bg3);border:0.5px solid var(--b1);border-radius:var(--r2);
+  padding:10px 12px;font-family:ui-monospace,'SF Mono',Menlo,monospace;
+  font-size:12px;color:var(--ac);word-break:break-all;margin:8px 0;line-height:1.6;
+  user-select:all}
+.dl-mirror-row{display:flex;gap:8px;margin-bottom:12px}
+.dl-mirror-btn{flex:1;padding:7px 10px;font-size:12px;text-align:center;cursor:pointer;
+  border-radius:var(--r2);border:0.5px solid var(--b2);background:var(--bg3);
+  color:var(--tx);transition:all .12s}
+.dl-mirror-btn.active{border-color:var(--ac);background:var(--acd);color:var(--ac);font-weight:600}
+.dl-mirror-btn:hover{border-color:var(--b2);background:var(--bg4)}
+.dl-progress-bar{height:4px;background:var(--b1);border-radius:2px;margin:8px 0;overflow:hidden}
+.dl-progress-fill{height:100%;background:var(--ac);border-radius:2px;width:0%;transition:width .3s}
+.dl-log{font-size:11px;color:var(--su);font-family:ui-monospace,'SF Mono',Menlo,monospace;
+  max-height:80px;overflow-y:auto;padding:6px 8px;background:var(--bg3);
+  border-radius:var(--r);margin-top:6px;line-height:1.5;display:none}
+.ts-anchor{display:inline;font-size:0;line-height:0;width:0;height:0;overflow:hidden;pointer-events:none}.mdl-drop{padding:6px 10px}.mdl-drop-panel-item{padding:7px 14px 7px 20px;font-size:13px;color:var(--tx);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mdl-drop-panel-item:hover{background:var(--acd)}.mdl-drop-panel-item.disabled{color:var(--hi);cursor:default;pointer-events:none}.mdl-drop-panel-item.selected::before{content:'✓ ';color:var(--ac)}.mdl-drop-group-label{padding:8px 10px 4px;font-size:11px;font-weight:600;color:var(--ac);letter-spacing:.04em;text-transform:none;border-top:0.5px solid var(--b1)}.mdl-drop-group-label:first-child{border-top:none}.mdl-drop-custom-item{padding:7px 14px 7px 20px;font-size:13px;color:var(--ac);cursor:pointer}.mdl-drop-custom-item:hover{background:var(--acd)}select option{color:var(--tx)}select option:disabled{color:var(--hi)!important}.subtitle-opt{padding:7px 14px;font-size:13px;color:var(--tx);cursor:pointer;
+  white-space:nowrap;transition:background .1s}
+.subtitle-opt:hover{background:var(--bg3)}
+#author-badge{display:none;align-items:center;justify-content:center;cursor:default;line-height:1}
+#author-badge svg{width:11px;height:13px}
+</style>
+</head>
+<body>
+
+<!-- ── Topbar ──────────────────────────────────────────────── -->
+<div class="top">
+  <a class="brand" href="https://github.com/lancer1911/TTS-OFFLINE/"
+     target="_blank" style="-webkit-app-region:no-drag;text-decoration:none">
+    <div class="brand-title">
+      <span>LANCER1911</span>
+      <span class="slash">/</span>
+      <span>TTS OFFLINE</span>
+    </div>
+    <div class="brand-sub">
+      <span class="brand-ver">v0.3a</span>
+      <span id="author-badge" title="">
+        <svg width="11" height="13" viewBox="0 0 11 13" fill="none" aria-hidden="true">
+          <path d="M5.5 0.5L1 2.5V6C1 9 3 11.5 5.5 12.5C8 11.5 10 9 10 6V2.5L5.5 0.5Z"
+                fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="0.8"/>
+          <path d="M3.5 6.2L4.8 7.5L7.5 4.8" stroke="currentColor" stroke-width="1"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="brand-badge">MLX</span>
+    </div>
+  </a>
+  <div class="tmid">
+    <div class="dot" id="STATUS_DOT"></div>
+    <div class="tst" id="STATUS_TEXT" data-i18n="status_connecting">正在连接…</div>
+  </div>
+  <div class="tr">
+    <button class="btn" onclick="saveSession()" title="保存当前会话为 .ttso 文件" data-i18n-title="save_session_tip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>></svg><span data-i18n="save">保存</span></button>
+    <button class="btn" onclick="chooseSessionFile()" title="加载 .ttso 会话文件" data-i18n-title="load_session_tip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><polyline points="12 11 12 17"/><polyline points="9 14 12 17 15 14"/>></svg><span data-i18n="load">加载</span></button>
+    <input type="file" id="SESSION_LOAD_INPUT" accept=".ttso,.json,application/json" style="display:none"
+      onchange="if(this.files[0])loadSession(this.files[0]);this.value=''">
+    <button class="btn" onclick="openAdvancedSettings()" data-i18n="adv_settings">高级设置</button>
+    <button class="btn" id="LANG_BTN" onclick="toggleLang()" title="Switch language / 切换语言" style="padding:4px 8px;font-size:11px;font-weight:600;letter-spacing:.03em">EN</button>
+    <button class="btn" id="THEME_BTN" onclick="toggleTheme()" title="切换深色/浅色模式" style="display:inline-flex;align-items:center;justify-content:center;padding:6px 8px"></button>
+  </div>
+</div>
+
+<!-- ── Layout ─────────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <div class="sidebar">
+    <!-- Tabs -->
+    <div class="sb-tabs">
+      <div class="sb-tab active" onclick="switchTab('voice')"><span class="tab-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12V13C20 17.4183 16.4183 21 12 21C7.58172 21 4 17.4183 4 13V12M12 17C9.79086 17 8 15.2091 8 13V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V13C16 15.2091 14.2091 17 12 17Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="tab_voice">音色</span></div>
+      <div class="sb-tab" onclick="switchTab('model')"><span class="tab-icon" aria-hidden="true"><svg width="14" height="14" viewBox="64 64 384 384" fill="none" aria-hidden="true"><g fill="currentColor"><path d="M320,64 L320,320 L64,320 L64,64 L320,64 Z M171.749388,128 L146.817842,128 L99.4840387,256 L121.976629,256 L130.913039,230.977 L187.575039,230.977 L196.319607,256 L220.167172,256 L171.749388,128 Z M260.093778,128 L237.691519,128 L237.691519,256 L260.093778,256 L260.093778,128 Z M159.094727,149.47526 L181.409039,213.333 L137.135039,213.333 L159.094727,149.47526 Z M341.333333,256 L384,256 L384,298.666667 L341.333333,298.666667 L341.333333,256 Z M85.3333333,341.333333 L128,341.333333 L128,384 L85.3333333,384 L85.3333333,341.333333 Z M170.666667,341.333333 L213.333333,341.333333 L213.333333,384 L170.666667,384 L170.666667,341.333333 Z M85.3333333,0 L128,0 L128,42.6666667 L85.3333333,42.6666667 L85.3333333,0 Z M256,341.333333 L298.666667,341.333333 L298.666667,384 L256,384 L256,341.333333 Z M170.666667,0 L213.333333,0 L213.333333,42.6666667 L170.666667,42.6666667 L170.666667,0 Z M256,0 L298.666667,0 L298.666667,42.6666667 L256,42.6666667 L256,0 Z M341.333333,170.666667 L384,170.666667 L384,213.333333 L341.333333,213.333333 L341.333333,170.666667 Z M0,256 L42.6666667,256 L42.6666667,298.666667 L0,298.666667 L0,256 Z M341.333333,85.3333333 L384,85.3333333 L384,128 L341.333333,128 L341.333333,85.3333333 Z M0,170.666667 L42.6666667,170.666667 L42.6666667,213.333333 L0,213.333333 L0,170.666667 Z M0,85.3333333 L42.6666667,85.3333333 L42.6666667,128 L0,128 L0,85.3333333 Z" fill="currentColor"/></g></svg></span><span data-i18n="tab_model">模型</span></div>
+      <div class="sb-tab" onclick="switchTab('clone')"><span class="tab-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 -8 72 72" fill="none" aria-hidden="true"><path d="M47.71,24.61a15.61,15.61,0,0,0,2.44.19,11.08,11.08,0,0,0,8-3.11l1.19-1.19a2,2,0,1,0-2.88-2.88l-.29.29L46.09,7.82l.29-.28A2,2,0,0,0,43.5,4.66L42.31,5.85a11,11,0,0,0-3.11,8,16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14L32,22.16a6.54,6.54,0,0,1,2.1-.88l7.8,7.8a7.12,7.12,0,0,0,.09-1.17,10.69,10.69,0,0,0-.36-2.71l-4.07-4.07a12.88,12.88,0,0,1,2.61.63,18.21,18.21,0,0,1-1.6-4.6A15.61,15.61,0,0,0,36.08,17,10.65,10.65,0,0,0,25,28.08a16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14l-9.89-9.89a6.59,6.59,0,0,1,2.11-.88l7.79,7.79a6.93,6.93,0,0,0,.09-1.16,10.69,10.69,0,0,0-.36-2.71l-4.06-4.06a12.92,12.92,0,0,1,2.6.62,18.24,18.24,0,0,1-1.61-4.6,15.4,15.4,0,0,0-2.43-.19,11,11,0,0,0-8,3.11L12.66,35.5a2,2,0,0,0,2.88,2.88l.29-.29L25.91,48.17l-.29.29a2,2,0,1,0,2.88,2.88l1.19-1.19a11,11,0,0,0,3.11-8,16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6A7.73,7.73,0,0,1,30.16,24l9.89,9.89a6.54,6.54,0,0,1-2.1.88l-7.8-7.8a7.12,7.12,0,0,0-.09,1.17,10.56,10.56,0,0,0,.36,2.7l4.07,4.08a13.58,13.58,0,0,1-2.61-.63,18.21,18.21,0,0,1,1.6,4.6,15.61,15.61,0,0,0,2.44.19A10.65,10.65,0,0,0,47,27.92a16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6,7.73,7.73,0,0,1,1.12-4.14l9.89,9.89a6.82,6.82,0,0,1-2.11.88l-7.8-7.8a8.31,8.31,0,0,0-.08,1.17,10.69,10.69,0,0,0,.36,2.71l4.06,4.06a12.16,12.16,0,0,1-2.6-.63A18.28,18.28,0,0,1,47.71,24.61Z" fill="currentColor"/></svg></span><span data-i18n="tab_clone">克隆</span></div>
+    </div>
+
+    <!-- Voice pane -->
+    <div class="sb-pane active" id="PANE_VOICE">
+      <div class="sb-section">
+        <div class="sb-title" data-i18n="speed">语速</div>
+        <div class="speed-row">
+          <input type="range" class="speed-slider" id="SPEED_SLIDER"
+            min="0.5" max="2.0" step="0.05" value="1.0"
+            oninput="onSpeedChange(this.value)">
+          <span class="speed-val" id="SPEED_VAL">1.00×</span>
+        </div>
+      </div>
+      <div class="sb-section" style="flex:1;overflow-y:auto;padding-bottom:8px">
+        <div class="sb-title" data-i18n="select_voice">选择音色</div>
+        <div class="voice-grid" id="VOICE_GRID">
+          <!-- populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Model pane -->
+    <div class="sb-pane" id="PANE_MODEL">
+      <div class="sb-section">
+        <div class="sb-title" data-i18n="tts_model">TTS 模型</div>
+        <div class="sb-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div class="sb-label" data-i18n="select_model">选择模型</div>
+          <div style="position:relative;width:100%">
+          <!-- hidden native select keeps all existing JS working unchanged -->
+          <select id="MODEL_REPO_SELECT" style="display:none"
+            onchange="onModelSelectChange(this.value)">
+            <optgroup label="CustomVoice — 内置音色">
+              <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit">1.7B CustomVoice 8bit（推荐）</option>
+              <option value="mlx-community/Qwen3-TTS-12Hz-0.6B-CustomVoice-8bit">0.6B CustomVoice 8bit（轻量）</option>
+              <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16" disabled>1.7B CustomVoice bf16（未安装）</option>
+              <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit" disabled>1.7B CustomVoice 6bit（未安装）</option>
+            </optgroup>
+            <optgroup label="Base — 声音克隆">
+              <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit">1.7B Base 8bit</option>
+              <option value="mlx-community/Qwen3-TTS-12Hz-0.6B-Base-8bit">0.6B Base 8bit（轻量）</option>
+              <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16" disabled>1.7B Base bf16（未安装）</option>
+              <option value="mlx-community/Qwen3-TTS-12Hz-0.6B-Base-bf16" disabled>0.6B Base bf16（未安装）</option>
+            </optgroup>
+            <optgroup label="VoiceDesign — 文字描述音色">
+              <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit">1.7B VoiceDesign 8bit</option>
+              <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16" disabled>1.7B VoiceDesign bf16（未安装）</option>
+            </optgroup>
+            <option value="__custom__">自定义 repo…</option>
+          </select>
+          <!-- custom dropdown UI -->
+          <div class="mdl-drop model-input" id="MDL_DROP" onclick="toggleModelDrop()" style="width:100%;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none">
+            <span id="MDL_DROP_LABEL" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">1.7B CustomVoice 8bit（推荐）</span>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0;margin-left:6px;transition:transform .15s" id="MDL_DROP_ARROW"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div id="MDL_DROP_PANEL" style="display:none;position:absolute;z-index:999;left:0;right:0;top:100%;margin-top:2px;background:var(--bg2);border:0.5px solid var(--b2);border-radius:var(--r2);overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.25)">
+          </div>
+          </div>
+          <input class="model-input" id="MODEL_REPO_INPUT"
+            placeholder="输入自定义 HuggingFace repo" data-i18n-ph="ph_custom_repo"
+            value="" style="width:100%;display:none">
+        </div>
+        <div style="margin-top:4px;font-size:11px;color:var(--su);line-height:1.5" id="MODEL_DESC">
+          <span data-i18n="model_desc_cv">内置 9 种音色（serena / vivian / ryan / aiden 等），支持情感指令控制</span>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <button class="btn btn-primary" onclick="loadModel()" style="flex:1" data-i18n="load_model">加载模型</button>
+        </div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-title" data-i18n="output_settings">输出设置</div>
+        <div class="sb-row">
+          <span class="sb-label" data-i18n="format">格式</span>
+          <select class="adv-input" id="OUTPUT_FORMAT" onchange="saveBasicSettings()" style="width:auto;text-align:left">
+            <option value="wav">WAV</option>
+            <option value="mp3">MP3</option>
+          </select>
+        </div>
+        <div class="sb-row" style="flex-direction:column;align-items:flex-start;gap:4px">
+          <span class="sb-label" data-i18n="output_dir">输出目录</span>
+          <input class="model-input" id="OUTPUT_DIR" placeholder="~/Downloads" value="">
+        </div>
+        <button class="btn" onclick="saveBasicSettings()" style="margin-top:6px;width:100%" data-i18n="save_settings">保存设置</button>
+      </div>
+    </div>
+
+    <!-- Clone pane -->
+    <div class="sb-pane" id="PANE_CLONE">
+      <div class="sb-section">
+        <div class="sb-title" data-i18n="voice_clone">声音克隆</div>
+        <div style="font-size:12px;color:var(--su);line-height:1.65;margin-bottom:10px">
+          <span data-i18n="clone_intro">上传 5~30 秒的参考音频（WAV/MP3），模型将学习该音色特征用于合成。</span>
+        </div>
+        <div class="clone-row">
+          <div class="clone-label" data-i18n="clone_name">克隆名称</div>
+          <input class="clone-input" id="CLONE_NAME" placeholder="我的声音" value="我的声音" data-i18n-ph="ph_clone_name">
+        </div>
+        <div class="clone-row">
+          <div class="clone-label" data-i18n="ref_audio">参考音频</div>
+          <div class="clone-audio-zone" id="CLONE_AUDIO_ZONE"
+            onclick="chooseCloneAudioFile()">
+            <div id="CLONE_AUDIO_LABEL">点击选择音频文件</div>
+            <div style="font-size:11px;color:var(--hi);margin-top:4px">WAV · MP3 · M4A · FLAC</div>
+          </div>
+          <input type="file" id="CLONE_AUDIO_INPUT"
+            accept=".wav,.mp3,.m4a,.flac,.ogg,audio/wav,audio/x-wav,audio/mpeg,audio/mp4,audio/flac,audio/ogg"
+            style="display:none"
+            onchange="onCloneAudioSelected(this)">
+        </div>
+        <div class="clone-row">
+          <div class="clone-label" data-i18n="ref_text">参考音频文字（可选，填写可提升克隆质量）</div>
+          <input class="clone-input" id="CLONE_REF_TEXT"
+            placeholder="参考音频中说的内容，例如：你好，这是我的声音。" data-i18n-ph="ph_ref_text">
+        </div>
+        <div class="clone-row">
+          <div class="clone-label" data-i18n="base_voice">基础音色（风格参考）</div>
+          <select class="clone-input" id="CLONE_BASE_VOICE">
+            <option value="Chelsie">Chelsie（自然女声）</option>
+            <option value="Ethan">Ethan（沉稳男声）</option>
+            <option value="Brenda">Brenda（温暖女声）</option>
+            <option value="Alex">Alex（叙事男声）</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="submitClone()" style="width:100%">
+开始克隆
+        </button>
+        <div class="clone-hint"><span data-i18n="clone_hint">提示：参考音频越清晰、越纯净（无背景噪声），克隆效果越好。</span><br><br>⚠️ <strong style="color:var(--warn)" data-i18n="clone_warn">声音克隆仅支持 Base 模型（Qwen3-TTS-12Hz-1.7B/0.6B-Base-8bit）。</strong><br><span data-i18n="clone_warn2">请在「模型」标签页切换到 Base 模型后再使用克隆功能。</span><br><br></div>
+        <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <button class="btn" style="padding:4px 10px;font-size:12px"
+            onclick="chooseCloneImportFile()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg data-i18n="import">导入</button>
+          <input type="file" id="CLONE_IMPORT_INPUT" accept=".ttsc,.json,application/json" style="display:none"
+            onchange="if(this.files[0])importClone(this.files[0]);this.value=''">
+        </div>
+      </div>
+      <div class="sb-section" style="flex:1;overflow-y:auto">
+        <div class="sb-title" data-i18n="cloned_voices">已克隆音色</div>
+        <div id="CLONED_VOICE_LIST" style="display:flex;flex-direction:column;gap:5px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main ─────────────────────────────────────────────── -->
+  <div class="main">
+    <!-- Upload zone -->
+    <div class="upload-zone" id="UPLOAD_ZONE"
+      ondragover="onDragOver(event)" ondragleave="onDragLeave(event)"
+      ondrop="onDrop(event)">
+      <div class="upload-icon"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></div>
+      <div class="upload-label" id="UPLOAD_LABEL"><strong data-i18n="upload_click">点击上传</strong> <span data-i18n="upload_or">或拖放文本文件</span></div>
+      <div class="upload-exts" data-i18n="upload_fmts">TXT · MD · DOCX · SRT · PDF · EPUB</div>
+    </div>
+    <input type="file" id="FILE_INPUT"
+      accept=".txt,.md,.srt,.docx,.pdf,.epub,text/plain,text/markdown,application/x-subrip,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,application/epub+zip"
+      style="display:none"
+      onchange="onFileSelected(this)">
+    <input type="file" id="DIALOG_CSV_INPUT"
+      accept=".csv,text/csv"
+      style="display:none"
+      onchange="onDialogCsvSelected(this)">
+
+    <!-- Text editor -->
+    <div class="text-area-wrap">
+      <div class="text-area-header">
+        <span class="text-area-label" id="TEXT_AREA_LABEL" data-i18n="text_content">文本内容</span>
+        <div class="dialog-tools" id="DIALOG_TOOLS">
+          <button class="btn" id="BTN_DIALOG_MODE" onclick="toggleDialogMode()" style="padding:3px 8px;font-size:11px">三列表格</button>
+          <button class="btn" id="BTN_DIALOG_CSV" onclick="chooseDialogCsv()" style="padding:3px 8px;font-size:11px" data-i18n="load_csv">加载 CSV</button>
+          <button class="btn" id="BTN_DIALOG_ADD" onclick="addDialogRow()" style="padding:3px 8px;font-size:11px" data-i18n="add_row">+ 行</button>
+        </div>
+        <span class="text-count" id="CHAR_COUNT">0 字</span>
+        <button class="btn" onclick="clearText()" style="padding:3px 8px;font-size:11px" data-i18n="clear">清空</button>
+      </div>
+      <div class="text-editor-wrap" id="TEXT_EDITOR_WRAP" style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column">
+        <!-- highlight overlay：与 textarea 完全重叠，pointer-events:none -->
+        <div id="TEXT_HIGHLIGHT" style="
+          position:absolute;inset:0;
+          font:inherit;font-size:14px;line-height:1.7;
+          padding:12px 14px;
+          white-space:pre-wrap;word-wrap:break-word;
+          color:transparent;
+          pointer-events:none;
+          overflow:auto;
+          scrollbar-width:none;
+          border-radius:var(--r2);
+          z-index:1;
+        "></div>
+        <textarea class="text-editor" id="TEXT_EDITOR"
+          placeholder="在此输入或粘贴文本，或上传文件…" data-i18n-ph="ph_text_editor"
+          oninput="onTextInput()"
+          onscroll="_syncHlScroll()"
+          onclick="onTextEditorClick(event)"
+          style="position:relative;z-index:2;background:transparent;resize:none;flex:1"></textarea>
+      </div>
+      <div class="dialog-table-wrap" id="DIALOG_TABLE_WRAP">
+        <table class="dialog-table" id="DIALOG_TABLE">
+          <thead>
+            <tr>
+              <th style="width:18%" data-i18n="th_speaker">Speaker</th>
+              <th style="width:30%" data-i18n="th_instruction">Control Instruction</th>
+              <th data-i18n="th_text">Text</th>
+              <th class="dialog-time-cell" data-i18n="th_start">Start</th>
+              <th class="dialog-time-cell" data-i18n="th_end">End</th>
+              <th style="width:58px;text-align:center" data-i18n="action">操作</th>
+            </tr>
+          </thead>
+          <tbody id="DIALOG_TBODY"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Synthesize button row -->
+    <div style="display:flex;gap:8px;margin:0 16px 10px;flex-shrink:0">
+      <button class="btn btn-primary" id="BTN_SYNTH" onclick="onSynthClick()"
+        style="flex:1;padding:9px">
+        ▶ <span data-i18n="start_synth">开始合成</span>
+      </button>
+    </div>
+
+    <!-- Output panel -->
+    <div class="output-panel" id="OUTPUT_PANEL">
+      <div class="output-header">
+        <span class="output-title" id="OUTPUT_TITLE" data-i18n="synth_progress">合成进度</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn" id="BTN_SUBTITLE" disabled
+            style="padding:4px 10px;font-size:12px"
+            onclick="toggleSubtitleMenu(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/><path d="M17 17l1.5-1.5a1.06 1.06 0 0 1 1.5 1.5L18.5 18.5l-2 .5.5-2z"/></svg><span data-i18n="subtitles">字幕</span> ▾</button>
+          <button class="btn" onclick="downloadAudio()" id="BTN_DOWNLOAD" disabled
+            style="padding:4px 10px;font-size:12px"><span data-i18n="download_audio">⬇ 下载音频</span></button>
+        </div>
+      </div>
+      <!-- 进度区：合成中显示 -->
+      <div class="output-body" id="PROGRESS_AREA">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <div class="progress-bar-wrap" style="flex:1;margin-bottom:0">
+            <div class="progress-bar active" id="PROGRESS_BAR"></div>
+          </div>
+          <div id="PROGRESS_PCT" style="font-size:11px;color:var(--ac);
+            font-family:ui-monospace,'SF Mono',Menlo,monospace;min-width:36px;text-align:right">0%</div>
+          <button class="btn" id="BTN_LOG_TOGGLE" onclick="toggleLog()"
+            style="padding:2px 8px;font-size:11px;flex-shrink:0" data-i18n="expand_log">展开日志</button>
+        </div>
+        <div id="PROGRESS_CUR" style="font-size:12px;color:var(--su);margin-bottom:4px;
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:16px"></div>
+        <div class="progress-log" id="PROGRESS_LOG" style="display:none"></div>
+      </div>
+      <!-- 播放区：完成后显示，取代进度区；样式与 ASR Offline playback 保持一致 -->
+      <div class="output-body" id="PLAYER_AREA" style="display:none;padding:10px 14px">
+        <div class="player" id="PLAYER">
+          <button class="play-btn" id="PLAY_BTN" onclick="togglePlay()" title="播放/暂停">▶</button>
+          <div class="player-seek" id="SEEK_BAR" onclick="seekClick(event)">
+            <div class="player-seek-fill" id="SEEK_FILL" style="width:0%"></div>
+            <div class="player-seek-thumb" id="SEEK_THUMB" style="left:0%"></div>
+          </div>
+          <span class="player-time" id="PLAY_TIME">0:00 / 0:00</span>
+          <div class="vol-wrap" id="VOL_WRAP">
+            <button class="vol-btn" id="VOL_BTN" onclick="toggleMute()" title="静音/取消静音">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            </button>
+            <div class="vol-slider-wrap">
+              <input type="range" class="vol-slider" id="VOL_SLIDER" min="0" max="100" step="1" value="100" oninput="setVol(this.value)">
+              <div class="vol-thumb" id="VOL_THUMB"></div>
+            </div>
+          </div>
+          <div class="follow-wrap">
+            <label class="sw"><input type="checkbox" id="FOLLOW_SW" onchange="toggleFollow()" checked><div class="sw-track"></div></label>
+            <span>跟随</span>
+          </div>
+        </div>
+        <audio id="AUDIO_EL" preload="auto" style="display:none"></audio>
+        <div id="AUDIO_META" style="font-size:11px;color:var(--su);margin-top:6px;
+          font-family:ui-monospace,'SF Mono',Menlo,monospace"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Advanced Settings Modal ──────────────────────────────── -->
+<div class="modal-mask" id="ADV_MASK" onclick="if(event.target===this) closeAdvancedSettings()">
+  <div class="adv-modal">
+    <div class="adv-head">
+      <div class="adv-title" data-i18n="adv_title">高级 TTS 参数</div>
+      <button class="btn" onclick="closeAdvancedSettings()" data-i18n="close">关闭</button>
+    </div>
+    <div class="adv-body">
+      <div class="adv-intro" data-i18n="adv_intro">以下参数影响 TTS 模型推理行为。建议普通用户仅调整左侧栏中的语速和音色；高级参数适合需要精细控制输出风格的用户。修改后点击"保存并关闭"生效。</div>
+
+      <!-- 预设 -->
+      <div class="adv-preset-box">
+        <div class="adv-preset-row">
+          <span class="adv-preset-label" data-i18n="presets">参数预设</span>
+          <select id="ADV_PRESET_SELECT" class="adv-preset-select" onchange="previewAdvPreset()"></select>
+          <button class="btn" onclick="applyAdvPreset()" data-i18n="apply_preset">套用预设</button>
+          <button class="btn" onclick="saveAdvPreset()" data-i18n="save_preset">保存为预设</button>
+          <button class="btn btn-danger" onclick="deleteAdvPreset()" data-i18n="del_preset">删除预设</button>
+        </div>
+        <div class="adv-preset-help" data-i18n="adv_preset_help">预设会覆盖当前高级参数。自定义预设保存在本机设置文件中。</div>
+      </div>
+
+      <!-- 采样参数 -->
+      <div>
+        <div class="adv-section-title" data-i18n="sampling_params">采样参数</div>
+        <div class="adv-grid" id="ADV_SAMPLING_GRID"></div>
+      </div>
+
+      <!-- 文本处理 -->
+      <div>
+        <div class="adv-section-title" data-i18n="text_proc">文本处理</div>
+        <div class="adv-grid" id="ADV_TEXT_GRID"></div>
+      </div>
+
+      <!-- 音频后处理 -->
+      <div>
+        <div class="adv-section-title" data-i18n="audio_post">音频后处理</div>
+        <div class="adv-grid" id="ADV_AUDIO_GRID"></div>
+      </div>
+    </div>
+    <div class="adv-foot">
+      <button class="btn" onclick="resetAdvToDefault()" data-i18n="reset_defaults">恢复默认值</button>
+      <button class="btn act" onclick="applyAdvSettings()" data-i18n="apply_settings">应用到设置</button>
+      <button class="btn btn-primary" onclick="saveAndCloseAdv()" data-i18n="save_close">保存并关闭</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── HTML Confirm Modal ──────────────────────────────────── -->
+<div class="modal-mask" id="CONFIRM_MASK" onclick="if(event.target===this) closeHtmlConfirm(false)">
+  <div class="app-confirm" role="dialog" aria-modal="true" aria-labelledby="CONFIRM_TITLE">
+    <div class="app-confirm-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3 5 6v5c0 4.4 2.8 8.2 7 10 4.2-1.8 7-5.6 7-10V6l-7-3Z"/>
+        <path d="m9 12 2 2 4-5"/>
+      </svg>
+    </div>
+    <div class="app-confirm-title" id="CONFIRM_TITLE">确定执行此操作？</div>
+    <div class="app-confirm-actions">
+      <button class="btn" id="CONFIRM_CANCEL" onclick="closeHtmlConfirm(false)">取消</button>
+      <button class="btn btn-primary" id="CONFIRM_OK" onclick="closeHtmlConfirm(true)">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ──────────────────────────────────────────────── -->
+<div class="toast" id="TOAST"></div>
+
+<script>
+
+let _confirmResolver = null;
+function htmlConfirm(message, okText="确定", cancelText="取消") {
+  return new Promise(resolve => {
+    _confirmResolver = resolve;
+    const mask = document.getElementById("CONFIRM_MASK");
+    const title = document.getElementById("CONFIRM_TITLE");
+    const ok = document.getElementById("CONFIRM_OK");
+    const cancel = document.getElementById("CONFIRM_CANCEL");
+    if (!mask || !title || !ok || !cancel) { resolve(window.confirm(message)); return; }
+    title.textContent = message || "确定执行此操作？";
+    ok.textContent = okText || "确定";
+    cancel.textContent = cancelText || "取消";
+    mask.classList.add("visible");
+    setTimeout(() => ok.focus(), 0);
+  });
+}
+function closeHtmlConfirm(result) {
+  const mask = document.getElementById("CONFIRM_MASK");
+  if (mask) mask.classList.remove("visible");
+  const resolver = _confirmResolver;
+  _confirmResolver = null;
+  if (resolver) resolver(!!result);
+}
+document.addEventListener("keydown", (e) => {
+  const mask = document.getElementById("CONFIRM_MASK");
+  if (!mask || !mask.classList.contains("visible")) return;
+  if (e.key === "Escape") { e.preventDefault(); closeHtmlConfirm(false); }
+  if (e.key === "Enter")  { e.preventDefault(); closeHtmlConfirm(true); }
+});
+
+const ICON_MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="white"/></svg>`;
+const ICON_SUN  = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5" fill="white"/><line x1="12" y1="1" x2="12" y2="3" stroke-width="2.8"/><line x1="12" y1="21" x2="12" y2="23" stroke-width="2.8"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke-width="2.8"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke-width="2.8"/><line x1="1" y1="12" x2="3" y2="12" stroke-width="2.8"/><line x1="21" y1="12" x2="23" y2="12" stroke-width="2.8"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke-width="2.8"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke-width="2.8"/></svg>`;
+
+// ── State ──────────────────────────────────────────────────
+// ── Playback icons ───────────────────────────────────────
+const ICON_DNA = `<span class="clone-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 -8 72 72" fill="none" aria-hidden="true"><path d="M47.71,24.61a15.61,15.61,0,0,0,2.44.19,11.08,11.08,0,0,0,8-3.11l1.19-1.19a2,2,0,1,0-2.88-2.88l-.29.29L46.09,7.82l.29-.28A2,2,0,0,0,43.5,4.66L42.31,5.85a11,11,0,0,0-3.11,8,16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14L32,22.16a6.54,6.54,0,0,1,2.1-.88l7.8,7.8a7.12,7.12,0,0,0,.09-1.17,10.69,10.69,0,0,0-.36-2.71l-4.07-4.07a12.88,12.88,0,0,1,2.61.63,18.21,18.21,0,0,1-1.6-4.6A15.61,15.61,0,0,0,36.08,17,10.65,10.65,0,0,0,25,28.08a16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14l-9.89-9.89a6.59,6.59,0,0,1,2.11-.88l7.79,7.79a6.93,6.93,0,0,0,.09-1.16,10.69,10.69,0,0,0-.36-2.71l-4.06-4.06a12.92,12.92,0,0,1,2.6.62,18.24,18.24,0,0,1-1.61-4.6,15.4,15.4,0,0,0-2.43-.19,11,11,0,0,0-8,3.11L12.66,35.5a2,2,0,0,0,2.88,2.88l.29-.29L25.91,48.17l-.29.29a2,2,0,1,0,2.88,2.88l1.19-1.19a11,11,0,0,0,3.11-8,16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6A7.73,7.73,0,0,1,30.16,24l9.89,9.89a6.54,6.54,0,0,1-2.1.88l-7.8-7.8a7.12,7.12,0,0,0-.09,1.17,10.56,10.56,0,0,0,.36,2.7l4.07,4.08a13.58,13.58,0,0,1-2.61-.63,18.21,18.21,0,0,1,1.6,4.6,15.61,15.61,0,0,0,2.44.19A10.65,10.65,0,0,0,47,27.92a16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6,7.73,7.73,0,0,1,1.12-4.14l9.89,9.89a6.82,6.82,0,0,1-2.11.88l-7.8-7.8a8.31,8.31,0,0,0-.08,1.17,10.69,10.69,0,0,0,.36,2.71l4.06,4.06a12.16,12.16,0,0,1-2.6-.63A18.28,18.28,0,0,1,47.71,24.61Z" fill="currentColor"/></svg></span>`;
+const ICON_BOX = `<span class="tab-icon" aria-hidden="true"><svg width="14" height="14" viewBox="64 64 384 384" fill="none" aria-hidden="true"><g fill="currentColor"><path d="M320,64 L320,320 L64,320 L64,64 L320,64 Z M171.749388,128 L146.817842,128 L99.4840387,256 L121.976629,256 L130.913039,230.977 L187.575039,230.977 L196.319607,256 L220.167172,256 L171.749388,128 Z M260.093778,128 L237.691519,128 L237.691519,256 L260.093778,256 L260.093778,128 Z M159.094727,149.47526 L181.409039,213.333 L137.135039,213.333 L159.094727,149.47526 Z M341.333333,256 L384,256 L384,298.666667 L341.333333,298.666667 L341.333333,256 Z M85.3333333,341.333333 L128,341.333333 L128,384 L85.3333333,384 L85.3333333,341.333333 Z M170.666667,341.333333 L213.333333,341.333333 L213.333333,384 L170.666667,384 L170.666667,341.333333 Z M85.3333333,0 L128,0 L128,42.6666667 L85.3333333,42.6666667 L85.3333333,0 Z M256,341.333333 L298.666667,341.333333 L298.666667,384 L256,384 L256,341.333333 Z M170.666667,0 L213.333333,0 L213.333333,42.6666667 L170.666667,42.6666667 L170.666667,0 Z M256,0 L298.666667,0 L298.666667,42.6666667 L256,42.6666667 L256,0 Z M341.333333,170.666667 L384,170.666667 L384,213.333333 L341.333333,213.333333 L341.333333,170.666667 Z M0,256 L42.6666667,256 L42.6666667,298.666667 L0,298.666667 L0,256 Z M341.333333,85.3333333 L384,85.3333333 L384,128 L341.333333,128 L341.333333,85.3333333 Z M0,170.666667 L42.6666667,170.666667 L42.6666667,213.333333 L0,213.333333 L0,170.666667 Z M0,85.3333333 L42.6666667,85.3333333 L42.6666667,128 L0,128 L0,85.3333333 Z" fill="currentColor"/></g></svg></span>`;
+const ICON_DNA_TAB = `<span class="tab-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 -8 72 72" fill="none" aria-hidden="true"><path d="M47.71,24.61a15.61,15.61,0,0,0,2.44.19,11.08,11.08,0,0,0,8-3.11l1.19-1.19a2,2,0,1,0-2.88-2.88l-.29.29L46.09,7.82l.29-.28A2,2,0,0,0,43.5,4.66L42.31,5.85a11,11,0,0,0-3.11,8,16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14L32,22.16a6.54,6.54,0,0,1,2.1-.88l7.8,7.8a7.12,7.12,0,0,0,.09-1.17,10.69,10.69,0,0,0-.36-2.71l-4.07-4.07a12.88,12.88,0,0,1,2.61.63,18.21,18.21,0,0,1-1.6-4.6A15.61,15.61,0,0,0,36.08,17,10.65,10.65,0,0,0,25,28.08a16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14l-9.89-9.89a6.59,6.59,0,0,1,2.11-.88l7.79,7.79a6.93,6.93,0,0,0,.09-1.16,10.69,10.69,0,0,0-.36-2.71l-4.06-4.06a12.92,12.92,0,0,1,2.6.62,18.24,18.24,0,0,1-1.61-4.6,15.4,15.4,0,0,0-2.43-.19,11,11,0,0,0-8,3.11L12.66,35.5a2,2,0,0,0,2.88,2.88l.29-.29L25.91,48.17l-.29.29a2,2,0,1,0,2.88,2.88l1.19-1.19a11,11,0,0,0,3.11-8,16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6A7.73,7.73,0,0,1,30.16,24l9.89,9.89a6.54,6.54,0,0,1-2.1.88l-7.8-7.8a7.12,7.12,0,0,0-.09,1.17,10.56,10.56,0,0,0,.36,2.7l4.07,4.08a13.58,13.58,0,0,1-2.61-.63,18.21,18.21,0,0,1,1.6,4.6,15.61,15.61,0,0,0,2.44.19A10.65,10.65,0,0,0,47,27.92a16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6,7.73,7.73,0,0,1,1.12-4.14l9.89,9.89a6.82,6.82,0,0,1-2.11.88l-7.8-7.8a8.31,8.31,0,0,0-.08,1.17,10.69,10.69,0,0,0,.36,2.71l4.06,4.06a12.16,12.16,0,0,1-2.6-.63A18.28,18.28,0,0,1,47.71,24.61Z" fill="currentColor"/></svg></span>`;
+const ICON_VOL = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
+const ICON_MUTED = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>`;
+
+let _ws = null;
+let _settings = {};
+let _voices = [];
+let _selectedVoice = "serena";
+let _currentOutputPath = "";
+let _wsReconnectTimer = null;
+let _speed = 1.0;
+let _inputMode = "text";
+let _dialogRows = [];
+
+const ADV_SAMPLING_PARAMS = [
+  {key:"temperature", label:"Temperature", descKey:"adv_desc_temp",   default:0.9, min:0,   max:2,    step:0.05},
+  {key:"top_p",       label:"Top-P",       descKey:"adv_desc_topp",   default:0.9, min:0,   max:1,    step:0.05},
+  {key:"top_k",       label:"Top-K",       descKey:"adv_desc_topk",   default:50,  min:1,   max:200,  step:1},
+  {key:"max_tokens",  label:"Max Tokens",  descKey:"adv_desc_maxtok", default:4096,min:256, max:8192, step:64},
+];
+const ADV_TEXT_PARAMS = [
+  {key:"chunk_size",       labelKey:"adv_label_chunk", descKey:"adv_desc_chunk", default:250,  min:50,  max:800,  step:10},
+  {key:"skip_brackets",    labelKey:"adv_label_skip",  descKey:"adv_desc_skip",  default:true, type:"bool"},
+  {key:"normalize_numbers",labelKey:"adv_label_norm",  descKey:"adv_desc_norm",  default:true, type:"bool"},
+];
+const ADV_AUDIO_PARAMS = [
+  {key:"silence_gap_ms",labelKey:"adv_label_gap",   descKey:"adv_desc_gap",   default:300, min:0,   max:2000, step:50},
+  {key:"fade_ms",       labelKey:"adv_label_fade",  descKey:"adv_desc_fade",  default:10,  min:0,   max:200,  step:5},
+  {key:"pitch",         labelKey:"adv_label_pitch", descKey:"adv_desc_pitch", default:0,   min:-12, max:12,   step:1},
+];
+
+const BUILTIN_PRESETS = [
+  {nameKey:"preset_audiobook_en", params:{temperature:0.65,top_p:0.85,top_k:30,chunk_size:120,silence_gap_ms:450,fade_ms:10}},
+  {nameKey:"preset_audiobook_zh", params:{temperature:0.75,top_p:0.85,top_k:40,chunk_size:160,silence_gap_ms:400}},
+  {nameKey:"preset_podcast",      params:{temperature:0.9, top_p:0.9, top_k:50,silence_gap_ms:300}},
+  {nameKey:"preset_dubbing",      params:{temperature:0.8, top_p:0.88,top_k:40,silence_gap_ms:200}},
+  {nameKey:"preset_reading",      params:{temperature:0.7, top_p:0.85,top_k:30,chunk_size:140,silence_gap_ms:500}},
+];
+
+// ── Init ──────────────────────────────────────────────────
+
+const _DICT = {
+  zh: {
+    save:"保存", load:"加载", adv_settings:"高级设置",
+    tab_voice:"音色", tab_model:"模型", tab_clone:"克隆",
+    speed:"语速", select_voice:"选择音色",
+    tts_model:"TTS 模型", select_model:"选择模型", load_model:"加载模型",
+    output_settings:"输出设置", format:"格式", output_dir:"输出目录", save_settings:"保存设置",
+    voice_clone:"声音克隆", clone_name:"克隆名称", ref_audio:"参考音频",
+    ref_text:"参考音频文字（可选，填写可提升克隆质量）",
+    base_voice:"基础音色（风格参考）", start_clone:"开始克隆",
+    import:"导入", cloned_voices:"已克隆音色",
+    start_synth:"开始合成", synth_progress:"合成进度",
+    subtitles:"字幕", download_audio:"⬇ 下载音频",
+    expand_log:"展开日志", collapse_log:"收起日志",
+    follow:"跟随", action:"操作",
+    text_content:"文本内容", dialog_mode:"三列表格", normal_text:"普通文本",
+    load_csv:"加载 CSV", clear:"清空",
+    adv_title:"高级 TTS 参数", close:"关闭",
+    presets:"参数预设", apply_preset:"套用预设", save_preset:"保存为预设", del_preset:"删除预设",
+    sampling_params:"采样参数", text_proc:"文本处理", audio_post:"音频后处理",
+    reset_defaults:"恢复默认值", apply_settings:"应用到设置", save_close:"保存并关闭",
+    sub_srt:"SRT 字幕", sub_txt:"TXT 纯文本", sub_md:"Markdown",
+    sub_json:"JSON", sub_csv:"Excel (CSV)",
+    save_session_tip:"保存当前会话为 .ttso 文件", load_session_tip:"加载 .ttso 会话文件",
+    status_connecting:"正在连接…", status_ready:"就绪", status_loading:"正在加载…",
+    status_no_model:"模型未加载 — 请在「模型」标签页点击「加载模型」",
+    synth_cancel:"■ 取消合成", voice_desc_clone:"声音克隆",
+    cloned_none:"暂无克隆音色",
+    upload_click:"点击上传", upload_or:"或拖放文本文件",
+    upload_fmts:"TXT · MD · DOCX · SRT · PDF · EPUB",
+    adv_intro:"以下参数影响 TTS 模型推理行为。建议普通用户仅调整左侧栏中的语速和音色；高级参数适合需要精细控制输出风格的用户。修改后点击\"保存并关闭\"生效。",
+    adv_preset_help:"预设会覆盖当前高级参数。自定义预设保存在本机设置文件中。",
+    ph_custom_repo:"输入自定义 HuggingFace repo",
+    ph_clone_name:"我的声音",
+    ph_ref_text:"参考音频中说的内容，例如：你好，这是我的声音。",
+    ph_text_editor:"在此输入或粘贴文本，或上传文件…",
+    ph_instruction:"例如：用平静但略带担忧的语气说",
+    ph_dialog_text:"需要转换的文字内容",
+    clone_intro:"上传 5~30 秒的参考音频（WAV/MP3），模型将学习该音色特征用于合成。",
+    clone_hint:"提示：参考音频越清晰、越纯净（无背景噪声），克隆效果越好。",
+    clone_warn:"声音克隆仅支持 Base 模型（Qwen3-TTS-12Hz-1.7B/0.6B-Base-8bit）。",
+    clone_warn2:"请在「模型」标签页切换到 Base 模型后再使用克隆功能。",
+    model_desc_cv:"内置 9 种音色（serena / vivian / ryan / aiden 等），支持情感指令控制",
+    add_row:"+ 行", unit_char:"字", unit_rows:"行",
+    preset_audiobook_en:"Audiobook（稳定长文本）",
+    preset_audiobook_zh:"有声书（沉稳）",
+    preset_podcast:"播客（自然）",
+    preset_dubbing:"配音（快）",
+    preset_reading:"朗读（慢清晰）",
+    custom_preset_suffix:" [自定义]",
+    preset_applied:"已套用预设",
+    dl_title:"未检测到 Qwen3-TTS 模型",
+    dl_body:"请先下载至少一个模型才能使用合成功能。",
+    dl_mirror_label:"下载源",
+    dl_mirror_official:"官方 HuggingFace",
+    dl_mirror_cn:"中国镜像 (hf-mirror.com)",
+    dl_recommended:"推荐（首次安装）",
+    dl_cmd_label:"在终端执行以下命令：",
+    dl_copy:"复制命令",
+    dl_copied:"已复制",
+    dl_dismiss:"稍后再说",
+    dl_downloading:"正在下载…",
+    dl_progress:"下载进度",
+    dl_done:"下载完成",
+    dl_err:"下载失败",
+    dl_open_terminal:"打开终端",
+    dl_install_hint:"如未安装 hf 命令：pip install -U huggingface_hub",
+    th_speaker:"Speaker", th_instruction:"Control Instruction", th_text:"Text",
+    th_start:"Start", th_end:"End",
+    adv_label_chunk:"分段字数", adv_desc_chunk:"每段文本最大字符数",
+    adv_label_skip:"跳过括号注释", adv_desc_skip:"忽略（）内的文字",
+    adv_label_norm:"数字转中文", adv_desc_norm:"将阿拉伯数字转换为中文读法",
+    adv_label_gap:"段落静音 (ms)", adv_desc_gap:"段落间插入的静音时长",
+    adv_label_fade:"淡入淡出 (ms)", adv_desc_fade:"音频首尾淡化时长",
+    adv_label_pitch:"音调偏移", adv_desc_pitch:"音调调整（半音，0=原始）",
+    adv_desc_temp:"采样温度，越高越多样", adv_desc_topp:"核采样概率阈值",
+    adv_desc_topk:"采样候选数", adv_desc_maxtok:"每段最大生成 token 数",
+  },
+  en: {
+    save:"Save", load:"Load", adv_settings:"Advanced",
+    tab_voice:"Voice", tab_model:"Model", tab_clone:"Clone",
+    speed:"Speed", select_voice:"Select Voice",
+    tts_model:"TTS Model", select_model:"Select Model", load_model:"Load Model",
+    output_settings:"Output", format:"Format", output_dir:"Output Dir", save_settings:"Save Settings",
+    voice_clone:"Voice Clone", clone_name:"Clone Name", ref_audio:"Reference Audio",
+    ref_text:"Reference Text (optional, improves clone quality)",
+    base_voice:"Base Voice (style reference)", start_clone:"Start Clone",
+    import:"Import", cloned_voices:"Cloned Voices",
+    start_synth:"Synthesize", synth_progress:"Progress",
+    subtitles:"Subtitles", download_audio:"⬇ Download",
+    expand_log:"Show Log", collapse_log:"Hide Log",
+    follow:"Follow", action:"Actions",
+    text_content:"Text", dialog_mode:"Dialog Table", normal_text:"Plain Text",
+    load_csv:"Load CSV", clear:"Clear",
+    adv_title:"Advanced TTS Parameters", close:"Close",
+    presets:"Presets", apply_preset:"Apply", save_preset:"Save Preset", del_preset:"Delete",
+    sampling_params:"Sampling", text_proc:"Text Processing", audio_post:"Audio Post",
+    reset_defaults:"Reset Defaults", apply_settings:"Apply", save_close:"Save & Close",
+    sub_srt:"SRT Subtitles", sub_txt:"Plain Text", sub_md:"Markdown",
+    sub_json:"JSON", sub_csv:"Excel (CSV)",
+    save_session_tip:"Save session as .ttso file", load_session_tip:"Load .ttso session file",
+    status_connecting:"Connecting…", status_ready:"Ready", status_loading:"Loading…",
+    status_no_model:"No model — go to Model tab and click Load Model",
+    synth_cancel:"■ Stop", voice_desc_clone:"Cloned Voice",
+    cloned_none:"No cloned voices",
+    upload_click:"Click to upload", upload_or:"or drag & drop a text file",
+    upload_fmts:"TXT · MD · DOCX · SRT · PDF · EPUB",
+    adv_intro:"The following parameters affect TTS inference. Regular users should only adjust speed and voice in the sidebar; these advanced options are for fine-grained control. Click \"Save & Close\" to apply.",
+    adv_preset_help:"Presets override all current advanced parameters. Custom presets are saved in local settings.",
+    ph_custom_repo:"Enter custom HuggingFace repo",
+    ph_clone_name:"My Voice",
+    ph_ref_text:"What is said in the reference audio, e.g.: Hello, this is my voice.",
+    ph_text_editor:"Type or paste text here, or upload a file…",
+    ph_instruction:"e.g.: Speak in a calm but slightly worried tone",
+    ph_dialog_text:"Text to synthesize",
+    clone_intro:"Upload 5–30 s of reference audio (WAV/MP3); the model will learn its voice characteristics.",
+    clone_hint:"Tip: cleaner reference audio (no background noise) yields better clones.",
+    clone_warn:"Voice cloning only works with Base models (Qwen3-TTS-12Hz-1.7B/0.6B-Base-8bit).",
+    clone_warn2:"Switch to a Base model in the Model tab before using clone.",
+    model_desc_cv:"9 built-in voices (serena / vivian / ryan / aiden …), supports emotion instructions",
+    add_row:"+ Row", unit_char:"chars", unit_rows:"rows",
+    preset_audiobook_en:"Audiobook (stable long text)",
+    preset_audiobook_zh:"Audiobook (mellow)",
+    preset_podcast:"Podcast (natural)",
+    preset_dubbing:"Dubbing (fast)",
+    preset_reading:"Reading (slow & clear)",
+    custom_preset_suffix:" [custom]",
+    preset_applied:"Preset applied",
+    dl_title:"No Qwen3-TTS models found",
+    dl_body:"Please download at least one model before synthesizing.",
+    dl_mirror_label:"Download source",
+    dl_mirror_official:"Official HuggingFace",
+    dl_mirror_cn:"China mirror (hf-mirror.com)",
+    dl_recommended:"Recommended (first install)",
+    dl_cmd_label:"Run the following command in Terminal:",
+    dl_copy:"Copy command",
+    dl_copied:"Copied!",
+    dl_dismiss:"Later",
+    dl_downloading:"Downloading…",
+    dl_progress:"Download progress",
+    dl_done:"Download complete",
+    dl_err:"Download failed",
+    dl_open_terminal:"Open Terminal",
+    dl_install_hint:"If hf is not installed: pip install -U huggingface_hub",
+    th_speaker:"Speaker", th_instruction:"Control Instruction", th_text:"Text",
+    th_start:"Start", th_end:"End",
+    adv_label_chunk:"Chunk Size", adv_desc_chunk:"Max characters per text chunk",
+    adv_label_skip:"Skip Brackets", adv_desc_skip:"Ignore text inside （） brackets",
+    adv_label_norm:"Numbers to Words", adv_desc_norm:"Convert Arabic numerals to spoken form",
+    adv_label_gap:"Paragraph Gap (ms)", adv_desc_gap:"Silence inserted between paragraphs",
+    adv_label_fade:"Fade (ms)", adv_desc_fade:"Fade-in/out duration at audio edges",
+    adv_label_pitch:"Pitch Shift", adv_desc_pitch:"Pitch adjustment in semitones (0 = original)",
+    adv_desc_temp:"Sampling temperature — higher = more varied", adv_desc_topp:"Nucleus sampling threshold",
+    adv_desc_topk:"Top-K candidates", adv_desc_maxtok:"Max tokens generated per chunk",
+  }
+};
+
+let _lang = localStorage.getItem("lang") || "zh";
+
+function t(key) {
+  return (_DICT[_lang] || _DICT.zh)[key] || (_DICT.zh)[key] || key;
+}
+
+function applyLang(lang) {
+  _lang = lang;
+  localStorage.setItem("lang", lang);
+  document.documentElement.lang = lang;
+  // Update lang button label
+  const btn = document.getElementById("LANG_BTN");
+  if (btn) btn.textContent = lang === "zh" ? "EN" : "中";
+  // Walk all data-i18n elements
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.dataset.i18n;
+    const val = t(key);
+    if (val === undefined) return;
+    // If element has child element nodes (e.g. SVG inside button), only update text nodes
+    const hasChildEls = Array.from(el.childNodes).some(n => n.nodeType === 1);
+    if (hasChildEls) {
+      // Find the last text node and update it
+      for (let i = el.childNodes.length - 1; i >= 0; i--) {
+        const n = el.childNodes[i];
+        if (n.nodeType === 3) { n.textContent = val; break; }
+      }
+    } else {
+      el.textContent = val;
+    }
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach(el => {
+    const key = el.dataset.i18nTitle;
+    const val = t(key);
+    if (val !== undefined) el.title = val;
+  });
+  // Dynamic strings that are set by JS (not static HTML)
+  const logBtn = document.getElementById("BTN_LOG_TOGGLE");
+  if (logBtn) logBtn.textContent = _logVisible ? t("collapse_log") : t("expand_log");
+  const dialogBtn = document.getElementById("BTN_DIALOG_MODE");
+  if (dialogBtn) dialogBtn.textContent = _inputMode === "dialog" ? t("normal_text") : t("dialog_mode");
+  const areaLabel = document.getElementById("TEXT_AREA_LABEL");
+  if (areaLabel) areaLabel.textContent = _inputMode === "dialog"
+    ? (lang === "en" ? "Dialog CSV / Table" : "多人对话 CSV / 三列表格")
+    : t("text_content");
+  // Theme button title
+  const themBtn = document.getElementById("THEME_BTN");
+  if (themBtn) {
+    const isLight = document.documentElement.classList.contains("light");
+    themBtn.title = lang === "en"
+      ? (isLight ? "Switch to dark mode" : "Switch to light mode")
+      : (isLight ? "切换为深色模式" : "切换为浅色模式");
+  }
+  // Placeholders
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => {
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+  // Upload label (has innerHTML with <strong>)
+  const ulbl = document.getElementById("UPLOAD_LABEL");
+  if (ulbl && !ulbl.dataset.uploadFile) {
+    ulbl.innerHTML = `<strong data-i18n="upload_click">${t("upload_click")}</strong> <span data-i18n="upload_or">${t("upload_or")}</span>`;
+  }
+  // Advanced settings grid re-render (labels/descs depend on lang)
+  if (typeof ADV_SAMPLING_PARAMS !== "undefined") {
+    buildAdvGrid("ADV_SAMPLING_GRID", ADV_SAMPLING_PARAMS);
+    buildAdvGrid("ADV_TEXT_GRID",     ADV_TEXT_PARAMS);
+    buildAdvGrid("ADV_AUDIO_GRID",    ADV_AUDIO_PARAMS);
+  }
+  // Subtitle menu items
+  document.querySelectorAll(".subtitle-opt[data-i18n]").forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  // Model desc
+  const mdesc = document.getElementById("MODEL_DESC");
+  if (mdesc) { const sp = mdesc.querySelector("[data-i18n='model_desc_cv']"); if (sp) sp.textContent = t("model_desc_cv"); }
+  // Dialog table headers
+  document.querySelectorAll("th[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  // Dialog row placeholders (rendered dynamically — re-render if in dialog mode)
+  if (typeof _inputMode !== "undefined" && _inputMode === "dialog" && typeof renderDialogTable === "function") {
+    renderDialogTable();
+  }
+  // Refresh char/row count
+  if (typeof onTextInput === "function") onTextInput();
+  // Refresh preset names
+  if (typeof updateAdvPresetSelect === "function") updateAdvPresetSelect();
+}
+
+function toggleLang() {
+  applyLang(_lang === "zh" ? "en" : "zh");
+}
+
+
+window.addEventListener("DOMContentLoaded", () => {
+  const uploadZone = document.getElementById("UPLOAD_ZONE");
+  if (uploadZone) {
+    uploadZone.addEventListener("click", (e) => {
+      e.preventDefault();
+      chooseTextFile();
+    });
+  }
+  connectWS();
+  applyTheme(localStorage.getItem("theme") || "dark");
+  applyLang(localStorage.getItem("lang") || "zh");
+  buildAdvGrid("ADV_SAMPLING_GRID", ADV_SAMPLING_PARAMS);
+  buildAdvGrid("ADV_TEXT_GRID", ADV_TEXT_PARAMS);
+  buildAdvGrid("ADV_AUDIO_GRID", ADV_AUDIO_PARAMS);
+  updateAdvPresetSelect();
+  refreshInstalledModels();
+});
+
+async function refreshInstalledModels() {
+  try {
+    const r = await fetch("/api/installed_models");
+    const j = await r.json();
+    const installed = new Set(j.installed || []);
+    const sel = document.getElementById("MODEL_REPO_SELECT");
+    for (const opt of sel.options) {
+      if (!opt.value || opt.value === "__custom__") continue;
+      const isInstalled = installed.has(opt.value);
+      opt.disabled = !isInstalled;
+      // 更新显示文字
+      const base = opt.value.split("/")[1] || opt.value;
+      if (isInstalled) {
+        opt.style.color = "";
+        opt.textContent = opt.textContent.replace(" （未安装）", "").replace(" （未下载）", "");
+      } else {
+        opt.style.color = "#555";
+        if (!opt.textContent.includes("未安装") && !opt.textContent.includes("未下载")) {
+          opt.textContent = opt.textContent + " （未下载）";
+        }
+      }
+    }
+    // 如果当前选中项变成了 disabled（例如设置文件里的记录），切到第一个可用项
+    const cur = sel.options[sel.selectedIndex];
+    if (cur && cur.disabled) {
+      for (const opt of sel.options) {
+        if (!opt.disabled && opt.value !== "__custom__") {
+          sel.value = opt.value;
+          onModelSelectChange(opt.value);
+          break;
+        }
+      }
+    }
+    _syncModelDropFromSelect();
+    // Show download wizard if nothing is installed
+    if (installed.size === 0) {
+      openDlWizard();
+    }
+  } catch(e) {
+    console.warn("installed_models check failed:", e);
+  }
+}
+
+// ── WebSocket ─────────────────────────────────────────────
+function connectWS() {
+  if (_ws) { try { _ws.close(); } catch(e){} }
+  _ws = new WebSocket(`ws://${location.host}/ws`);
+
+  _ws.onopen = () => {
+    clearTimeout(_wsReconnectTimer);
+    setStatus("dot", t("status_loading"));
+    // 重连后主动拉一次状态，防止期间消息丢失
+    setTimeout(syncStatusFromServer, 800);
+  };
+
+  _ws.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data);
+    handleWS(msg);
+  };
+
+  _ws.onclose = () => {
+    setStatus("err","连接断开 — 重连中");
+    _wsReconnectTimer = setTimeout(connectWS, 2000);
+  };
+
+  _ws.onerror = () => {};
+}
+
+function wsSend(obj) {
+  if (_ws && _ws.readyState === 1)
+    _ws.send(JSON.stringify(obj));
+}
+
+function handleWS(msg) {
+  const msgType = msg.type;
+  if (msgType === "ping") { wsSend({type:"pong"}); return; }
+
+  if (msgType === "init") {
+    _settings = msg.settings || {};
+    applySettingsToUI();
+    if (msg.worker_ready) {
+      _workerReady = true;
+      setStatus("on", t("status_ready"));
+    } else if (msg.status === "loading_model") {
+      _workerReady = false;
+      setStatus("warn", "正在加载模型: " + (msg.model || _settings.model_repo || ""));
+    } else {
+      _workerReady = false;
+      setStatus("dot", t("status_no_model"));
+    }
+    updateSynthBtn();
+    wsSend({type:"get_voices"});
+    return;
+  }
+
+  if (msgType === "model_ready") {
+    if (msg.ok) {
+      _workerReady = true;
+      setStatus("on",t("status_ready"));
+      showToast("模型加载完成 ✓", "ok");
+      updateSynthBtn();
+      wsSend({type:"get_voices"});
+    } else {
+      _workerReady = false;
+      setStatus("err","模型加载失败: " + (msg.error||""));
+      showToast("模型加载失败: " + (msg.error||""), "err");
+    }
+    return;
+  }
+
+  if (msgType === "voices") {
+    _voices = msg.voices || [];
+    renderVoiceGrid();
+    renderClonedList();
+    refreshDialogAvailability();
+    if (_inputMode === "dialog") renderDialogTable();
+    return;
+  }
+
+  if (msgType === "status") {
+    if (msg.status === "idle") setStatus("dot",t("status_ready"));
+    if (msg.status === "loading_model") setStatus("warn","正在加载模型: " + (msg.model||""));
+    return;
+  }
+
+  if (msgType === "tts_progress") {
+    document.getElementById("OUTPUT_PANEL").classList.add("visible");
+    document.getElementById("PROGRESS_AREA").style.display = "";
+    document.getElementById("PLAYER_AREA").style.display = "none";
+    // synthesizing state managed by setSynthesizing()
+
+    if (msg.stage === "start") {
+      const total = msg.total_chunks || 1;
+      document.getElementById("OUTPUT_TITLE").textContent = `合成中… 共 ${total} 段`;
+      document.getElementById("PROGRESS_BAR").style.width = "2%";
+      document.getElementById("PROGRESS_PCT").textContent = "0%";
+      document.getElementById("PROGRESS_CUR").textContent = "准备中…";
+      document.getElementById("PROGRESS_BAR").classList.add("active");
+      setStatus("warn", `合成中 0 / ${total}`);
+      return;
+    }
+
+    const total = msg.total_chunks || 1;
+    const idx   = (msg.chunk_idx || 0) + 1;
+    const pct   = Math.max(2, Math.round(idx / total * 100));
+    document.getElementById("PROGRESS_BAR").style.width = pct + "%";
+    document.getElementById("PROGRESS_PCT").textContent = pct + "%";
+    document.getElementById("OUTPUT_TITLE").textContent =
+      `合成中  ${idx} / ${total}`;
+
+    if (msg.stage === "chunk") {
+      // 收集时间戳
+      if (msg.audio_start_ms !== undefined) {
+        _timestamps.push({
+          chunk_idx:     msg.chunk_idx,
+          text:          msg.text || msg.text_preview || "",
+          audio_start_ms: msg.audio_start_ms,
+          audio_end_ms:   msg.audio_end_ms,
+          speaker:       msg.speaker || "",
+          instruction:   msg.instruction || "",
+          row_index:      msg.row_index,
+        });
+        updateDialogRowTimeFromProgress(msg);
+        updateSubtitleButton();
+      }
+      // 当前段预览 + 文本框高亮
+      const spkLabel = msg.speaker ? `[${msg.speaker}] ` : "";
+      document.getElementById("PROGRESS_CUR").textContent =
+        `▶ ${spkLabel}${msg.text_preview||""}`;
+      if (_inputMode === "dialog" && msg.row_index !== undefined && msg.row_index !== null) {
+        highlightDialogRow(msg.row_index);
+      } else if (msg.text_preview) {
+        highlightChunk(msg.text_preview);
+      }
+      // 历史日志
+      const ts = msg.audio_start_ms !== undefined
+        ? ` [${_msToTimecode(msg.audio_start_ms)}]` : "";
+      const logEntry = {idx, text: msg.text_preview||"", elapsed: msg.elapsed,
+                        start_ms: msg.audio_start_ms, end_ms: msg.audio_end_ms,
+                        speaker: msg.speaker || "", instruction: msg.instruction || ""};
+      _sessionLog.push(logEntry);
+      const log = document.getElementById("PROGRESS_LOG");
+      const item = document.createElement("div");
+      item.className = "chunk-item";
+      item.innerHTML = `<span class="ci-idx">${String(idx).padStart(2,'0')}</span>`
+        + `<span class="ci-text">${esc(((msg.speaker?"["+msg.speaker+"] ":"") + (msg.text_preview||"")).slice(0,40))}</span>`
+        + `<span class="ci-time">${msg.elapsed}s${ts}</span>`;
+      log.appendChild(item);
+      log.scrollTop = log.scrollHeight;
+    } else if (msg.stage === "chunk_error") {
+      document.getElementById("PROGRESS_CUR").textContent = `✗ 段落 ${idx} 失败`;
+      const log = document.getElementById("PROGRESS_LOG");
+      const item = document.createElement("div");
+      item.className = "chunk-item";
+      item.style.color = "var(--red)";
+      item.textContent = `✗ 段落 ${idx} 失败: ${msg.error||""}`;
+      log.appendChild(item);
+      log.scrollTop = log.scrollHeight;
+    }
+    setStatus("on", `合成中 ${idx} / ${total}  ${pct}%`);
+    return;
+  }
+
+  if (msgType === "tts_done") {
+    setSynthesizing(false);
+    clearHighlight();
+    if (msg.ok) {
+      _synthDone = true;
+      _currentOutputPath = msg.output_path || "";
+      buildTsIndex();
+      showDoneUI(_currentOutputPath, msg.duration || 0);
+    } else {
+      setStatus("err", "合成失败: " + (msg.error||""));
+      document.getElementById("OUTPUT_TITLE").textContent = "✗ 合成失败: " + (msg.error||"");
+      showToast("合成失败: " + (msg.error||""), "err");
+    }
+    return;
+  }
+
+  if (msgType === "clone_done") {
+    if (msg.ok) {
+      showToast(`声音克隆完成: ${msg.name}`, "ok");
+      wsSend({type:"get_voices"});
+    } else {
+      showToast("克隆失败: " + (msg.error||""), "err");
+    }
+    return;
+  }
+
+  if (msgType === "clone_deleted") {
+    _voices = _voices.filter(v => v.id !== `__clone__${msg.name}`);
+    renderVoiceGrid();
+    renderClonedList();
+    refreshDialogAvailability();
+    if (_inputMode === "dialog") renderDialogTable();
+    return;
+  }
+}
+
+// ── UI helpers ────────────────────────────────────────────
+function setStatus(cls, text) {
+  const dot = document.getElementById("STATUS_DOT");
+  const st  = document.getElementById("STATUS_TEXT");
+  dot.className = "dot" + (cls ? " "+cls : "");
+  st.textContent = text;
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function jsArg(s) {
+  return JSON.stringify(String(s ?? ""));
+}
+
+function updateSubtitleButton() {
+  const btn = document.getElementById("BTN_SUBTITLE");
+  if (btn) btn.disabled = !_timestamps.length;
+}
+
+let _toastTimer;
+function showToast(msg, cls) {
+  const el = document.getElementById("TOAST");
+  el.textContent = msg;
+  el.className = "toast show" + (cls ? " "+cls : "");
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.className = "toast", 3200);
+}
+
+function applySettingsToUI() {
+  const s = _settings;
+  // 同步模型下拉
+  (function() {
+    const repo = s.model_repo || "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit";
+    const sel = document.getElementById("MODEL_REPO_SELECT");
+    let found = false;
+    for (const opt of sel.options) {
+      if (opt.value === repo) { sel.value = repo; found = true; break; }
+    }
+    if (!found) {
+      sel.value = "__custom__";
+      const inp = document.getElementById("MODEL_REPO_INPUT");
+      inp.value = repo;
+      inp.style.display = "";
+    }
+    updateModelDesc(repo);
+    refreshDialogAvailability();
+    _syncModelDropFromSelect();
+  })();
+  document.getElementById("OUTPUT_FORMAT").value = s.output_format || "wav";
+  document.getElementById("OUTPUT_DIR").value = s.output_dir || "";
+  _speed = s.speed || 1.0;
+  _selectedVoice = s.voice_id || "Chelsie";
+  document.getElementById("SPEED_SLIDER").value = _speed;
+  document.getElementById("SPEED_VAL").textContent = _speed.toFixed(2) + "×";
+  // Advanced
+  const adv = s.advanced_params || {};
+  [...ADV_SAMPLING_PARAMS, ...ADV_TEXT_PARAMS, ...ADV_AUDIO_PARAMS].forEach(p => {
+    const el = document.getElementById("ADV_" + p.key);
+    if (!el) return;
+    const val = adv[p.key] !== undefined ? adv[p.key] : p.default;
+    if (p.type === "bool") el.checked = !!val;
+    else el.value = val;
+  });
+  updateAdvPresetSelect();
+}
+
+// ── Voice Grid ────────────────────────────────────────────
+function cloneActionButtons(cloneName) {
+  const wrap = document.createElement("div");
+  wrap.style.display = "flex";
+  wrap.style.gap = "4px";
+  wrap.style.flexShrink = "0";
+
+  const saveBtn = document.createElement("button");
+  saveBtn.type = "button";
+  saveBtn.className = "btn";
+  saveBtn.style.cssText = "padding:4px 6px;line-height:1";
+  saveBtn.title = "导出为 .ttsc";
+  saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`;
+  saveBtn.addEventListener("click", ev => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    exportClone(cloneName);
+  });
+
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className = "btn btn-danger";
+  delBtn.style.cssText = "padding:4px 6px;line-height:1";
+  delBtn.title = "删除";
+  delBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+  delBtn.addEventListener("click", ev => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    deleteClone(cloneName);
+  });
+
+  wrap.appendChild(saveBtn);
+  wrap.appendChild(delBtn);
+  return wrap;
+}
+
+// ── Voice Grid ────────────────────────────────────────────
+function renderVoiceGrid() {
+  const grid = document.getElementById("VOICE_GRID");
+  grid.innerHTML = "";
+  _voices.forEach(v => {
+    const card = document.createElement("div");
+    card.className = "voice-card" + (v.id === _selectedVoice ? " selected" : "");
+    card.dataset.vid = v.id;
+    card.onclick = () => selectVoice(v.id);
+    const emoji = v.gender === "female" ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16C15.866 16 19 12.866 19 9C19 5.13401 15.866 2 12 2C8.13401 2 5 5.13401 5 9C5 12.866 8.13401 16 12 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 16V22" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 19H9" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` : v.gender === "clone" ? `<svg width="18" height="18" viewBox="0 -8 72 72" fill="none" aria-hidden="true"><path d="M47.71,24.61a15.61,15.61,0,0,0,2.44.19,11.08,11.08,0,0,0,8-3.11l1.19-1.19a2,2,0,1,0-2.88-2.88l-.29.29L46.09,7.82l.29-.28A2,2,0,0,0,43.5,4.66L42.31,5.85a11,11,0,0,0-3.11,8,16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14L32,22.16a6.54,6.54,0,0,1,2.1-.88l7.8,7.8a7.12,7.12,0,0,0,.09-1.17,10.69,10.69,0,0,0-.36-2.71l-4.07-4.07a12.88,12.88,0,0,1,2.61.63,18.21,18.21,0,0,1-1.6-4.6A15.61,15.61,0,0,0,36.08,17,10.65,10.65,0,0,0,25,28.08a16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14l-9.89-9.89a6.59,6.59,0,0,1,2.11-.88l7.79,7.79a6.93,6.93,0,0,0,.09-1.16,10.69,10.69,0,0,0-.36-2.71l-4.06-4.06a12.92,12.92,0,0,1,2.6.62,18.24,18.24,0,0,1-1.61-4.6,15.4,15.4,0,0,0-2.43-.19,11,11,0,0,0-8,3.11L12.66,35.5a2,2,0,0,0,2.88,2.88l.29-.29L25.91,48.17l-.29.29a2,2,0,1,0,2.88,2.88l1.19-1.19a11,11,0,0,0,3.11-8,16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6A7.73,7.73,0,0,1,30.16,24l9.89,9.89a6.54,6.54,0,0,1-2.1.88l-7.8-7.8a7.12,7.12,0,0,0-.09,1.17,10.56,10.56,0,0,0,.36,2.7l4.07,4.08a13.58,13.58,0,0,1-2.61-.63,18.21,18.21,0,0,1,1.6,4.6,15.61,15.61,0,0,0,2.44.19A10.65,10.65,0,0,0,47,27.92a16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6,7.73,7.73,0,0,1,1.12-4.14l9.89,9.89a6.82,6.82,0,0,1-2.11.88l-7.8-7.8a8.31,8.31,0,0,0-.08,1.17,10.69,10.69,0,0,0,.36,2.71l4.06,4.06a12.16,12.16,0,0,1-2.6-.63A18.28,18.28,0,0,1,47.71,24.61Z" fill="currentColor"/></svg>` : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.25 21.5C14.5302 21.5 18 18.0302 18 13.75C18 9.46979 14.5302 6 10.25 6C5.96979 6 2.5 9.46979 2.5 13.75C2.5 18.0302 5.96979 21.5 10.25 21.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.5 2.5L16 8" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 2.5H21.5V9" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const desc  = v.gender === "clone" ? "声音克隆 · 需切换至 Base 模型" : (v.desc||"");
+
+    const avatar = document.createElement("div");
+    avatar.className = "voice-avatar";
+    avatar.innerHTML = emoji;
+
+    const info = document.createElement("div");
+    info.className = "voice-info";
+    info.innerHTML = `<div class="voice-name">${esc(v.name)}</div><div class="voice-desc">${esc(desc)}</div>`;
+
+    card.appendChild(avatar);
+    card.appendChild(info);
+
+    if (v.gender === "clone") {
+      const cloneName = v.id.replace("__clone__", "");
+      card.appendChild(cloneActionButtons(cloneName));
+    } else {
+      const badge = document.createElement("div");
+      badge.className = "voice-badge";
+      badge.textContent = v.lang || "";
+      card.appendChild(badge);
+    }
+    grid.appendChild(card);
+  });
+}
+
+function renderClonedList() {
+  const list = document.getElementById("CLONED_VOICE_LIST");
+  const cloned = _voices.filter(v => v.gender === "clone");
+  list.innerHTML = "";
+  if (!cloned.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--hi)">暂无克隆音色</div>';
+    return;
+  }
+  cloned.forEach(v => {
+    const cloneName = v.id.replace("__clone__", "");
+    const card = document.createElement("div");
+    card.className = "voice-card";
+    card.style.cursor = "default";
+    card.style.alignItems = "center";
+    card.innerHTML = `
+      <div class="voice-avatar"><span class="clone-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 -8 72 72" fill="none" aria-hidden="true"><path d="M47.71,24.61a15.61,15.61,0,0,0,2.44.19,11.08,11.08,0,0,0,8-3.11l1.19-1.19a2,2,0,1,0-2.88-2.88l-.29.29L46.09,7.82l.29-.28A2,2,0,0,0,43.5,4.66L42.31,5.85a11,11,0,0,0-3.11,8,16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14L32,22.16a6.54,6.54,0,0,1,2.1-.88l7.8,7.8a7.12,7.12,0,0,0,.09-1.17,10.69,10.69,0,0,0-.36-2.71l-4.07-4.07a12.88,12.88,0,0,1,2.61.63,18.21,18.21,0,0,1-1.6-4.6A15.61,15.61,0,0,0,36.08,17,10.65,10.65,0,0,0,25,28.08a16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14l-9.89-9.89a6.59,6.59,0,0,1,2.11-.88l7.79,7.79a6.93,6.93,0,0,0,.09-1.16,10.69,10.69,0,0,0-.36-2.71l-4.06-4.06a12.92,12.92,0,0,1,2.6.62,18.24,18.24,0,0,1-1.61-4.6,15.4,15.4,0,0,0-2.43-.19,11,11,0,0,0-8,3.11L12.66,35.5a2,2,0,0,0,2.88,2.88l.29-.29L25.91,48.17l-.29.29a2,2,0,1,0,2.88,2.88l1.19-1.19a11,11,0,0,0,3.11-8,16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6A7.73,7.73,0,0,1,30.16,24l9.89,9.89a6.54,6.54,0,0,1-2.1.88l-7.8-7.8a7.12,7.12,0,0,0-.09,1.17,10.56,10.56,0,0,0,.36,2.7l4.07,4.08a13.58,13.58,0,0,1-2.61-.63,18.21,18.21,0,0,1,1.6,4.6,15.61,15.61,0,0,0,2.44.19A10.65,10.65,0,0,0,47,27.92a16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6,7.73,7.73,0,0,1,1.12-4.14l9.89,9.89a6.82,6.82,0,0,1-2.11.88l-7.8-7.8a8.31,8.31,0,0,0-.08,1.17,10.69,10.69,0,0,0,.36,2.71l4.06,4.06a12.16,12.16,0,0,1-2.6-.63A18.28,18.28,0,0,1,47.71,24.61Z" fill="currentColor"/></svg></span></div>
+      <div class="voice-info">
+        <div class="voice-name">${esc(v.name)}</div>
+        <div class="voice-desc" data-i18n="voice_desc_clone">声音克隆</div>
+      </div>`;
+    card.appendChild(cloneActionButtons(cloneName));
+    list.appendChild(card);
+  });
+}
+
+// ── 文本高亮 ──────────────────────────────────────────────
+let _hlStart = -1, _hlEnd = -1;
+
+function _escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function _syncHighlight() {
+  const ta  = document.getElementById("TEXT_EDITOR");
+  const hl  = document.getElementById("TEXT_HIGHLIGHT");
+  if (!hl) return;
+  const text = ta.value;
+  if (_hlStart < 0 || _hlStart >= text.length) {
+    hl.innerHTML = "";
+    return;
+  }
+  const end = Math.min(_hlEnd, text.length);
+  const before = _escHtml(text.slice(0, _hlStart));
+  const marked = _escHtml(text.slice(_hlStart, end));
+  const after  = _escHtml(text.slice(end));
+  hl.innerHTML = before
+    + '<mark class="tts-hl">' + marked + '</mark>'
+    + after
+    + '\u200b'; // 确保高度撑开
+  // 同步滚动：让 overlay 跟随 textarea 滚动
+  hl.scrollTop = ta.scrollTop;
+}
+
+function _syncHlScroll() {
+  const ta = document.getElementById("TEXT_EDITOR");
+  const hl = document.getElementById("TEXT_HIGHLIGHT");
+  if (hl) hl.scrollTop = ta.scrollTop;
+}
+
+function highlightChunk(preview) {
+  const ta   = document.getElementById("TEXT_EDITOR");
+  const hl   = document.getElementById("TEXT_HIGHLIGHT");
+  const text = ta.value;
+  if (!preview || !text) return;
+
+  // 从上次位置之后查找，避免重复匹配前面相同的内容
+  const searchFrom = Math.max(0, _hlStart);
+  const anchor = preview.slice(0, 20);
+  let idx = text.indexOf(anchor, searchFrom);
+  if (idx < 0) idx = text.indexOf(anchor, 0);
+  if (idx < 0) return;
+
+  _hlStart = idx;
+  _hlEnd   = idx + preview.length;
+  _syncHighlight();
+
+  // 用 overlay 中 <mark> 元素的实际 offsetTop 定位，
+  // 这样能正确处理自动换行，textarea 与 overlay 布局完全相同
+  if (hl) {
+    const mark = hl.querySelector("mark.tts-hl");
+    if (mark) {
+      const markTop = mark.offsetTop;
+      const target  = markTop - ta.clientHeight / 2 + mark.offsetHeight / 2;
+      ta.scrollTop  = Math.max(0, target);
+      hl.scrollTop  = ta.scrollTop;
+      return;
+    }
+  }
+  // fallback：按换行符估算（无 overlay 时兜底）
+  const lineHeight = parseFloat(getComputedStyle(ta).lineHeight) || 24;
+  const lines = text.slice(0, idx).split("\n").length - 1;
+  ta.scrollTop = Math.max(0, lines * lineHeight - ta.clientHeight / 2 + lineHeight);
+  _syncHlScroll();
+}
+
+function clearHighlight() {
+  _hlStart = -1;
+  _hlEnd   = -1;
+  const hl = document.getElementById("TEXT_HIGHLIGHT");
+  if (hl) hl.innerHTML = "";
+}
+
+let _logVisible = false;
+function toggleLog() {
+  _logVisible = !_logVisible;
+  document.getElementById("PROGRESS_LOG").style.display = _logVisible ? "" : "none";
+  document.getElementById("BTN_LOG_TOGGLE").textContent = _logVisible ? t("collapse_log") : t("expand_log");
+}
+
+let _isSynthesizing = false;
+let _timestamps = [];   // [{chunk_idx, text, audio_start_ms, audio_end_ms}]
+let _tsIndex    = [];   // [{charStart, charEnd, audio_start_ms}] built after synthesis
+let _sessionLog = [];   // 分段日志
+function onSynthClick() {
+  if (_isSynthesizing) stopSynthesis();
+  else startSynthesis();
+}
+
+function setSynthesizing(v) {
+  _isSynthesizing = v;
+  const btn = document.getElementById("BTN_SYNTH");
+  if (v) {
+    btn.textContent = t("synth_cancel");
+    btn.classList.remove("btn-primary");
+    btn.classList.add("btn-danger");
+    btn.disabled = false;
+  } else {
+    btn.textContent = "▶ 开始合成";
+    btn.classList.add("btn-primary");
+    btn.classList.remove("btn-danger");
+    updateSynthBtn();
+  }
+}
+
+async function deleteClone(name) {
+  if (!(await htmlConfirm(`确定删除克隆音色「${name}」？`, "删除", "取消"))) return;
+  try {
+    let r = await fetch(`/api/clone_voice?name=${encodeURIComponent(name)}`, {method:"DELETE", cache:"no-store"});
+    // 某些 WebView/代理环境对 DELETE 处理不稳定时，退回 POST 兼容接口。
+    if (r.status === 404 || r.status === 405) {
+      r = await fetch("/api/delete_clone", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({name})
+      });
+    }
+    const j = await r.json();
+    if (j.ok) {
+      if (_selectedVoice === `__clone__${name}`) {
+        _selectedVoice = _voices.find(v => v.gender !== "clone")?.id || "";
+      }
+      _voices = _voices.filter(v => v.id !== `__clone__${name}`);
+      renderVoiceGrid();
+      renderClonedList();
+      showToast(`已删除克隆音色「${name}」`, "ok");
+    } else {
+      showToast("删除失败: " + (j.error || "未知错误"), "err");
+    }
+  } catch(e) {
+    showToast("删除请求失败: " + (e && e.message ? e.message : e), "err");
+  }
+}
+
+function selectVoice(vid) {
+  _selectedVoice = vid;
+  document.querySelectorAll(".voice-card").forEach(c => {
+    c.classList.toggle("selected", c.dataset.vid === vid);
+  });
+  if (_inputMode === "dialog") renderDialogTable();
+}
+
+// ── Speed ─────────────────────────────────────────────────
+function onSpeedChange(v) {
+  _speed = parseFloat(v);
+  document.getElementById("SPEED_VAL").textContent = _speed.toFixed(2) + "×";
+}
+
+// ── Native file dialogs / browser fallback ─────────────────
+function hasPywebviewApi(name) {
+  return !!(window.pywebview && window.pywebview.api && typeof window.pywebview.api[name] === "function");
+}
+
+function makeTextFileFromContent(filename, content, path) {
+  return {
+    name: filename || "file.json",
+    path: path || "",
+    text: async () => content || ""
+  };
+}
+
+function openBrowserFileInput(inputId) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return false;
+  try {
+    inp.value = "";
+    inp.click();
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+async function saveTextToOutputDir(filename, content, okVerb="已保存") {
+  try {
+    const r = await fetch("/api/save_text_file", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({filename, content}),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || r.status);
+    showToast(`${okVerb}: ${j.path}`, "ok");
+    return j;
+  } catch(e) {
+    showToast("保存失败: " + (e && e.message ? e.message : e), "err");
+    return null;
+  }
+}
+
+async function saveExistingFileToOutputDir(path, filename) {
+  try {
+    const r = await fetch("/api/save_existing_file", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({path, filename}),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || r.status);
+    const prefix = j.already_in_output_dir ? "文件已在输出目录" : "已保存到输出目录";
+    showToast(`${prefix}: ${j.path}`, "ok");
+    return j;
+  } catch(e) {
+    showToast("保存失败: " + (e && e.message ? e.message : e), "err");
+    return null;
+  }
+}
+
+async function chooseSessionFile() {
+  // .ttso/.ttsc 是自定义扩展名。pywebview/WebKit 的隐藏 <input accept=".ttso"> 在 macOS 上可能
+  // 不能稳定显示或选择自定义扩展名，因此会话/克隆包导入恢复为 ASR Offline 同款：
+  // pywebview 原生打开对话框优先，浏览器模式再使用隐藏 input。
+  if (hasPywebviewApi("open_session_file")) {
+    try {
+      const result = await window.pywebview.api.open_session_file();
+      if (!result || !result.ok) {
+        if (!result || !result.cancelled) showToast("打开失败: " + ((result && result.error) || "未知错误"), "err");
+        return;
+      }
+      await loadSession(makeTextFileFromContent(result.filename || result.path || "session.ttso", result.content, result.path || ""));
+      return;
+    } catch(e) {
+      showToast("打开会话失败: " + e, "err");
+      return;
+    }
+  }
+  openBrowserFileInput("SESSION_LOAD_INPUT");
+}
+
+async function chooseCloneImportFile() {
+  if (hasPywebviewApi("open_clone_file")) {
+    try {
+      const result = await window.pywebview.api.open_clone_file();
+      if (!result || !result.ok) {
+        if (!result || !result.cancelled) showToast("打开失败: " + ((result && result.error) || "未知错误"), "err");
+        return;
+      }
+      await importClone(makeTextFileFromContent(result.filename || result.path || "clone.ttsc", result.content));
+      return;
+    } catch(e) {
+      showToast("导入克隆音色失败: " + e, "err");
+      return;
+    }
+  }
+  openBrowserFileInput("CLONE_IMPORT_INPUT");
+}
+
+async function chooseTextFile() {
+  // 文本/文档导入继续使用隐藏 input + accept，效果更接近 ASR Offline 的音频导入。
+  if (openBrowserFileInput("FILE_INPUT")) return;
+  if (hasPywebviewApi("open_text_file")) {
+    try {
+      const result = await window.pywebview.api.open_text_file();
+      if (!result || !result.ok) {
+        if (!result || !result.cancelled) showToast("打开失败: " + ((result && result.error) || "未知错误"), "err");
+        return;
+      }
+      await uploadFileData(result.filename || result.path || "input.txt", result.ext || "", result.b64 || "");
+    } catch(e) {
+      showToast("打开文件失败: " + e, "err");
+    }
+  }
+}
+
+async function chooseCloneAudioFile() {
+  if (openBrowserFileInput("CLONE_AUDIO_INPUT")) return;
+  if (hasPywebviewApi("open_audio_file")) {
+    try {
+      const result = await window.pywebview.api.open_audio_file();
+      if (!result || !result.ok) {
+        if (!result || !result.cancelled) showToast("打开失败: " + ((result && result.error) || "未知错误"), "err");
+        return;
+      }
+      _cloneAudioFile = null;
+      _cloneAudioData = {
+        name: result.filename || result.path || "reference.wav",
+        ext: result.ext || ".wav",
+        b64: result.b64 || ""
+      };
+      document.getElementById("CLONE_AUDIO_ZONE").classList.add("has-file");
+      document.getElementById("CLONE_AUDIO_LABEL").textContent = _cloneAudioData.name;
+    } catch(e) {
+      showToast("打开参考音频失败: " + e, "err");
+    }
+  }
+}
+
+// ── File Upload ──────────────────────────────────────────
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById("UPLOAD_ZONE").classList.add("drag");
+}
+function onDragLeave(e) {
+  document.getElementById("UPLOAD_ZONE").classList.remove("drag");
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById("UPLOAD_ZONE").classList.remove("drag");
+  const f = e.dataTransfer.files[0];
+  if (f) uploadFile(f);
+}
+function onFileSelected(inp) {
+  if (inp.files[0]) uploadFile(inp.files[0]);
+  inp.value = "";
+}
+
+async function uploadFile(file) {
+  // 用 base64 JSON 避免 multipart ALPN 问题
+  const b64 = await new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onload  = () => res(fr.result.split(",")[1]);
+    fr.onerror = () => rej(new Error("读取失败"));
+    fr.readAsDataURL(file);
+  });
+  await uploadFileData(file.name, file.name.split(".").pop() || "txt", b64);
+}
+
+async function uploadFileData(filename, ext, b64) {
+  const zone = document.getElementById("UPLOAD_ZONE");
+  zone.classList.add("drag");
+  document.getElementById("UPLOAD_LABEL").innerHTML =
+    `<strong>上传中…</strong> ${esc(filename)}`;
+
+  ext = String(ext || filename.split(".").pop() || "txt").replace(/^\./, "").toLowerCase();
+  const allowedTextExts = new Set(["txt", "md", "srt", "docx", "pdf", "epub"]);
+  if (!allowedTextExts.has(ext)) {
+    zone.classList.remove("drag");
+    document.getElementById("UPLOAD_LABEL").innerHTML = `<strong>点击上传</strong> 或拖放文本文件`;
+    showToast("不支持的文件类型。请使用 TXT / MD / SRT / DOCX / PDF / EPUB 文件。", "err");
+    return;
+  }
+  try {
+    const r = await fetch("/api/upload_text", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({filename, ext, b64}),
+    });
+    const j = await r.json();
+    zone.classList.remove("drag");
+    if (j.ok) {
+      document.getElementById("TEXT_EDITOR").value = j.text;
+      onTextInput();
+      zone.classList.add("has-file");
+      document.getElementById("UPLOAD_LABEL").innerHTML =
+        `<strong class="upload-filename">${esc(filename)}</strong>`;
+      const meta = document.createElement("div");
+      meta.className = "upload-meta";
+      meta.textContent = `${j.char_count.toLocaleString()} 字`;
+      document.getElementById("UPLOAD_LABEL").appendChild(meta);
+      document.getElementById("UPLOAD_ICON") && (document.getElementById("UPLOAD_ICON").textContent = "✓");
+      showToast(`已加载 ${j.char_count.toLocaleString()} 字`, "ok");
+    } else {
+      showToast("解析失败: " + (j.error||""), "err");
+      document.getElementById("UPLOAD_LABEL").innerHTML =
+        `<strong>点击上传</strong> 或拖放文本文件`;
+    }
+  } catch(e) {
+    zone.classList.remove("drag");
+    showToast("上传失败: " + e, "err");
+  }
+}
+
+function onTextInput() {
+  const text = _inputMode === "dialog" ? dialogPlainText() : document.getElementById("TEXT_EDITOR").value;
+  document.getElementById("CHAR_COUNT").textContent = text.length.toLocaleString() + " " + t("unit_char") + (_inputMode === "dialog" ? (" · " + getDialogRowsForSubmit().length + " " + t("unit_rows")) : "");
+  updateSynthBtn();
+}
+
+function clearText() {
+  if (_inputMode === "dialog") {
+    _dialogRows = [{speaker:_selectedVoice || "serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
+    renderDialogTable();
+  } else {
+    document.getElementById("TEXT_EDITOR").value = "";
+    clearHighlight();
+  }
+  onTextInput();
+  const zone = document.getElementById("UPLOAD_ZONE");
+  if (zone) zone.classList.remove("has-file");
+  const label = document.getElementById("UPLOAD_LABEL");
+  if (label) label.innerHTML = `<strong>点击上传</strong> 或拖放文本文件`;
+}
+
+let _workerReady = false;
+let _synthDone = false;  // 防止重复处理 done
+
+async function syncStatusFromServer() {
+  try {
+    const r = await fetch("/api/status");
+    const j = await r.json();
+    if (j.worker_ready && !_workerReady) {
+      _workerReady = true;
+      setStatus("on", t("status_ready"));
+      updateSynthBtn();
+      wsSend({type:"get_voices"});
+    }
+    // 如果服务器显示已完成但前端还没更新
+    if (j.status === "done" && j.output_path && !_synthDone) {
+      _synthDone = true;
+      _currentOutputPath = j.output_path;
+      showDoneUI(_currentOutputPath, 0);
+    }
+  } catch(e) {}
+}
+
+function showDoneUI(outputPath, duration, opts = {}) {
+  document.getElementById("BTN_DOWNLOAD").disabled = false;
+  updateSubtitleButton();
+  const bar = document.getElementById("PROGRESS_BAR");
+  if (bar) {
+    bar.classList.remove("active");
+    bar.style.width = "100%";
+  }
+  const progressArea = document.getElementById("PROGRESS_AREA");
+  const playerArea = document.getElementById("PLAYER_AREA");
+  if (progressArea) progressArea.style.display = "none";
+  if (playerArea) playerArea.style.display = "";
+  const dur = duration ? duration.toFixed(1) + "s" : "";
+  const title = "✓ 合成完成" + (dur ? "  时长 " + dur : "");
+  document.getElementById("OUTPUT_TITLE").textContent = title;
+  setStatus("on", title);
+  if (outputPath) {
+    const url = `/api/download?path=${encodeURIComponent(outputPath)}`;
+    initPlayerFromUrl(url);
+    const fname = outputPath.split(/[\/]/).pop();
+    document.getElementById("AUDIO_META").textContent = (dur ? `时长 ${dur}  ·  ` : "") + fname;
+  }
+  if (opts.toast !== false) showToast(title, "ok");
+}
+
+function getSessionDurationSeconds(session) {
+  const direct = Number(session?.duration || session?.audio?.duration || session?.audio_duration || 0);
+  if (direct > 0) return direct;
+  const ts = Array.isArray(session?.timestamps) ? session.timestamps : [];
+  let maxEnd = 0;
+  for (const t of ts) {
+    maxEnd = Math.max(maxEnd, Number(t.audio_end_ms) || Number(t.end_ms) || 0);
+  }
+  return maxEnd > 0 ? maxEnd / 1000 : 0;
+}
+
+function showLoadedSessionNoProgress(titleText) {
+  const progressArea = document.getElementById("PROGRESS_AREA");
+  const playerArea = document.getElementById("PLAYER_AREA");
+  if (progressArea) progressArea.style.display = "none";
+  if (playerArea) playerArea.style.display = "none";
+  document.getElementById("OUTPUT_PANEL").classList.add("visible");
+  document.getElementById("OUTPUT_TITLE").textContent = titleText || "已加载会话";
+  updateSubtitleButton();
+}
+
+function isWorkerReady() {
+  return _workerReady;
+}
+
+function updateSynthBtn() {
+  const btn = document.getElementById("BTN_SYNTH");
+  if (!btn) return;
+  // 不再把“开始合成”做成 disabled。pywebview/WebKit 下 disabled 状态有时会被旧状态反复覆盖，
+  // 导致 CSV 已加载、表格已显示但按钮仍无法点击。现在按钮始终可点击，实际校验放到 startSynthesis()。
+  btn.disabled = false;
+  const hasText = _inputMode === "dialog"
+    ? getDialogRowsForSubmit().length > 0
+    : !!document.getElementById("TEXT_EDITOR").value.trim();
+  btn.title = hasText ? (!_workerReady ? "模型状态正在同步；点击后会由后端再次确认" : "") : "请先输入文本或加载 CSV";
+}
+
+
+// ── CustomVoice dialogue table ─────────────────────────────
+function isCustomVoiceRepo(repo) {
+  return String(repo || _settings.model_repo || "").toLowerCase().includes("customvoice");
+}
+function currentRepoValue() {
+  const sel = document.getElementById("MODEL_REPO_SELECT");
+  if (!sel) return _settings.model_repo || "";
+  return sel.value === "__custom__" ? (document.getElementById("MODEL_REPO_INPUT")?.value || "") : sel.value;
+}
+function refreshDialogAvailability() {
+  const ok = isCustomVoiceRepo(currentRepoValue());
+  document.body.classList.toggle("dialog-capable", ok);
+  if (!ok && _inputMode === "dialog") setInputMode("text");
+}
+function setInputMode(mode) {
+  if (mode === "dialog" && !isCustomVoiceRepo(currentRepoValue())) {
+    showToast("三列表格模式仅适用于 CustomVoice 模型", "err");
+    return;
+  }
+  _inputMode = mode === "dialog" ? "dialog" : "text";
+  document.body.classList.toggle("dialog-mode", _inputMode === "dialog");
+  const btn = document.getElementById("BTN_DIALOG_MODE");
+  const label = document.getElementById("TEXT_AREA_LABEL");
+  if (btn) btn.textContent = _inputMode === "dialog" ? t("normal_text") : t("dialog_mode");
+  if (label) label.textContent = _inputMode === "dialog" ? (_lang==="en"?"Dialog CSV / Table":"多人对话 CSV / 三列表格") : t("text_content");
+  renderDialogTable();
+  onTextInput();
+  updateSynthBtn();
+}
+function toggleDialogMode() {
+  if (_inputMode !== "dialog") {
+    if (!_dialogRows.length) {
+      const txt = document.getElementById("TEXT_EDITOR").value.trim();
+      _dialogRows = [{speaker: (_selectedVoice || "serena").replace(/^__clone__/, ""), instruction: (collectAdvParams().style_instruct || ""), text: txt}];
+    }
+    setInputMode("dialog");
+  } else {
+    setInputMode("text");
+  }
+}
+function speakerOptionsHtml(selected) {
+  const customVoices = (_voices || []).filter(v => v.gender !== "clone");
+  const fallback = ["serena","vivian","uncle_fu","ryan","aiden","ono_anna","sohee","eric","dylan"];
+  const ids = customVoices.length ? customVoices.map(v => v.id) : fallback;
+  const names = {};
+  customVoices.forEach(v => { names[v.id] = v.name || v.id; });
+  return ids.map(id => `<option value="${esc(id)}" ${String(id).toLowerCase()===String(selected||"").toLowerCase()?"selected":""}>${esc(names[id] || id)}</option>`).join("");
+}
+function renderDialogTable() {
+  const body = document.getElementById("DIALOG_TBODY");
+  if (!body) return;
+  if (!_dialogRows.length) _dialogRows = [{speaker:_selectedVoice || "serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
+  body.innerHTML = "";
+  _dialogRows.forEach((row, i) => {
+    const tr = document.createElement("tr");
+    tr.dataset.rowIndex = String(i);
+    if (row._active) tr.classList.add("dialog-row-current");
+    tr.onclick = (e) => {
+      if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT" ||
+          e.target.tagName === "TEXTAREA" || e.target.tagName === "BUTTON") return;
+      seekToDialogRow(i);
+    };
+    tr.innerHTML = `
+      <td><select data-i="${i}" data-k="speaker" onchange="onDialogCellChange(this)">${speakerOptionsHtml(row.speaker)}</select></td>
+      <td><input data-i="${i}" data-k="instruction" value="${esc(row.instruction||"")}" oninput="onDialogCellChange(this)" placeholder="${t('ph_instruction')}"></td>
+      <td><textarea data-i="${i}" data-k="text" oninput="onDialogCellChange(this)" placeholder="${t('ph_dialog_text')}">${esc(row.text||"")}</textarea></td>
+      <td class="dialog-time-cell" data-time="start">${esc(row.start_time||"")}</td>
+      <td class="dialog-time-cell" data-time="end">${esc(row.end_time||"")}</td>
+      <td><div class="dialog-row-actions"><button class="btn" style="padding:3px 6px" onclick="insertDialogRow(${i+1})">+</button><button class="btn" style="padding:3px 6px" onclick="removeDialogRow(${i})">×</button></div></td>`;
+    body.appendChild(tr);
+  });
+}
+function onDialogCellChange(el) {
+  const i = Number(el.dataset.i); const k = el.dataset.k;
+  if (!_dialogRows[i]) return;
+  _dialogRows[i][k] = el.value;
+  if (k === "text" || k === "speaker" || k === "instruction") {
+    _dialogRows[i].start_ms = null; _dialogRows[i].end_ms = null;
+    _dialogRows[i].start_time = ""; _dialogRows[i].end_time = "";
+  }
+  onTextInput();
+  updateSynthBtn();
+}
+function addDialogRow() { insertDialogRow(_dialogRows.length); }
+function insertDialogRow(idx) {
+  _dialogRows.splice(idx, 0, {speaker:_selectedVoice || "serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""});
+  renderDialogTable(); onTextInput(); updateSynthBtn();
+}
+function removeDialogRow(idx) {
+  if (_dialogRows.length <= 1) _dialogRows = [{speaker:_selectedVoice || "serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
+  else _dialogRows.splice(idx, 1);
+  renderDialogTable(); onTextInput(); updateSynthBtn();
+}
+function getDialogRowsForSubmit() {
+  return (_dialogRows || []).map(r => ({
+    speaker: String(r.speaker || "").trim(),
+    instruction: String(r.instruction || "").trim(),
+    text: String(r.text || "").trim(),
+    start_ms: Number.isFinite(Number(r.start_ms)) ? Number(r.start_ms) : null,
+    end_ms: Number.isFinite(Number(r.end_ms)) ? Number(r.end_ms) : null,
+    start_time: String(r.start_time || ""),
+    end_time: String(r.end_time || ""),
+  })).filter(r => r.text);
+}
+function updateDialogRowTimeFromProgress(msg) {
+  const ri = Number(msg.row_index);
+  if (!Number.isInteger(ri) || !_dialogRows[ri]) return;
+  const s = Number(msg.audio_start_ms);
+  const e = Number(msg.audio_end_ms);
+  if (Number.isFinite(s)) {
+    if (!Number.isFinite(Number(_dialogRows[ri].start_ms)) || s < Number(_dialogRows[ri].start_ms)) {
+      _dialogRows[ri].start_ms = s;
+      _dialogRows[ri].start_time = _msToTimecode(s);
+    }
+  }
+  if (Number.isFinite(e)) {
+    if (!Number.isFinite(Number(_dialogRows[ri].end_ms)) || e > Number(_dialogRows[ri].end_ms)) {
+      _dialogRows[ri].end_ms = e;
+      _dialogRows[ri].end_time = _msToTimecode(e);
+    }
+  }
+  const tr = document.querySelector(`#DIALOG_TBODY tr[data-row-index="${ri}"]`);
+  if (tr) {
+    const st = tr.querySelector('[data-time="start"]');
+    const en = tr.querySelector('[data-time="end"]');
+    if (st) st.textContent = _dialogRows[ri].start_time || "";
+    if (en) en.textContent = _dialogRows[ri].end_time || "";
+  }
+}
+function resetDialogRowTimes() {
+  (_dialogRows || []).forEach(r => { r.start_ms = null; r.end_ms = null; r.start_time = ""; r.end_time = ""; r._active = false; });
+}
+function highlightDialogRow(rowIndex) {
+  const ri = Number(rowIndex);
+  if (!Number.isInteger(ri)) return;
+  const body = document.getElementById("DIALOG_TBODY");
+  if (!body) return;
+  body.querySelectorAll("tr.dialog-row-current").forEach(tr => tr.classList.remove("dialog-row-current"));
+  const tr = body.querySelector(`tr[data-row-index="${ri}"]`);
+  if (!tr) return;
+  tr.classList.add("dialog-row-current");
+  (_dialogRows || []).forEach((r, i) => { r._active = i === ri; });
+  const wrap = document.getElementById("DIALOG_TABLE_WRAP");
+  if (wrap) {
+    const target = tr.offsetTop - wrap.clientHeight / 2 + tr.clientHeight / 2;
+    wrap.scrollTo({top: Math.max(0, target), behavior: "smooth"});
+  }
+}
+function clearDialogHighlight() {
+  document.querySelectorAll("#DIALOG_TBODY tr.dialog-row-current").forEach(tr => tr.classList.remove("dialog-row-current"));
+  (_dialogRows || []).forEach(r => { r._active = false; });
+}
+function parseCsvText(csv) {
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i=0; i<csv.length; i++) {
+    const c = csv[i], n = csv[i+1];
+    if (q) {
+      if (c === '"' && n === '"') { cell += '"'; i++; }
+      else if (c === '"') q = false;
+      else cell += c;
+    } else {
+      if (c === '"') q = true;
+      else if (c === ',') { row.push(cell); cell = ""; }
+      else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ""; }
+      else if (c !== '\r') cell += c;
+    }
+  }
+  row.push(cell); rows.push(row);
+  return rows.filter(r => r.some(x => String(x||"").trim() !== ""));
+}
+function chooseDialogCsv() {
+  if (!isCustomVoiceRepo(currentRepoValue())) { showToast("CSV 对话模式仅适用于 CustomVoice 模型", "err"); return; }
+  const inp = document.getElementById("DIALOG_CSV_INPUT");
+  if (inp) { inp.value = ""; inp.click(); }
+}
+async function onDialogCsvSelected(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!/\.csv$/i.test(file.name)) { showToast("请选择 CSV 文件", "err"); return; }
+  const csv = await file.text();
+  let rows = parseCsvText(csv);
+  if (!rows.length) { showToast("CSV 内容为空", "err"); return; }
+  const first = rows[0].map(x => String(x||"").trim().toLowerCase());
+  if (first[0] === "speaker" || first[0] === "发言人") rows = rows.slice(1);
+  _dialogRows = rows.map(r => ({
+    speaker: String(r[0] || "").trim() || "serena",
+    instruction: String(r[1] || "").trim(),
+    text: String(r[2] || "").trim(),
+    start_ms: null, end_ms: null, start_time: "", end_time: "",
+  })).filter(r => r.text);
+  if (!_dialogRows.length) _dialogRows = [{speaker:"serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
+  setInputMode("dialog");
+  showToast(`已加载 ${_dialogRows.length} 行对话`, "ok");
+}
+function dialogPlainText() {
+  return getDialogRowsForSubmit().map(r => r.text).join("\n");
+}
+
+// ── Synthesis ────────────────────────────────────────────
+async function startSynthesis() {
+  const dialogRows = _inputMode === "dialog" ? getDialogRowsForSubmit() : [];
+  const text = _inputMode === "dialog" ? dialogPlainText() : document.getElementById("TEXT_EDITOR").value.trim();
+  if (!text && !dialogRows.length) {
+    showToast(_inputMode === "dialog" ? "三列表格中没有可合成文本" : "请先输入文本", "err");
+    updateSynthBtn();
+    return;
+  }
+  // 点击开始时主动同步一次状态，避免 WebSocket 状态标志滞后导致误判。
+  if (!_workerReady) {
+    await syncStatusFromServer();
+  }
+  if (_inputMode === "dialog" && !isCustomVoiceRepo(currentRepoValue())) {
+    showToast("三列表格合成仅适用于 CustomVoice 模型", "err");
+    return;
+  }
+
+  // 重置输出面板
+  _synthDone = false;
+  setSynthesizing(true);
+  clearHighlight();
+  clearDialogHighlight();
+  if (_inputMode === "dialog") resetDialogRowTimes();
+  _timestamps = [];
+  _tsIndex    = [];
+  _sessionLog = [];
+  _logVisible = false;
+  document.getElementById("PROGRESS_LOG").style.display = "none";
+  const _lt = document.getElementById("BTN_LOG_TOGGLE");
+  if (_lt) _lt.textContent = "展开日志";
+  document.getElementById("OUTPUT_PANEL").classList.add("visible");
+  document.getElementById("PROGRESS_BAR").style.width = "0%";
+  document.getElementById("PROGRESS_LOG").innerHTML = "";
+  document.getElementById("PROGRESS_AREA").style.display = "";
+  document.getElementById("PLAYER_AREA").style.display = "none";
+  resetPlayerUI();
+  document.getElementById("BTN_DOWNLOAD").disabled = true;
+  updateSubtitleButton();
+
+  const adv = collectAdvParams();
+
+  const body = {
+    text,
+    dialog_rows: dialogRows,
+    input_mode: _inputMode,
+    voice_id: _selectedVoice,
+    speed:    _speed,
+    advanced: adv,
+    // chunk_size 由后端根据语言自动决定，不从前端覆盖
+  };
+
+  try {
+    const r = await fetch("/api/synthesize", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(body),
+    });
+    const j = await r.json();
+    if (!j.ok) {
+      showToast("合成启动失败: " + (j.error||""), "err");
+      setSynthesizing(false);
+      document.getElementById("OUTPUT_TITLE").textContent = "合成失败: " + (j.error||"");
+      return;
+    }
+    // 启动轮询保险，防止 WebSocket 消息丢失
+    let pollCount = 0;
+    const pollTimer = setInterval(async () => {
+      pollCount++;
+      if (_synthDone || pollCount > 120) { clearInterval(pollTimer); return; }
+      try {
+        const sr = await fetch("/api/status");
+        const sj = await sr.json();
+        if (sj.status === "done" && sj.output_path && !_synthDone) {
+          clearInterval(pollTimer);
+          _synthDone = true;
+          _currentOutputPath = sj.output_path;
+          showDoneUI(_currentOutputPath, 0);
+        }
+      } catch(e) {}
+    }, 2000);
+  } catch(e) {
+    showToast("请求失败: " + e, "err");
+    setSynthesizing(false);
+    const title = document.getElementById("OUTPUT_TITLE");
+    if (title) title.textContent = "合成启动失败";
+  }
+}
+
+async function stopSynthesis() {
+  await fetch("/api/stop", {method:"POST"});
+  setSynthesizing(false);
+  clearHighlight();
+  setStatus("on","已停止");
+  showToast("合成已停止");
+}
+
+function _msToTimecode(ms) {
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  const f = Math.floor((ms % 1000) / 10);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(f).padStart(2,'0')}`;
+}
+
+function _msToSrtTimecode(ms) {
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  const f = Math.floor(ms % 1000);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')},${String(f).padStart(3,'0')}`;
+}
+
+// ── 字幕导出 ──────────────────────────────────────────────
+function toggleSubtitleMenu(btn) {
+  const m = document.getElementById("SUBTITLE_MENU");
+  if (!m) return;
+  const open = m.style.display !== "none";
+  if (open) { m.style.display = "none"; return; }
+
+  const rect = btn.getBoundingClientRect();
+  m.style.visibility = "hidden";
+  m.style.display = "block";
+  m.style.left = "auto";
+  m.style.right = Math.max(8, window.innerWidth - rect.right) + "px";
+
+  // 先渲染再测量高度；空间不足时自动向上展开，确保 JSON / Excel 选项可见
+  const menuH = m.offsetHeight || 190;
+  const belowTop = rect.bottom + 6;
+  const aboveTop = rect.top - menuH - 6;
+  const maxTop = Math.max(8, window.innerHeight - menuH - 8);
+  const top = (belowTop + menuH <= window.innerHeight - 8)
+    ? belowTop
+    : Math.max(8, Math.min(aboveTop, maxTop));
+  m.style.top = top + "px";
+  m.style.visibility = "visible";
+
+  setTimeout(() => document.addEventListener("click", function h(e) {
+    if (!m.contains(e.target) && e.target !== btn) {
+      m.style.display = "none";
+      document.removeEventListener("click", h);
+    }
+  }), 10);
+}
+
+async function exportSubtitle(fmt) {
+  document.getElementById("SUBTITLE_MENU").style.display = "none";
+  if (!_timestamps.length) { showToast("无时间戳数据，请先完成合成", "err"); return; }
+
+  const ts   = new Date().toISOString().slice(0,19).replace(/[T:]/g,"-");
+  let content = "", mime = "text/plain", ext = fmt;
+
+  if (fmt === "srt") {
+    content = _timestamps.map((t, i) =>
+      `${i+1}\n${_msToSrtTimecode(t.audio_start_ms)} --> ${_msToSrtTimecode(t.audio_end_ms)}\n${t.text}\n`
+    ).join("\n");
+    mime = "text/plain";
+
+  } else if (fmt === "txt") {
+    content = _timestamps.map(t =>
+      `[${_msToTimecode(t.audio_start_ms)} → ${_msToTimecode(t.audio_end_ms)}]\n${t.text}`
+    ).join("\n\n");
+
+  } else if (fmt === "md") {
+    content = `# 字幕\n\n`;
+    content += _timestamps.map((t, i) =>
+      `## ${String(i+1).padStart(2,"0")} \`${_msToTimecode(t.audio_start_ms)}\`\n\n${t.text}\n`
+    ).join("\n");
+
+  } else if (fmt === "json") {
+    content = JSON.stringify(_timestamps.map(t => ({
+      index:    t.chunk_idx + 1,
+      start_ms: t.audio_start_ms,
+      end_ms:   t.audio_end_ms,
+      start:    _msToTimecode(t.audio_start_ms),
+      end:      _msToTimecode(t.audio_end_ms),
+      speaker:  t.speaker || "",
+      instruction: t.instruction || "",
+      text:     t.text,
+    })), null, 2);
+    mime = "application/json";
+
+  } else if (fmt === "csv") {
+    // Excel-compatible CSV with BOM
+    const rows = [["\uFEFF时间码", "结束时间", "时长(ms)", "文字"]];
+    _timestamps.forEach(t => rows.push([
+      _msToTimecode(t.audio_start_ms),
+      _msToTimecode(t.audio_end_ms),
+      t.audio_end_ms - t.audio_start_ms,
+      `"${(t.text||"").replace(/"/g,'""')}"`,
+    ]));
+    content = rows.map(r => r.join(",")).join("\r\n");
+    mime = "text/csv";
+    ext  = "csv";
+  }
+
+  await saveTextToOutputDir(`subtitle_${ts}.${ext}`, content, "已导出字幕");
+}
+
+// ── 会话加载 ──────────────────────────────────────────────
+async function getAudioInfoForSession(path) {
+  if (!path) return null;
+  try {
+    const r = await fetch(`/api/file_info?path=${encodeURIComponent(path)}`);
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) return {path, exists:false};
+    return j.info || {path, exists:true};
+  } catch(e) {
+    return {path, exists:false};
+  }
+}
+
+async function resolveSessionAudio(session, sessionFile) {
+  const audio = session.audio || {};
+  const candidatePath = audio.path || session.audio_path || session.output_path || "";
+  const candidateName = audio.filename || (candidatePath ? candidatePath.split(/[\\/]/).pop() : "");
+  if (!candidatePath && !candidateName) return null;
+  try {
+    const r = await fetch("/api/resolve_audio_file", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        path: candidatePath,
+        filename: candidateName,
+        session_path: (sessionFile && sessionFile.path) || "",
+      }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok || !j.path) return null;
+    return j;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function loadSession(file) {
+  try {
+    const sessionName = (file && file.name ? file.name : "session.ttso");
+    if (!/\.(ttso|json)$/i.test(sessionName)) {
+      showToast("请选择 .ttso 或 .json 会话文件", "err");
+      return;
+    }
+    const text = await file.text();
+    const s    = JSON.parse(text);
+    // 恢复文本
+    if (s.input_mode === "dialog" && Array.isArray(s.dialog_rows) && s.dialog_rows.length) {
+      _dialogRows = s.dialog_rows.map(r => ({
+        speaker: String(r.speaker||""),
+        instruction: String(r.instruction||""),
+        text: String(r.text||""),
+        start_ms: Number.isFinite(Number(r.start_ms)) ? Number(r.start_ms) : null,
+        end_ms: Number.isFinite(Number(r.end_ms)) ? Number(r.end_ms) : null,
+        start_time: String(r.start_time||""),
+        end_time: String(r.end_time||""),
+      }));
+      setInputMode("dialog");
+      renderDialogTable();
+    } else if (s.text) {
+      setInputMode("text");
+      document.getElementById("TEXT_EDITOR").value = s.text;
+      onTextInput();
+    }
+    // 恢复设置
+    if (s.settings) {
+      _settings = {..._settings, ...s.settings};
+      applySettingsToUI();
+    }
+    if (s.voice_id)  { _selectedVoice = s.voice_id; }
+    if (s.speed)     {
+      _speed = s.speed;
+      document.getElementById("SPEED_SLIDER").value = _speed;
+      document.getElementById("SPEED_VAL").textContent = _speed.toFixed(2) + "×";
+    }
+    // 恢复时间戳
+    if (s.timestamps?.length) {
+      _timestamps  = s.timestamps;
+      _sessionLog  = s.log || [];
+      updateSubtitleButton();
+      showLoadedSessionNoProgress(`已加载会话 — ${_timestamps.length} 段时间戳`);
+    }
+    // 恢复输出音频：优先使用 .ttso 中记录的音频信息，并通过后端解析绝对路径/同目录/输出目录候选。
+    const audioResolved = await resolveSessionAudio(s, file);
+    if (audioResolved && audioResolved.path) {
+      _currentOutputPath = audioResolved.path;
+      const duration = getSessionDurationSeconds(s);
+      document.getElementById("OUTPUT_PANEL").classList.add("visible");
+      showDoneUI(_currentOutputPath, duration, {toast:false});
+      const metaName = audioResolved.filename || _currentOutputPath.split(/[\/]/).pop();
+      if (!duration) {
+        document.getElementById("AUDIO_META").textContent = metaName;
+      }
+      if (_inputMode === "dialog") renderDialogTable();
+    } else if (s.output_path || s.audio?.path || s.audio?.filename) {
+      _currentOutputPath = s.output_path || s.audio?.path || "";
+      resetPlayerUI();
+      showLoadedSessionNoProgress(s.timestamps?.length ? `已加载会话 — ${_timestamps.length} 段时间戳` : "已加载会话");
+      if (_inputMode === "dialog") renderDialogTable();
+      showToast("会话已加载，但未找到原音频文件；请确认音频仍在原目录、会话同目录或默认输出目录。", "warn");
+    }
+    buildTsIndex();
+    renderVoiceGrid();
+    if (s.voice_id && _voices && _voices.length) {
+      const match = _voices.find(v => v.id === s.voice_id);
+      if (match) selectVoice(s.voice_id);
+    }
+    showToast(`已加载会话: ${file.name}`, "ok");
+  } catch(e) {
+    showToast("加载失败: " + e, "err");
+  }
+}
+
+async function saveSession() {
+  const text    = _inputMode === "dialog" ? dialogPlainText() : document.getElementById("TEXT_EDITOR").value;
+  const adv     = collectAdvParams();
+  const audioInfo = await getAudioInfoForSession(_currentOutputPath || "");
+  const session = {
+    version:    "0.2",
+    saved_at:   new Date().toISOString(),
+    // 文本和音频
+    text,
+    input_mode: _inputMode,
+    dialog_rows: _inputMode === "dialog" ? (_dialogRows || []).map(r => ({speaker: String(r.speaker||"").trim(), instruction: String(r.instruction||"").trim(), text: String(r.text||"").trim(), start_ms: Number.isFinite(Number(r.start_ms)) ? Number(r.start_ms) : null, end_ms: Number.isFinite(Number(r.end_ms)) ? Number(r.end_ms) : null, start_time: String(r.start_time||""), end_time: String(r.end_time||"")})) : [],
+    output_path: _currentOutputPath || "",
+    audio_path:  _currentOutputPath || "",
+    duration:    (ensureAudioEl()?.duration && isFinite(ensureAudioEl().duration)) ? ensureAudioEl().duration : getSessionDurationSeconds({timestamps:_timestamps}),
+    audio:       audioInfo ? {
+      path: audioInfo.path || _currentOutputPath || "",
+      filename: audioInfo.filename || ((_currentOutputPath||"").split(/[\\/]/).pop()),
+      ext: audioInfo.ext || "",
+      mime: audioInfo.mime || "",
+      size: audioInfo.size || 0,
+      mtime: audioInfo.mtime || 0,
+      exists_at_save: !!audioInfo.exists,
+    } : null,
+    // 时间戳（可生成字幕）
+    timestamps: _timestamps,
+    // SRT 字幕内容
+    srt: _timestamps.map((t, i) =>
+      `${i+1}\n${_msToSrtTimecode(t.audio_start_ms)} --> ${_msToSrtTimecode(t.audio_end_ms)}\n${t.text}\n`
+    ).join("\n"),
+    // 合成设置
+    voice_id:   _selectedVoice,
+    speed:      _speed,
+    model_repo: _settings.model_repo || "",
+    advanced:   adv,
+    // 日志
+    log: _sessionLog,
+    // 全部设置快照
+    settings:   _settings,
+  };
+
+  const json = JSON.stringify(session, null, 2);
+  const ts   = new Date().toISOString().slice(0,19).replace(/[T:]/g, "-");
+  const fname = `tts_session_${ts}.ttso`;
+  await saveTextToOutputDir(fname, json, "已保存会话");
+}
+
+
+// ── ASR Offline style playback controls ──────────────────────
+let _audioEl = null;
+let _followMode = true;
+let _seeking = false;
+let _playbackReady = false;
+
+function ensureAudioEl() {
+  _audioEl = document.getElementById("AUDIO_EL");
+  return _audioEl;
+}
+
+function initPlayerFromUrl(url) {
+  const el = ensureAudioEl();
+  if (!el) return;
+  el.pause();
+  el.src = url;
+  el.load();
+  _playbackReady = true;
+  el.ontimeupdate = onTimeUpdate;
+  el.onended = () => {
+    const btn = document.getElementById("PLAY_BTN");
+    if (btn) btn.textContent = "▶";
+  };
+  el.onloadedmetadata = () => {
+    updateSeekUI();
+    const t = document.getElementById("PLAY_TIME");
+    if (t) t.textContent = "0:00 / " + fmtTime(el.duration || 0);
+  };
+  const btn = document.getElementById("PLAY_BTN");
+  if (btn) btn.textContent = "▶";
+  const vb = document.getElementById("VOL_BTN");
+  if (vb) vb.innerHTML = ICON_VOL;
+  setVol(100);
+  updateSeekUI();
+}
+
+function resetPlayerUI() {
+  const el = ensureAudioEl();
+  if (el) { el.pause(); el.removeAttribute("src"); el.load(); }
+  _playbackReady = false;
+  const btn = document.getElementById("PLAY_BTN");
+  if (btn) btn.textContent = "▶";
+  const fill = document.getElementById("SEEK_FILL");
+  const thumb = document.getElementById("SEEK_THUMB");
+  const time = document.getElementById("PLAY_TIME");
+  if (fill) fill.style.width = "0%";
+  if (thumb) thumb.style.left = "0%";
+  if (time) time.textContent = "0:00 / 0:00";
+}
+
+function togglePlay() {
+  const el = ensureAudioEl();
+  if (!el || !_playbackReady || !el.src) return;
+  const btn = document.getElementById("PLAY_BTN");
+  if (el.paused) {
+    el.play();
+    if (btn) btn.textContent = "⏸";
+  } else {
+    el.pause();
+    if (btn) btn.textContent = "▶";
+  }
+}
+
+function updateSeekUI() {
+  const el = ensureAudioEl();
+  if (!el) return;
+  const cur = el.currentTime || 0;
+  const dur = el.duration || 0;
+  const pctNum = dur ? Math.max(0, Math.min(100, cur / dur * 100)) : 0;
+  const pct = pctNum.toFixed(2) + "%";
+  const fill = document.getElementById("SEEK_FILL");
+  const thumb = document.getElementById("SEEK_THUMB");
+  const time = document.getElementById("PLAY_TIME");
+  if (fill) fill.style.width = pct;
+  if (thumb) thumb.style.left = pct;
+  if (time) time.textContent = fmtTime(cur) + " / " + fmtTime(dur);
+}
+
+function onTimeUpdate() {
+  if (_seeking) return;
+  updateSeekUI();
+  if (_followMode) highlightCurrentPlaybackChunk((ensureAudioEl()?.currentTime || 0) * 1000);
+}
+
+function seekClick(evt) {
+  const el = ensureAudioEl();
+  if (!el || !_playbackReady) return;
+  const bar = document.getElementById("SEEK_BAR");
+  const rect = bar.getBoundingClientRect();
+  const frac = Math.max(0, Math.min(1, (evt.clientX - rect.left) / rect.width));
+  el.currentTime = frac * (el.duration || 0);
+  updateSeekUI();
+  if (_followMode) highlightCurrentPlaybackChunk(el.currentTime * 1000);
+}
+
+function setVol(v) {
+  const n = Math.max(0, Math.min(100, parseFloat(v) || 0));
+  const el = ensureAudioEl();
+  if (el) el.volume = n / 100;
+  const slider = document.getElementById("VOL_SLIDER");
+  const thumb = document.getElementById("VOL_THUMB");
+  if (slider) slider.style.background = `linear-gradient(to right,var(--ac) ${n}%,var(--b2) ${n}%)`;
+  if (thumb) thumb.style.left = (5 + (n / 100) * 66) + "px";
+}
+
+function toggleMute() {
+  const el = ensureAudioEl();
+  if (!el) return;
+  el.muted = !el.muted;
+  const btn = document.getElementById("VOL_BTN");
+  if (btn) btn.innerHTML = el.muted ? ICON_MUTED : ICON_VOL;
+}
+
+function toggleFollow() {
+  const sw = document.getElementById("FOLLOW_SW");
+  _followMode = sw ? sw.checked : !_followMode;
+  if (!_followMode) { clearHighlight(); clearDialogHighlight(); }
+}
+
+function seekToDialogRow(rowIndex) {
+  if (!_playbackReady) return;
+  const el = ensureAudioEl();
+  if (!el || !el.src) return;
+  const row = _dialogRows[rowIndex];
+  if (!row) return;
+  let ms = null;
+  if (_timestamps && _timestamps.length) {
+    const ts = _timestamps.find(t => Number(t.row_index) === rowIndex);
+    if (ts) ms = Number(ts.audio_start_ms);
+  }
+  if (ms === null && row.start_ms !== null && row.start_ms !== undefined) {
+    ms = Number(row.start_ms);
+  }
+  if (ms === null || !Number.isFinite(ms)) return;
+  el.currentTime = ms / 1000;
+  updateSeekUI();
+  highlightDialogRow(rowIndex);
+  if (el.paused) {
+    el.play();
+    const btn = document.getElementById("PLAY_BTN");
+    if (btn) btn.textContent = "⏸";
+  }
+}
+
+// Build a char-offset index from _timestamps so reverse-follow is O(log n) and exact.
+// Called once after synthesis completes or session is loaded.
+function buildTsIndex() {
+  _tsIndex = [];
+  if (!_timestamps || !_timestamps.length || _inputMode === "dialog") return;
+  const fullText = document.getElementById("TEXT_EDITOR")?.value || "";
+  if (!fullText) return;
+  let searchFrom = 0;
+  for (const t of _timestamps) {
+    if (!t.text) continue;
+    // Try to match from current position first; fallback to full search
+    let idx = fullText.indexOf(t.text, searchFrom);
+    if (idx < 0) idx = fullText.indexOf(t.text, 0);
+    if (idx < 0) {
+      // Partial match: try first 30 chars of the chunk
+      const anchor = t.text.slice(0, 30).trimEnd();
+      idx = fullText.indexOf(anchor, searchFrom);
+      if (idx < 0) idx = fullText.indexOf(anchor, 0);
+    }
+    if (idx < 0) continue;
+    _tsIndex.push({
+      charStart:     idx,
+      charEnd:       idx + t.text.length,
+      audio_start_ms: Number(t.audio_start_ms),
+      chunk_idx:     t.chunk_idx,
+    });
+    searchFrom = idx + t.text.length;
+  }
+  // Render invisible timestamp anchors into overlay
+  _renderTsOverlay(fullText);
+}
+
+// Render the overlay with invisible <span data-ms> anchors at each chunk boundary.
+// These are used both for visual highlight and for hit-testing clicks.
+function _renderTsOverlay(fullText) {
+  const hl = document.getElementById("TEXT_HIGHLIGHT");
+  if (!hl || !_tsIndex.length) return;
+  // Build HTML: insert zero-width spans at each chunk start
+  let out = "", pos = 0;
+  for (const entry of _tsIndex) {
+    if (entry.charStart > pos) {
+      out += _escHtml(fullText.slice(pos, entry.charStart));
+    }
+    out += `<span class="ts-anchor" data-ms="${entry.audio_start_ms}" `
+         + `data-end="${entry.charEnd}" `
+         + `style="position:relative"></span>`;
+    pos = entry.charStart;
+  }
+  if (pos < fullText.length) out += _escHtml(fullText.slice(pos));
+  // Only update if no active highlight is shown
+  if (_hlStart < 0) {
+    hl.innerHTML = out + "\u200b";
+    hl.scrollTop = document.getElementById("TEXT_EDITOR")?.scrollTop || 0;
+  }
+}
+
+function onTextEditorClick(evt) {
+  // 非播放状态 → 正常编辑，不拦截
+  if (!_playbackReady) return;
+  const el = ensureAudioEl();
+  if (!el || !el.src) return;
+  if (!_tsIndex.length && !_timestamps.length) return;
+
+  // 计算点击位置对应的字符偏移量
+  const ta = evt.target;
+  const charOffset = getTextareaClickOffset(ta, evt.clientX, evt.clientY);
+  if (charOffset < 0) return;
+
+  // 在 _tsIndex 中用二分查找最近的 chunk
+  let bestMs = null;
+  if (_tsIndex.length) {
+    // Binary search: find entry where charStart <= charOffset
+    let lo = 0, hi = _tsIndex.length - 1, best = _tsIndex[0];
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (_tsIndex[mid].charStart <= charOffset) { best = _tsIndex[mid]; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+    bestMs = best.audio_start_ms;
+  } else {
+    // Fallback: linear scan through _timestamps
+    const fullText = ta.value;
+    let bestDist = Infinity, searchFrom = 0;
+    for (const t of _timestamps) {
+      if (!t.text) continue;
+      let idx = fullText.indexOf(t.text, searchFrom);
+      if (idx < 0) idx = fullText.indexOf(t.text, 0);
+      if (idx < 0) continue;
+      const dist = Math.abs(idx - charOffset);
+      if (dist < bestDist) { bestDist = dist; bestMs = Number(t.audio_start_ms); }
+      searchFrom = idx + t.text.length;
+    }
+  }
+  if (bestMs === null || !Number.isFinite(bestMs)) return;
+
+  evt.preventDefault();
+  el.currentTime = bestMs / 1000;
+  updateSeekUI();
+  highlightCurrentPlaybackChunk(bestMs);
+  if (el.paused) {
+    el.play();
+    const btn = document.getElementById("PLAY_BTN");
+    if (btn) btn.textContent = "⏸";
+  }
+}
+
+function getTextareaClickOffset(ta, clientX, clientY) {
+  // Mirror-div approach: clone textarea's layout into a temp div,
+  // inject a zero-width span at each line start, find closest to click.
+  const text = ta.value;
+  if (!text) return -1;
+  const cs = getComputedStyle(ta);
+  const rect = ta.getBoundingClientRect();
+
+  // Build a mirror div that matches textarea's exact layout
+  const mirror = document.createElement("div");
+  mirror.style.cssText = [
+    "position:fixed","visibility:hidden","overflow:auto",
+    "white-space:pre-wrap","word-wrap:break-word",
+    "box-sizing:border-box",
+    `width:${ta.offsetWidth}px`,
+    `height:${ta.offsetHeight}px`,
+    `top:${rect.top}px`,`left:${rect.left}px`,
+    `padding:${cs.paddingTop} ${cs.paddingRight} ${cs.paddingBottom} ${cs.paddingLeft}`,
+    `font:${cs.font}`,`line-height:${cs.lineHeight}`,
+    `border:${cs.border}`,
+  ].join(";");
+  document.body.appendChild(mirror);
+  mirror.scrollTop = ta.scrollTop;
+
+  // Inject a span at every character position (chunked for perf: per-line only)
+  const lines = text.split("\n");
+  let html2 = "", pos = 0;
+  for (let li = 0; li < lines.length; li++) {
+    const line = lines[li];
+    html2 += `<span data-pos="${pos}"></span>`;
+    // Also add a span mid-line every ~40 chars for better x resolution
+    for (let ci = 0; ci < line.length; ci++) {
+      if (ci % 40 === 0 && ci > 0) html2 += `<span data-pos="${pos+ci}"></span>`;
+    }
+    html2 += line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    pos += line.length + 1;
+    if (li < lines.length - 1) html2 += "\n";
+  }
+  mirror.innerHTML = html2;
+
+  // Find the span closest to click point
+  const spans = mirror.querySelectorAll("span[data-pos]");
+  let bestPos = 0, bestDist = Infinity;
+  for (const sp of spans) {
+    const r = sp.getBoundingClientRect();
+    const dx = clientX - r.left, dy = clientY - (r.top + r.height / 2);
+    const dist = dx * dx + dy * dy;
+    if (dist < bestDist) { bestDist = dist; bestPos = Number(sp.dataset.pos); }
+  }
+  document.body.removeChild(mirror);
+  return bestPos;
+}
+
+function fmtTime(s) {
+  if (!isFinite(s) || s < 0) return "0:00";
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return m + ":" + String(sec).padStart(2, "0");
+}
+
+function highlightCurrentPlaybackChunk(ms) {
+  if (!_timestamps || !_timestamps.length) return;
+  let hit = _timestamps.find(t => ms >= (Number(t.audio_start_ms)||0) && ms < (Number(t.audio_end_ms)||0));
+  if (!hit) {
+    let best = null, bestDist = Infinity;
+    for (const t of _timestamps) {
+      const s = Number(t.audio_start_ms) || 0;
+      const e = Number(t.audio_end_ms) || s;
+      const d = ms < s ? s - ms : (ms > e ? ms - e : 0);
+      if (d < bestDist) { bestDist = d; best = t; }
+    }
+    hit = bestDist <= 500 ? best : null;
+  }
+  if (hit) {
+    if (_inputMode === "dialog" && hit.row_index !== undefined && hit.row_index !== null) {
+      highlightDialogRow(hit.row_index);
+    } else if (hit.text) {
+      highlightChunk(hit.text);
+    }
+  }
+}
+
+async function downloadAudio() {
+  if (!_currentOutputPath) { showToast("无可保存的音频", "err"); return; }
+  const fname = _currentOutputPath.split("/").pop() || "tts_output.wav";
+  await saveExistingFileToOutputDir(_currentOutputPath, fname);
+}
+
+// ── Model ────────────────────────────────────────────────
+const _MODEL_DESCS = {
+  "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit": "内置 9 种音色（serena / vivian / ryan / aiden 等），支持情感指令",
+  "mlx-community/Qwen3-TTS-12Hz-0.6B-CustomVoice-8bit": "轻量版内置音色，速度更快，质量略低",
+  "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit":        "无内置音色，专为声音克隆设计（需上传参考音频）",
+  "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-8bit":        "轻量声音克隆，速度更快",
+  "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit": "用自然语言描述目标音色（如 'female, British narrator'）",
+};
+function updateModelDesc(repo) {
+  const el = document.getElementById("MODEL_DESC");
+  if (el) el.textContent = _MODEL_DESCS[repo] || "";
+}
+// ── Custom model dropdown ─────────────────────────────────────
+const _MODEL_GROUPS = [
+  { label: "CustomVoice — 内置音色", options: [
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit", label: "1.7B CustomVoice 8bit（推荐）" },
+    { value: "mlx-community/Qwen3-TTS-12Hz-0.6B-CustomVoice-8bit", label: "0.6B CustomVoice 8bit（轻量）" },
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16", label: "1.7B CustomVoice bf16（未安装）", disabled: true },
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit", label: "1.7B CustomVoice 6bit（未安装）", disabled: true },
+  ]},
+  { label: "Base — 声音克隆", options: [
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit", label: "1.7B Base 8bit" },
+    { value: "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-8bit", label: "0.6B Base 8bit（轻量）" },
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16", label: "1.7B Base bf16（未安装）", disabled: true },
+    { value: "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-bf16", label: "0.6B Base bf16（未安装）", disabled: true },
+  ]},
+  { label: "VoiceDesign — 文字描述音色", options: [
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit", label: "1.7B VoiceDesign 8bit" },
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16", label: "1.7B VoiceDesign bf16（未安装）", disabled: true },
+  ]},
+];
+
+function _buildModelDropPanel(currentVal) {
+  const panel = document.getElementById("MDL_DROP_PANEL");
+  if (!panel) return;
+  let html = "";
+  for (const g of _MODEL_GROUPS) {
+    html += `<div class="mdl-drop-group-label">${g.label}</div>`;
+    for (const o of g.options) {
+      const sel = o.value === currentVal ? " selected" : "";
+      const dis = o.disabled ? " disabled" : "";
+      html += `<div class="mdl-drop-panel-item${sel}${dis}" data-value="${o.value}">${o.label}</div>`;
+    }
+  }
+  html += `<div class="mdl-drop-custom-item" data-value="__custom__">自定义 repo…</div>`;
+  panel.innerHTML = html;
+  panel.querySelectorAll("[data-value]").forEach(el => {
+    if (!el.classList.contains("disabled")) {
+      el.addEventListener("click", (e) => { e.stopPropagation(); _pickModelDrop(el.dataset.value); });
+    }
+  });
+}
+
+function _pickModelDrop(val) {
+  closeModelDrop();
+  const sel = document.getElementById("MODEL_REPO_SELECT");
+  if (sel) { sel.value = val; }
+  // Update display label
+  const labelEl = document.getElementById("MDL_DROP_LABEL");
+  if (labelEl) {
+    if (val === "__custom__") {
+      labelEl.textContent = "自定义 repo…";
+    } else {
+      for (const g of _MODEL_GROUPS) {
+        const opt = g.options.find(o => o.value === val);
+        if (opt) { labelEl.textContent = opt.label; break; }
+      }
+    }
+  }
+  onModelSelectChange(val);
+}
+
+function toggleModelDrop() {
+  const panel = document.getElementById("MDL_DROP_PANEL");
+  const arrow = document.getElementById("MDL_DROP_ARROW");
+  if (!panel) return;
+  const isOpen = panel.style.display !== "none";
+  if (isOpen) { closeModelDrop(); return; }
+  const sel = document.getElementById("MODEL_REPO_SELECT");
+  _buildModelDropPanel(sel ? sel.value : "");
+  panel.style.display = "";
+  if (arrow) arrow.style.transform = "rotate(180deg)";
+  // Close on outside click
+  setTimeout(() => document.addEventListener("click", _modelDropOutside, {once:true}), 0);
+}
+
+function closeModelDrop() {
+  const panel = document.getElementById("MDL_DROP_PANEL");
+  const arrow = document.getElementById("MDL_DROP_ARROW");
+  if (panel) panel.style.display = "none";
+  if (arrow) arrow.style.transform = "";
+}
+
+function _modelDropOutside(e) {
+  const drop = document.getElementById("MDL_DROP");
+  const panel = document.getElementById("MDL_DROP_PANEL");
+  if (drop && !drop.contains(e.target) && panel && !panel.contains(e.target)) closeModelDrop();
+}
+
+// Sync custom dropdown label and installed state from refreshInstalledModels
+function _syncModelDropFromSelect() {
+  const sel = document.getElementById("MODEL_REPO_SELECT");
+  if (!sel) return;
+  const labelEl = document.getElementById("MDL_DROP_LABEL");
+  // Update installed/disabled state in _MODEL_GROUPS from the hidden select
+  for (const opt of sel.options) {
+    if (!opt.value || opt.value === "__custom__") continue;
+    for (const g of _MODEL_GROUPS) {
+      const entry = g.options.find(o => o.value === opt.value);
+      if (entry) { entry.disabled = opt.disabled; entry.label = opt.textContent; }
+    }
+  }
+  // Update display label
+  if (labelEl) {
+    const cur = sel.value;
+    if (cur === "__custom__") { labelEl.textContent = "自定义 repo…"; return; }
+    for (const g of _MODEL_GROUPS) {
+      const o = g.options.find(x => x.value === cur);
+      if (o) { labelEl.textContent = o.label; return; }
+    }
+  }
+}
+
+function onModelSelectChange(val) {
+  const inp = document.getElementById("MODEL_REPO_INPUT");
+  // disabled option 不可选，但 value 仍可能为未安装项时重置
+  const sel = document.getElementById("MODEL_REPO_SELECT");
+  const selectedOpt = sel.options[sel.selectedIndex];
+  if (selectedOpt && selectedOpt.disabled) {
+    // 回退到第一个可用选项
+    for (const opt of sel.options) { if (!opt.disabled && opt.value !== "__custom__") { sel.value = opt.value; val = opt.value; break; } }
+  }
+  if (val === "__custom__") {
+    inp.style.display = "";
+    inp.focus();
+    document.getElementById("MODEL_DESC").textContent = "";
+  } else {
+    inp.style.display = "none";
+    updateModelDesc(val);
+  }
+  refreshDialogAvailability();
+}
+function loadModel() {
+  const sel = document.getElementById("MODEL_REPO_SELECT");
+  const repo = sel.value === "__custom__"
+    ? document.getElementById("MODEL_REPO_INPUT").value.trim()
+    : sel.value;
+  if (!repo || repo === "__custom__") { showToast("请选择或输入模型 repo", "err"); return; }
+  _settings.model_repo = repo;
+  refreshDialogAvailability();
+  _workerReady = false;
+  updateSynthBtn();
+  setStatus("warn", "正在加载模型…");
+  wsSend({type:"load_model", repo});
+}
+
+function saveBasicSettings() {
+  _settings.output_format = document.getElementById("OUTPUT_FORMAT").value;
+  _settings.output_dir    = document.getElementById("OUTPUT_DIR").value;
+  _settings.speed         = _speed;
+  _settings.voice_id      = _selectedVoice;
+  fetch("/api/settings", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(_settings),
+  });
+  showToast("设置已保存", "ok");
+}
+
+// ── Clone ────────────────────────────────────────────────
+let _cloneAudioFile = null;
+let _cloneAudioData = null;
+
+function onCloneAudioSelected(inp) {
+  _cloneAudioFile = inp.files[0];
+  _cloneAudioData = null;
+  if (_cloneAudioFile) {
+    document.getElementById("CLONE_AUDIO_ZONE").classList.add("has-file");
+    document.getElementById("CLONE_AUDIO_LABEL").textContent = _cloneAudioFile.name;
+  }
+}
+
+async function submitClone() {
+  if (!_cloneAudioFile && !_cloneAudioData) { showToast("请先选择参考音频", "err"); return; }
+  const name    = document.getElementById("CLONE_NAME").value.trim() || "我的声音";
+  const base    = document.getElementById("CLONE_BASE_VOICE").value;
+  const refText = document.getElementById("CLONE_REF_TEXT").value.trim();
+
+  showToast("正在读取音频…");
+  try {
+    let b64, ext;
+    if (_cloneAudioData) {
+      b64 = _cloneAudioData.b64;
+      ext = _cloneAudioData.ext || ("." + ((_cloneAudioData.name || "reference.wav").split(".").pop() || "wav"));
+    } else {
+      ext = "." + (_cloneAudioFile.name.split(".").pop() || "wav");
+      b64 = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload  = () => res(r.result.split(",")[1]);
+        r.onerror = () => rej(new Error("文件读取失败"));
+        r.readAsDataURL(_cloneAudioFile);
+      });
+    }
+
+    showToast("正在提交克隆…");
+    const body = { name, base_voice: base, audio_b64: b64, ext };
+    if (refText) body.ref_text = refText;
+
+    const r = await fetch("/api/clone_voice", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body),
+    });
+    const j = await r.json();
+    if (!j.ok) showToast("克隆失败: " + (j.error||""), "err");
+  } catch(e) {
+    showToast("克隆请求失败: " + e, "err");
+  }
+}
+
+
+async function exportClone(name) {
+  if (!name) { showToast("无可导出的克隆音色", "err"); return; }
+  const safeName = String(name || "clone").replace(/[\\/:*?"<>|]+/g, "_").trim() || "clone";
+
+  try {
+    const r = await fetch(`/api/export_clone?name=${encodeURIComponent(name)}`, {method:"GET", cache:"no-store"});
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok || !data.ok) throw new Error(data.error || r.status || "导出接口返回失败");
+    if (!data.audio_b64) throw new Error("克隆音色音频数据为空，可能需要重新克隆或重新导入");
+    const payload = {
+      file_type: "ttsc",
+      version: "0.2",
+      saved_at: new Date().toISOString(),
+      name: data.name || name,
+      base_voice: data.base_voice || "",
+      ref_text: data.ref_text || "",
+      audio_b64: data.audio_b64,
+      ext: data.ext || ".wav"
+    };
+    await saveTextToOutputDir(`${safeName}.ttsc`, JSON.stringify(payload, null, 2), "已导出克隆音色");
+  } catch(e) {
+    showToast("导出失败: " + (e && e.message ? e.message : e), "err");
+  }
+}
+
+async function importClone(file) {
+  if (!file) return;
+  try {
+    const cloneName = (file && file.name ? file.name : "clone.ttsc");
+    if (!/\.(ttsc|json)$/i.test(cloneName)) {
+      showToast("请选择 .ttsc 或 .json 克隆音色文件", "err");
+      return;
+    }
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (!data.audio_b64) { showToast("导入失败: .ttsc 中没有音频数据", "err"); return; }
+    const r = await fetch("/api/import_clone", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(data),
+    });
+    const j = await r.json();
+    if (!r.ok || !j.ok) {
+      showToast("导入失败: " + (j.error || r.status), "err");
+      return;
+    }
+    showToast(`已导入克隆音色: ${data.name || file.name}`, "ok");
+    wsSend({type:"get_voices"});
+  } catch(e) {
+    showToast("导入失败: " + e, "err");
+  }
+}
+
+// ── Tabs ─────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll(".sb-tab").forEach((t,i) => {
+    const names = ["voice","model","clone"];
+    t.classList.toggle("active", names[i] === name);
+  });
+  document.querySelectorAll(".sb-pane").forEach(p => p.classList.remove("active"));
+  document.getElementById("PANE_" + name.toUpperCase()).classList.add("active");
+}
+
+// ── Theme ─────────────────────────────────────────────────
+function toggleTheme() {
+  const cur = document.documentElement.classList.contains("light") ? "light" : "dark";
+  applyTheme(cur === "light" ? "dark" : "light");
+}
+
+function applyTheme(t) {
+  document.documentElement.classList.toggle("light", t === "light");
+  const btn = document.getElementById("THEME_BTN");
+  if (btn) {
+    const isLight = t === "light";
+    btn.innerHTML = isLight ? ICON_MOON : ICON_SUN;
+    btn.title = _lang==="en" ? (isLight?"Switch to dark mode":"Switch to light mode") : (isLight?"切换为深色模式":"切换为浅色模式");
+    if (isLight) {
+      btn.style.background = "#3a3f47";
+      btn.style.borderColor = "#3a3f47";
+      btn.style.color = "#c8cdd5";
+    } else {
+      btn.style.background = "#d0d4da";
+      btn.style.borderColor = "#d0d4da";
+      btn.style.color = "#ffffff";
+    }
+  }
+  localStorage.setItem("theme", t);
+}
+
+
+// ── Download Wizard ──────────────────────────────────────────────────────────
+const _DL_MODELS = [
+  {repo:"mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit",
+   label:"1.7B CustomVoice 8bit", recommended:true,
+   desc_zh:"内置9种音色，推荐首次安装", desc_en:"9 built-in voices, recommended"},
+  {repo:"mlx-community/Qwen3-TTS-12Hz-0.6B-CustomVoice-8bit",
+   label:"0.6B CustomVoice 8bit", recommended:false,
+   desc_zh:"轻量版，速度更快", desc_en:"Lightweight, faster"},
+  {repo:"mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit",
+   label:"1.7B Base 8bit", recommended:false,
+   desc_zh:"无内置音色，用于声音克隆", desc_en:"No built-in voices, for voice cloning"},
+];
+let _dlMirror = "official";
+let _dlSelectedRepo = _DL_MODELS[0].repo;
+
+function openDlWizard() {
+  const mask = document.getElementById("DL_WIZARD_MASK");
+  if (mask) { mask.style.display = "flex"; mask.style.alignItems = "center"; mask.style.justifyContent = "center"; }
+  _buildDlModelList();
+  _updateDlCmd();
+  applyLang(_lang); // refresh i18n in modal
+}
+
+function closeDlWizard() {
+  const mask = document.getElementById("DL_WIZARD_MASK");
+  if (mask) mask.style.display = "none";
+}
+
+function setDlMirror(m) {
+  _dlMirror = m;
+  document.getElementById("DL_MIRROR_OFFICIAL").classList.toggle("active", m === "official");
+  document.getElementById("DL_MIRROR_CN").classList.toggle("active", m === "cn");
+  _updateDlCmd();
+}
+
+function _buildDlModelList() {
+  const list = document.getElementById("DL_MODEL_LIST");
+  if (!list) return;
+  list.innerHTML = _DL_MODELS.map(m => {
+    const selected = m.repo === _dlSelectedRepo ? " selected" : "";
+    const badge = m.recommended ? `<span class="dl-model-badge">${t("dl_recommended")}</span>` : "";
+    const desc = _lang === "en" ? m.desc_en : m.desc_zh;
+    return `<div class="dl-model-row${selected}" onclick="selectDlModel('${m.repo}')">
+      <div style="flex:1">
+        <div class="dl-model-name">${m.label} ${badge}</div>
+        <div class="dl-model-desc">${desc}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function selectDlModel(repo) {
+  _dlSelectedRepo = repo;
+  _buildDlModelList();
+  _updateDlCmd();
+}
+
+function _updateDlCmd() {
+  const box = document.getElementById("DL_CMD_BOX");
+  if (!box) return;
+  const prefix = _dlMirror === "cn"
+    ? "HF_ENDPOINT=https://hf-mirror.com "
+    : "";
+  box.textContent = `${prefix}hf download ${_dlSelectedRepo}`;
+  // Also update hint
+  const hint = document.getElementById("DL_HINT");
+  if (hint) hint.innerHTML = (_lang === "en"
+    ? "After download, go to the Model tab and click Load Model.<br>"
+    : "下载完成后，请在「模型」标签页点击「加载模型」。<br>")
+    + `<span style="color:var(--hi)">${t("dl_install_hint")}</span>`;
+}
+
+function copyDlCmd() {
+  const box = document.getElementById("DL_CMD_BOX");
+  if (!box) return;
+  navigator.clipboard.writeText(box.textContent.trim()).then(() => {
+    const btn = document.getElementById("DL_COPY_BTN");
+    if (btn) {
+      const orig = btn.textContent;
+      btn.textContent = t("dl_copied");
+      setTimeout(() => { btn.textContent = t("dl_copy"); }, 1800);
+    }
+  }).catch(() => {
+    // Fallback: select the text
+    const range = document.createRange();
+    range.selectNode(box);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+function openTerminalWithCmd() {
+  const cmd = document.getElementById("DL_CMD_BOX")?.textContent.trim() || "";
+  // Use pywebview API if available, else show copy prompt
+  if (hasPywebviewApi && hasPywebviewApi("open_terminal")) {
+    window.pywebview.api.open_terminal(cmd);
+  } else {
+    // Fallback: open Terminal.app via a server endpoint
+    fetch("/api/open_terminal", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({cmd})
+    }).catch(() => {});
+    copyDlCmd();
+    showToast(_lang === "en" ? "Command copied — paste it in Terminal" : "命令已复制，请粘贴到终端执行", "ok");
+  }
+}
+
+
+// ── Advanced Settings ────────────────────────────────────
+function buildAdvGrid(gridId, params) {
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = "";
+  params.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "adv-card";
+    if (p.type === "bool") {
+      card.innerHTML = `
+        <div class="adv-row">
+          <div>
+            <div class="adv-name">${esc(p.labelKey ? t(p.labelKey) : (p.label||p.key))}</div>
+            <div class="adv-key">${esc(p.descKey ? t(p.descKey) : (p.desc||""))}</div>
+          </div>
+          <input type="checkbox" class="adv-checkbox" id="ADV_${p.key}"
+            ${p.default ? "checked" : ""}>
+        </div>`;
+    } else {
+      card.innerHTML = `
+        <div class="adv-row">
+          <div style="flex:1;min-width:0">
+            <div class="adv-name">${esc(p.labelKey ? t(p.labelKey) : (p.label||p.key))}</div>
+            <div class="adv-key">${esc(p.descKey ? t(p.descKey) : (p.desc||""))}</div>
+          </div>
+          <input type="number" class="adv-input" id="ADV_${p.key}"
+            value="${p.default}" min="${p.min}" max="${p.max}" step="${p.step}">
+        </div>`;
+    }
+    grid.appendChild(card);
+  });
+}
+
+function collectAdvParams() {
+  const out = {};
+  [...ADV_SAMPLING_PARAMS, ...ADV_TEXT_PARAMS, ...ADV_AUDIO_PARAMS].forEach(p => {
+    const el = document.getElementById("ADV_" + p.key);
+    if (!el) return;
+    if (p.type === "bool") out[p.key] = el.checked;
+    else out[p.key] = parseFloat(el.value);
+  });
+  return out;
+}
+
+function openAdvancedSettings() {
+  document.getElementById("ADV_MASK").classList.add("visible");
+}
+function closeAdvancedSettings() {
+  document.querySelectorAll(".adv-card.preset-preview").forEach(c => {
+    c.classList.remove("preset-preview");
+    c.querySelectorAll(".adv-preview-val").forEach(v => v.remove());
+  });
+  document.getElementById("ADV_MASK").classList.remove("visible");
+}
+
+function applyAdvSettings() {
+  const adv = collectAdvParams();
+  _settings.advanced_params = adv;
+  _settings.chunk_size = adv.chunk_size || 250;
+  _settings.skip_brackets = adv.skip_brackets || false;
+  fetch("/api/settings", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(_settings),
+  });
+  showToast("高级参数已应用", "ok");
+}
+
+function saveAndCloseAdv() {
+  applyAdvSettings();
+  closeAdvancedSettings();
+}
+
+function resetAdvToDefault() {
+  [...ADV_SAMPLING_PARAMS, ...ADV_TEXT_PARAMS, ...ADV_AUDIO_PARAMS].forEach(p => {
+    const el = document.getElementById("ADV_" + p.key);
+    if (!el) return;
+    if (p.type === "bool") el.checked = !!p.default;
+    else el.value = p.default;
+  });
+  showToast("已恢复默认值");
+}
+
+// ── Presets ───────────────────────────────────────────────
+function updateAdvPresetSelect() {
+  const sel = document.getElementById("ADV_PRESET_SELECT");
+  sel.innerHTML = "";
+  const allPresets = [
+    ...BUILTIN_PRESETS,
+    ...(_settings.advanced_presets || []),
+  ];
+  allPresets.forEach((p, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = (p.nameKey ? t(p.nameKey) : p.name) + (i >= BUILTIN_PRESETS.length ? t("custom_preset_suffix") : "");
+    sel.appendChild(opt);
+  });
+}
+
+function previewAdvPreset() {
+  // Clear previous preview highlights
+  document.querySelectorAll(".adv-card.preset-preview").forEach(c => {
+    c.classList.remove("preset-preview");
+    c.querySelectorAll(".adv-preview-val").forEach(v => v.remove());
+  });
+  const sel = document.getElementById("ADV_PRESET_SELECT");
+  const idx = parseInt(sel.value);
+  const allPresets = [...BUILTIN_PRESETS, ...(_settings.advanced_presets||[])];
+  const preset = allPresets[idx];
+  if (!preset) return;
+  const params = preset.params || {};
+  Object.keys(params).forEach(k => {
+    const inputEl = document.getElementById("ADV_" + k);
+    if (!inputEl) return;
+    const card = inputEl.closest(".adv-card");
+    if (!card) return;
+    card.classList.add("preset-preview");
+    // Remove old preview badge if any
+    card.querySelectorAll(".adv-preview-val").forEach(v => v.remove());
+    // Add preview badge showing the preset value next to the input
+    const badge = document.createElement("span");
+    badge.className = "adv-preview-val";
+    const p = [...ADV_SAMPLING_PARAMS,...ADV_TEXT_PARAMS,...ADV_AUDIO_PARAMS].find(x=>x.key===k);
+    badge.textContent = (p && p.type === "bool") ? (params[k] ? "✓" : "✗") : String(params[k]);
+    badge.title = _lang === "en" ? "Preset value — click Apply to use" : "预设值 — 点击套用/应用生效";
+    inputEl.parentNode.insertBefore(badge, inputEl.nextSibling);
+  });
+}
+
+function applyAdvPreset() {
+  const sel = document.getElementById("ADV_PRESET_SELECT");
+  const idx = parseInt(sel.value);
+  const allPresets = [...BUILTIN_PRESETS, ...(_settings.advanced_presets||[])];
+  const preset = allPresets[idx];
+  if (!preset) return;
+  const params = preset.params || {};
+  Object.keys(params).forEach(k => {
+    const el = document.getElementById("ADV_" + k);
+    if (!el) return;
+    const p = [...ADV_SAMPLING_PARAMS,...ADV_TEXT_PARAMS,...ADV_AUDIO_PARAMS].find(x=>x.key===k);
+    if (p && p.type === "bool") el.checked = !!params[k];
+    else if (el) el.value = params[k];
+  });
+  // Clear preview highlights after applying
+  document.querySelectorAll(".adv-card.preset-preview").forEach(c => {
+    c.classList.remove("preset-preview");
+    c.querySelectorAll(".adv-preview-val").forEach(v => v.remove());
+  });
+  showToast(t("preset_applied") + ": " + (preset.nameKey ? t(preset.nameKey) : preset.name));
+}
+
+function saveAdvPreset() {
+  const name = prompt("预设名称:");
+  if (!name) return;
+  const params = collectAdvParams();
+  const preset = {name, params};
+  if (!_settings.advanced_presets) _settings.advanced_presets = [];
+  _settings.advanced_presets.push(preset);
+  fetch("/api/settings", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(_settings),
+  });
+  updateAdvPresetSelect();
+  showToast("预设已保存: " + name, "ok");
+}
+
+function deleteAdvPreset() {
+  const sel = document.getElementById("ADV_PRESET_SELECT");
+  const idx = parseInt(sel.value) - BUILTIN_PRESETS.length;
+  if (idx < 0) { showToast("内置预设无法删除", "err"); return; }
+  htmlConfirm("确定删除此预设？", "删除", "取消").then(ok => {
+    if (!ok) return;
+    _settings.advanced_presets.splice(idx, 1);
+    fetch("/api/settings", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(_settings),
+    });
+    updateAdvPresetSelect();
+    showToast("预设已删除");
+  });
+}
+
+
+// ── Author badge / original build marker ──────────────────────
+const _KNOWN_H2 = '43da6cc6e1b3747553706f17de53cf27beffbf35f617b652893bc1076d5e2ac1';
+(async function checkAuthor() {
+  try {
+    const res = await fetch('/api/author');
+    if (!res.ok) return;
+    const {token} = await res.json();
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token || ''));
+    const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const badge = document.getElementById('author-badge');
+    if (!badge) return;
+    badge.style.display = 'inline-flex';
+    if (hex !== _KNOWN_H2) {
+      const paths = badge.querySelectorAll('path');
+      paths[0]?.setAttribute('fill', '#ff440022');
+      paths[0]?.setAttribute('stroke', '#ff4400');
+      paths[1]?.setAttribute('stroke', '#ff4400');
+      badge.title = '⚠ 非官方构建 / Unofficial build';
+    } else {
+      badge.title = '✓ 原版发布 by Lancer1911 / Original release by Lancer1911';
+    }
+  } catch (e) {}
+})();
+
+</script>
+<!-- 全局字幕下拉菜单（body 级，避免 overflow:hidden 裁切） -->
+<div id="SUBTITLE_MENU" style="display:none;position:fixed;
+  background:var(--bg2);border:0.5px solid var(--b2);border-radius:var(--r2);
+  box-shadow:0 8px 28px rgba(0,0,0,.35);z-index:9500;min-width:160px;padding:4px 0;
+  max-height:calc(100vh - 16px);overflow-y:auto;-webkit-app-region:no-drag">
+  <div class="subtitle-opt" onclick="exportSubtitle('srt')" data-i18n="sub_srt">SRT 字幕</div>
+  <div class="subtitle-opt" onclick="exportSubtitle('txt')" data-i18n="sub_txt">TXT 纯文本</div>
+  <div class="subtitle-opt" onclick="exportSubtitle('md')" data-i18n="sub_md">Markdown</div>
+  <div class="subtitle-opt" onclick="exportSubtitle('json')" data-i18n="sub_json">JSON</div>
+  <div class="subtitle-opt" onclick="exportSubtitle('csv')" data-i18n="sub_csv">Excel (CSV)</div>
+</div>
+
+<!-- ── Download Wizard Modal ─────────────────────────────────────────── -->
+<div class="modal-mask" id="DL_WIZARD_MASK" style="display:none" onclick="if(event.target===this)closeDlWizard()">
+  <div class="dl-wizard">
+    <h2 data-i18n="dl_title">未检测到 Qwen3-TTS 模型</h2>
+    <p data-i18n="dl_body">请先下载至少一个模型才能使用合成功能。</p>
+
+    <!-- Mirror selector -->
+    <div style="font-size:12px;color:var(--su);margin-bottom:6px" data-i18n="dl_mirror_label">下载源</div>
+    <div class="dl-mirror-row">
+      <div class="dl-mirror-btn active" id="DL_MIRROR_OFFICIAL" onclick="setDlMirror('official')" data-i18n="dl_mirror_official">官方 HuggingFace</div>
+      <div class="dl-mirror-btn" id="DL_MIRROR_CN" onclick="setDlMirror('cn')" data-i18n="dl_mirror_cn">中国镜像 (hf-mirror.com)</div>
+    </div>
+
+    <!-- Model list -->
+    <div id="DL_MODEL_LIST"></div>
+
+    <!-- Command box -->
+    <div style="font-size:12px;color:var(--su);margin-bottom:4px" data-i18n="dl_cmd_label">在终端执行以下命令：</div>
+    <div class="dl-cmd-box" id="DL_CMD_BOX">hf download mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit</div>
+
+    <!-- Progress -->
+    <div id="DL_PROGRESS_WRAP" style="display:none">
+      <div class="dl-progress-bar"><div class="dl-progress-fill" id="DL_PROGRESS_FILL"></div></div>
+      <div id="DL_PROGRESS_TEXT" style="font-size:11px;color:var(--su)"></div>
+      <div class="dl-log" id="DL_LOG"></div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn btn-primary" style="flex:1" onclick="copyDlCmd()" id="DL_COPY_BTN" data-i18n="dl_copy">复制命令</button>
+      <button class="btn btn-primary" style="flex:1" onclick="openTerminalWithCmd()" data-i18n="dl_open_terminal">打开终端</button>
+      <button class="btn" onclick="closeDlWizard()" data-i18n="dl_dismiss">稍后再说</button>
+    </div>
+    <div style="font-size:11px;color:var(--hi);margin-top:10px;line-height:1.6" id="DL_HINT">
+      下载完成后，请在「模型」标签页点击「加载模型」。
+    </div>
+  </div>
+</div>
+</body>
+</html>
