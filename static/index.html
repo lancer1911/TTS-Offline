@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lancer1911 TTS Offline v0.3a</title>
+<title>Lancer1911 TTS Offline v0.3j</title>
 <style>
 /* ── CSS Variables ─────────────────────────────────────────── */
 :root{
@@ -383,7 +383,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
       <span>TTS OFFLINE</span>
     </div>
     <div class="brand-sub">
-      <span class="brand-ver">v0.3a</span>
+      <span class="brand-ver">v0.3j</span>
       <span id="author-badge" title="">
         <svg width="11" height="13" viewBox="0 0 11 13" fill="none" aria-hidden="true">
           <path d="M5.5 0.5L1 2.5V6C1 9 3 11.5 5.5 12.5C8 11.5 10 9 10 6V2.5L5.5 0.5Z"
@@ -397,7 +397,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
   </a>
   <div class="tmid">
     <div class="dot" id="STATUS_DOT"></div>
-    <div class="tst" id="STATUS_TEXT" data-i18n="status_connecting">正在连接…</div>
+    <div class="tst" id="STATUS_TEXT">正在连接…</div>
   </div>
   <div class="tr">
     <button class="btn" onclick="saveSession()" title="保存当前会话为 .ttso 文件" data-i18n-title="save_session_tip"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>></svg><span data-i18n="save">保存</span></button>
@@ -406,7 +406,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
       onchange="if(this.files[0])loadSession(this.files[0]);this.value=''">
     <button class="btn" onclick="openAdvancedSettings()" data-i18n="adv_settings">高级设置</button>
     <button class="btn" id="LANG_BTN" onclick="toggleLang()" title="Switch language / 切换语言" style="padding:4px 8px;font-size:11px;font-weight:600;letter-spacing:.03em">EN</button>
-    <button class="btn" id="THEME_BTN" onclick="toggleTheme()" title="切换深色/浅色模式" style="display:inline-flex;align-items:center;justify-content:center;padding:6px 8px"></button>
+    <button class="btn" id="THEME_BTN" onclick="toggleTheme()" title="" style="display:inline-flex;align-items:center;justify-content:center;padding:6px 8px"></button>
   </div>
 </div>
 
@@ -451,19 +451,19 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
           <!-- hidden native select keeps all existing JS working unchanged -->
           <select id="MODEL_REPO_SELECT" style="display:none"
             onchange="onModelSelectChange(this.value)">
-            <optgroup label="CustomVoice — 内置音色">
+            <optgroup label="CustomVoice">
               <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit">1.7B CustomVoice 8bit（推荐）</option>
               <option value="mlx-community/Qwen3-TTS-12Hz-0.6B-CustomVoice-8bit">0.6B CustomVoice 8bit（轻量）</option>
               <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16" disabled>1.7B CustomVoice bf16（未安装）</option>
               <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit" disabled>1.7B CustomVoice 6bit（未安装）</option>
             </optgroup>
-            <optgroup label="Base — 声音克隆">
+            <optgroup label="Base">
               <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit">1.7B Base 8bit</option>
               <option value="mlx-community/Qwen3-TTS-12Hz-0.6B-Base-8bit">0.6B Base 8bit（轻量）</option>
               <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16" disabled>1.7B Base bf16（未安装）</option>
               <option value="mlx-community/Qwen3-TTS-12Hz-0.6B-Base-bf16" disabled>0.6B Base bf16（未安装）</option>
             </optgroup>
-            <optgroup label="VoiceDesign — 文字描述音色">
+            <optgroup label="VoiceDesign">
               <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit">1.7B VoiceDesign 8bit</option>
               <option value="mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16" disabled>1.7B VoiceDesign bf16（未安装）</option>
             </optgroup>
@@ -520,7 +520,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
           <div class="clone-label" data-i18n="ref_audio">参考音频</div>
           <div class="clone-audio-zone" id="CLONE_AUDIO_ZONE"
             onclick="chooseCloneAudioFile()">
-            <div id="CLONE_AUDIO_LABEL">点击选择音频文件</div>
+            <div id="CLONE_AUDIO_LABEL" data-i18n="clone_audio_label">点击选择音频文件</div>
             <div style="font-size:11px;color:var(--hi);margin-top:4px">WAV · MP3 · M4A · FLAC</div>
           </div>
           <input type="file" id="CLONE_AUDIO_INPUT"
@@ -536,19 +536,15 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
         <div class="clone-row">
           <div class="clone-label" data-i18n="base_voice">基础音色（风格参考）</div>
           <select class="clone-input" id="CLONE_BASE_VOICE">
-            <option value="Chelsie">Chelsie（自然女声）</option>
-            <option value="Ethan">Ethan（沉稳男声）</option>
-            <option value="Brenda">Brenda（温暖女声）</option>
-            <option value="Alex">Alex（叙事男声）</option>
           </select>
         </div>
         <button class="btn btn-primary" onclick="submitClone()" style="width:100%">
-开始克隆
+          <span data-i18n="start_clone">开始克隆</span>
         </button>
         <div class="clone-hint"><span data-i18n="clone_hint">提示：参考音频越清晰、越纯净（无背景噪声），克隆效果越好。</span><br><br>⚠️ <strong style="color:var(--warn)" data-i18n="clone_warn">声音克隆仅支持 Base 模型（Qwen3-TTS-12Hz-1.7B/0.6B-Base-8bit）。</strong><br><span data-i18n="clone_warn2">请在「模型」标签页切换到 Base 模型后再使用克隆功能。</span><br><br></div>
         <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <button class="btn" style="padding:4px 10px;font-size:12px"
-            onclick="chooseCloneImportFile()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg data-i18n="import">导入</button>
+            onclick="chooseCloneImportFile()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="import">导入</span></button>
           <input type="file" id="CLONE_IMPORT_INPUT" accept=".ttsc,.json,application/json" style="display:none"
             onchange="if(this.files[0])importClone(this.files[0]);this.value=''">
         </div>
@@ -584,11 +580,11 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
       <div class="text-area-header">
         <span class="text-area-label" id="TEXT_AREA_LABEL" data-i18n="text_content">文本内容</span>
         <div class="dialog-tools" id="DIALOG_TOOLS">
-          <button class="btn" id="BTN_DIALOG_MODE" onclick="toggleDialogMode()" style="padding:3px 8px;font-size:11px">三列表格</button>
+          <button class="btn" id="BTN_DIALOG_MODE" onclick="toggleDialogMode()" style="padding:3px 8px;font-size:11px"><span data-i18n="dialog_mode">三列表格</span></button>
           <button class="btn" id="BTN_DIALOG_CSV" onclick="chooseDialogCsv()" style="padding:3px 8px;font-size:11px" data-i18n="load_csv">加载 CSV</button>
           <button class="btn" id="BTN_DIALOG_ADD" onclick="addDialogRow()" style="padding:3px 8px;font-size:11px" data-i18n="add_row">+ 行</button>
         </div>
-        <span class="text-count" id="CHAR_COUNT">0 字</span>
+        <span class="text-count" id="CHAR_COUNT">0</span>
         <button class="btn" onclick="clearText()" style="padding:3px 8px;font-size:11px" data-i18n="clear">清空</button>
       </div>
       <div class="text-editor-wrap" id="TEXT_EDITOR_WRAP" style="position:relative;flex:1;min-height:0;display:flex;flex-direction:column">
@@ -640,7 +636,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
     <!-- Output panel -->
     <div class="output-panel" id="OUTPUT_PANEL">
       <div class="output-header">
-        <span class="output-title" id="OUTPUT_TITLE" data-i18n="synth_progress">合成进度</span>
+        <span class="output-title" id="OUTPUT_TITLE"></span>
         <div style="display:flex;gap:6px;align-items:center">
           <button class="btn" id="BTN_SUBTITLE" disabled
             style="padding:4px 10px;font-size:12px"
@@ -667,14 +663,14 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
       <!-- 播放区：完成后显示，取代进度区；样式与 ASR Offline playback 保持一致 -->
       <div class="output-body" id="PLAYER_AREA" style="display:none;padding:10px 14px">
         <div class="player" id="PLAYER">
-          <button class="play-btn" id="PLAY_BTN" onclick="togglePlay()" title="播放/暂停">▶</button>
+          <button class="play-btn" id="PLAY_BTN" onclick="togglePlay()" title="">▶</button>
           <div class="player-seek" id="SEEK_BAR" onclick="seekClick(event)">
             <div class="player-seek-fill" id="SEEK_FILL" style="width:0%"></div>
             <div class="player-seek-thumb" id="SEEK_THUMB" style="left:0%"></div>
           </div>
           <span class="player-time" id="PLAY_TIME">0:00 / 0:00</span>
           <div class="vol-wrap" id="VOL_WRAP">
-            <button class="vol-btn" id="VOL_BTN" onclick="toggleMute()" title="静音/取消静音">
+            <button class="vol-btn" id="VOL_BTN" onclick="toggleMute()" title="">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
             </button>
             <div class="vol-slider-wrap">
@@ -684,7 +680,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
           </div>
           <div class="follow-wrap">
             <label class="sw"><input type="checkbox" id="FOLLOW_SW" onchange="toggleFollow()" checked><div class="sw-track"></div></label>
-            <span>跟随</span>
+            <span data-i18n="follow">跟随</span>
           </div>
         </div>
         <audio id="AUDIO_EL" preload="auto" style="display:none"></audio>
@@ -753,10 +749,10 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
         <path d="m9 12 2 2 4-5"/>
       </svg>
     </div>
-    <div class="app-confirm-title" id="CONFIRM_TITLE">确定执行此操作？</div>
+    <div class="app-confirm-title" id="CONFIRM_TITLE"></div>
     <div class="app-confirm-actions">
-      <button class="btn" id="CONFIRM_CANCEL" onclick="closeHtmlConfirm(false)">取消</button>
-      <button class="btn btn-primary" id="CONFIRM_OK" onclick="closeHtmlConfirm(true)">确定</button>
+      <button class="btn" id="CONFIRM_CANCEL" onclick="closeHtmlConfirm(false)"></button>
+      <button class="btn btn-primary" id="CONFIRM_OK" onclick="closeHtmlConfirm(true)"></button>
     </div>
   </div>
 </div>
@@ -767,7 +763,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
 <script>
 
 let _confirmResolver = null;
-function htmlConfirm(message, okText="确定", cancelText="取消") {
+function htmlConfirm(message, okText=null, cancelText=null) {
   return new Promise(resolve => {
     _confirmResolver = resolve;
     const mask = document.getElementById("CONFIRM_MASK");
@@ -775,9 +771,9 @@ function htmlConfirm(message, okText="确定", cancelText="取消") {
     const ok = document.getElementById("CONFIRM_OK");
     const cancel = document.getElementById("CONFIRM_CANCEL");
     if (!mask || !title || !ok || !cancel) { resolve(window.confirm(message)); return; }
-    title.textContent = message || "确定执行此操作？";
-    ok.textContent = okText || "确定";
-    cancel.textContent = cancelText || "取消";
+    title.textContent = message || (_lang==="zh"?"确定执行此操作？":"Confirm action?");
+    ok.textContent = okText || (_lang==="zh"?"确定":"OK");
+    cancel.textContent = cancelText || (_lang==="zh"?"取消":"Cancel");
     mask.classList.add("visible");
     setTimeout(() => ok.focus(), 0);
   });
@@ -921,6 +917,38 @@ const _DICT = {
     adv_label_pitch:"音调偏移", adv_desc_pitch:"音调调整（半音，0=原始）",
     adv_desc_temp:"采样温度，越高越多样", adv_desc_topp:"核采样概率阈值",
     adv_desc_topk:"采样候选数", adv_desc_maxtok:"每段最大生成 token 数",
+    // 模型下拉分组标签
+    mdlgrp_cv:"CustomVoice — 内置音色",
+    mdlgrp_base:"Base — 声音克隆",
+    mdlgrp_vd:"VoiceDesign — 文字描述音色",
+    // 模型选项括号标注
+    mdl_tag_recommended:"推荐",
+    mdl_tag_lite:"轻量",
+    mdl_tag_not_installed:"未安装",
+    mdl_tag_not_downloaded:"未下载",
+    mdl_custom_repo:"自定义 repo…",
+    // 模型描述（侧边栏）
+    mdl_desc_cv17:"内置 9 种音色（serena / vivian / ryan / aiden 等），支持情感指令",
+    mdl_desc_cv06:"轻量版内置音色，速度更快，质量略低",
+    mdl_desc_base17:"无内置音色，专为声音克隆设计（需上传参考音频）",
+    mdl_desc_base06:"轻量声音克隆，速度更快",
+    mdl_desc_vd17:"用自然语言描述目标音色（如 'female, British narrator'）",
+    // 克隆面板
+    clone_audio_label:"点击选择音频文件",
+    // 动态 toast / 状态文字
+    toast_model_loaded:"模型加载完成 ✓",
+    toast_model_err:"模型加载失败: ",
+    toast_loading_model:"正在加载模型: ",
+    toast_clone_done:"声音克隆完成: ",
+    toast_clone_err:"克隆失败: ",
+    toast_settings_saved:"设置已保存",
+    toast_adv_applied:"高级参数已应用",
+    toast_reset_defaults:"已恢复默认值",
+    voice_clone_need_base:"声音克隆 · 需切换至 Base 模型",
+    bv_chelsie:"Chelsie（自然女声）",
+    bv_ethan:"Ethan（沉稳男声）",
+    bv_brenda:"Brenda（温暖女声）",
+    bv_alex:"Alex（叙事男声）",
   },
   en: {
     save:"Save", load:"Load", adv_settings:"Advanced",
@@ -998,6 +1026,38 @@ const _DICT = {
     adv_label_pitch:"Pitch Shift", adv_desc_pitch:"Pitch adjustment in semitones (0 = original)",
     adv_desc_temp:"Sampling temperature — higher = more varied", adv_desc_topp:"Nucleus sampling threshold",
     adv_desc_topk:"Top-K candidates", adv_desc_maxtok:"Max tokens generated per chunk",
+    // Model dropdown group labels
+    mdlgrp_cv:"CustomVoice — Built-in Voices",
+    mdlgrp_base:"Base — Voice Cloning",
+    mdlgrp_vd:"VoiceDesign — Text-described Voice",
+    // Model option tags
+    mdl_tag_recommended:"recommended",
+    mdl_tag_lite:"lite",
+    mdl_tag_not_installed:"not installed",
+    mdl_tag_not_downloaded:"not downloaded",
+    mdl_custom_repo:"Custom repo…",
+    // Model descriptions (sidebar)
+    mdl_desc_cv17:"9 built-in voices (serena / vivian / ryan / aiden …), supports emotion instructions",
+    mdl_desc_cv06:"Lightweight built-in voices, faster speed, slightly lower quality",
+    mdl_desc_base17:"No built-in voices, designed for voice cloning (reference audio required)",
+    mdl_desc_base06:"Lightweight voice cloning, faster speed",
+    mdl_desc_vd17:"Describe the target voice in natural language (e.g. 'female, British narrator')",
+    // Clone pane
+    clone_audio_label:"Click to select audio file",
+    // Dynamic toast / status text
+    toast_model_loaded:"Model loaded ✓",
+    toast_model_err:"Model load failed: ",
+    toast_loading_model:"Loading model: ",
+    toast_clone_done:"Voice clone complete: ",
+    toast_clone_err:"Clone failed: ",
+    toast_settings_saved:"Settings saved",
+    toast_adv_applied:"Advanced settings applied",
+    toast_reset_defaults:"Defaults restored",
+    voice_clone_need_base:"Cloned Voice · requires Base model",
+    bv_chelsie:"Chelsie (natural female)",
+    bv_ethan:"Ethan (calm male)",
+    bv_brenda:"Brenda (warm female)",
+    bv_alex:"Alex (narrative male)",
   }
 };
 
@@ -1075,6 +1135,39 @@ function applyLang(lang) {
   // Model desc
   const mdesc = document.getElementById("MODEL_DESC");
   if (mdesc) { const sp = mdesc.querySelector("[data-i18n='model_desc_cv']"); if (sp) sp.textContent = t("model_desc_cv"); }
+  // Refresh model dropdown display label (re-renders with current language)
+  _syncModelDropFromSelect();
+  // Refresh MODEL_DESC for currently selected repo
+  if (typeof currentRepoValue === "function") updateModelDesc(currentRepoValue());
+  // Refresh Base Voice select options
+  const bvSel = document.getElementById("CLONE_BASE_VOICE");
+  if (bvSel) {
+    const cur = bvSel.value;
+    bvSel.innerHTML = [
+      {v:"Chelsie", k:"bv_chelsie"},
+      {v:"Ethan",   k:"bv_ethan"},
+      {v:"Brenda",  k:"bv_brenda"},
+      {v:"Alex",    k:"bv_alex"},
+    ].map(o => `<option value="${o.v}"${cur===o.v?" selected":""}>${t(o.k)}</option>`).join("");
+  }
+  // Confirm modal default button text (shown before any custom call)
+  const cok = document.getElementById("CONFIRM_OK");
+  const ccancel = document.getElementById("CONFIRM_CANCEL");
+  const ctitle = document.getElementById("CONFIRM_TITLE");
+  if (cok && !cok.textContent) cok.textContent = lang==="zh"?"确定":"OK";
+  if (ccancel && !ccancel.textContent) ccancel.textContent = lang==="zh"?"取消":"Cancel";
+  if (ctitle && !ctitle.textContent) ctitle.textContent = lang==="zh"?"确定执行此操作？":"Confirm action?";
+  // Play / vol button titles
+  const playBtn = document.getElementById("PLAY_BTN");
+  if (playBtn) playBtn.title = lang==="zh"?"播放/暂停":"Play/Pause";
+  const volBtn = document.getElementById("VOL_BTN");
+  if (volBtn) volBtn.title = lang==="zh"?"静音/取消静音":"Mute/Unmute";
+  // DL hint text
+  const dlHint = document.getElementById("DL_HINT_TEXT");
+  if (dlHint) dlHint.innerHTML = (lang==="en"
+    ? "After download, go to the Model tab and click Load Model.<br>"
+    : "下载完成后，请在「模型」标签页点击「加载模型」。<br>")
+    + `<span style="color:var(--hi)">${t("dl_install_hint")}</span>`;
   // Dialog table headers
   document.querySelectorAll("th[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
   // Dialog row placeholders (rendered dynamically — re-render if in dialog mode)
@@ -1085,6 +1178,25 @@ function applyLang(lang) {
   if (typeof onTextInput === "function") onTextInput();
   // Refresh preset names
   if (typeof updateAdvPresetSelect === "function") updateAdvPresetSelect();
+  // 状态栏：仅当当前状态是纯 i18n key 时才翻译，动态文字（合成进度等）保持不动
+  if (typeof _statusKey === "string" && _statusKey) {
+    const st = document.getElementById("STATUS_TEXT");
+    if (st) st.textContent = t(_statusKey);
+  }
+  // 合成按钮文字（合成中时不动，完成/空闲时刷新）
+  if (typeof _isSynthesizing !== "undefined" && !_isSynthesizing) {
+    const btn = document.getElementById("BTN_SYNTH");
+    if (btn && btn.classList.contains("btn-primary")) {
+      btn.textContent = "▶ " + t("start_synth");
+    }
+  }
+  // 音色卡片（含克隆音色的 desc 文字）
+  if (typeof renderVoiceGrid === "function" && typeof _voices !== "undefined" && _voices.length) {
+    renderVoiceGrid();
+    renderClonedList();
+  }
+  // 合成完成 UI（Output_TITLE、AUDIO_META、状态栏）
+  if (typeof _refreshDoneUI === "function") _refreshDoneUI();
 }
 
 function toggleLang() {
@@ -1124,11 +1236,24 @@ async function refreshInstalledModels() {
       const base = opt.value.split("/")[1] || opt.value;
       if (isInstalled) {
         opt.style.color = "";
-        opt.textContent = opt.textContent.replace(" （未安装）", "").replace(" （未下载）", "");
+        // Strip any previously appended not-downloaded suffix (language-neutral: just re-derive from baseLabel)
+        for (const g of _MODEL_GROUPS) {
+          const entry = g.options.find(o => o.value === opt.value);
+          if (entry) {
+            entry.disabled = false;
+            entry._labelOverride = null;
+            opt.textContent = _mdlOptLabel(entry);
+          }
+        }
       } else {
         opt.style.color = "#555";
-        if (!opt.textContent.includes("未安装") && !opt.textContent.includes("未下载")) {
-          opt.textContent = opt.textContent + " （未下载）";
+        for (const g of _MODEL_GROUPS) {
+          const entry = g.options.find(o => o.value === opt.value);
+          if (entry) {
+            entry.disabled = true;
+            entry._labelOverride = `${entry.baseLabel}（${t("mdl_tag_not_downloaded")}）`;
+            opt.textContent = entry._labelOverride;
+          }
         }
       }
     }
@@ -1160,7 +1285,7 @@ function connectWS() {
 
   _ws.onopen = () => {
     clearTimeout(_wsReconnectTimer);
-    setStatus("dot", t("status_loading"));
+    setStatus("dot", t("status_loading"), "status_loading");
     // 重连后主动拉一次状态，防止期间消息丢失
     setTimeout(syncStatusFromServer, 800);
   };
@@ -1171,7 +1296,7 @@ function connectWS() {
   };
 
   _ws.onclose = () => {
-    setStatus("err","连接断开 — 重连中");
+    setStatus("err",_lang==="zh"?"连接断开 — 重连中":"Disconnected — reconnecting");
     _wsReconnectTimer = setTimeout(connectWS, 2000);
   };
 
@@ -1192,13 +1317,13 @@ function handleWS(msg) {
     applySettingsToUI();
     if (msg.worker_ready) {
       _workerReady = true;
-      setStatus("on", t("status_ready"));
+      setStatus("on", t("status_ready"), "status_ready");
     } else if (msg.status === "loading_model") {
       _workerReady = false;
-      setStatus("warn", "正在加载模型: " + (msg.model || _settings.model_repo || ""));
+      setStatus("warn", t("toast_loading_model") + (msg.model || _settings.model_repo || ""));
     } else {
       _workerReady = false;
-      setStatus("dot", t("status_no_model"));
+      setStatus("dot", t("status_no_model"), "status_no_model");
     }
     updateSynthBtn();
     wsSend({type:"get_voices"});
@@ -1208,14 +1333,14 @@ function handleWS(msg) {
   if (msgType === "model_ready") {
     if (msg.ok) {
       _workerReady = true;
-      setStatus("on",t("status_ready"));
-      showToast("模型加载完成 ✓", "ok");
+      setStatus("on", t("status_ready"), "status_ready");
+      showToast(t("toast_model_loaded"), "ok");
       updateSynthBtn();
       wsSend({type:"get_voices"});
     } else {
       _workerReady = false;
-      setStatus("err","模型加载失败: " + (msg.error||""));
-      showToast("模型加载失败: " + (msg.error||""), "err");
+      setStatus("err",t("toast_model_err") + (msg.error||""));
+      showToast(t("toast_model_err") + (msg.error||""), "err");
     }
     return;
   }
@@ -1230,8 +1355,8 @@ function handleWS(msg) {
   }
 
   if (msgType === "status") {
-    if (msg.status === "idle") setStatus("dot",t("status_ready"));
-    if (msg.status === "loading_model") setStatus("warn","正在加载模型: " + (msg.model||""));
+    if (msg.status === "idle") setStatus("dot",t("status_ready"), "status_ready");
+    if (msg.status === "loading_model") setStatus("warn", t("toast_loading_model") + (msg.model||""));
     return;
   }
 
@@ -1243,12 +1368,12 @@ function handleWS(msg) {
 
     if (msg.stage === "start") {
       const total = msg.total_chunks || 1;
-      document.getElementById("OUTPUT_TITLE").textContent = `合成中… 共 ${total} 段`;
+      document.getElementById("OUTPUT_TITLE").textContent = `${_lang==="zh"?"合成中… 共":"Synthesizing… total"} ${total} ${_lang==="zh"?"段":"chunks"}`;
       document.getElementById("PROGRESS_BAR").style.width = "2%";
       document.getElementById("PROGRESS_PCT").textContent = "0%";
-      document.getElementById("PROGRESS_CUR").textContent = "准备中…";
+      document.getElementById("PROGRESS_CUR").textContent = _lang==="zh"?"准备中…":"Preparing…";
       document.getElementById("PROGRESS_BAR").classList.add("active");
-      setStatus("warn", `合成中 0 / ${total}`);
+      setStatus("warn", `${_lang==="zh"?"合成中":"Synthesizing"} 0 / ${total}`);
       return;
     }
 
@@ -1258,7 +1383,7 @@ function handleWS(msg) {
     document.getElementById("PROGRESS_BAR").style.width = pct + "%";
     document.getElementById("PROGRESS_PCT").textContent = pct + "%";
     document.getElementById("OUTPUT_TITLE").textContent =
-      `合成中  ${idx} / ${total}`;
+      `${_lang==="zh"?"合成中":"Synthesizing"}  ${idx} / ${total}`;
 
     if (msg.stage === "chunk") {
       // 收集时间戳
@@ -1300,16 +1425,16 @@ function handleWS(msg) {
       log.appendChild(item);
       log.scrollTop = log.scrollHeight;
     } else if (msg.stage === "chunk_error") {
-      document.getElementById("PROGRESS_CUR").textContent = `✗ 段落 ${idx} 失败`;
+      document.getElementById("PROGRESS_CUR").textContent = `✗ ${_lang==="zh"?"段落":"Chunk"} ${idx} ${_lang==="zh"?"失败":"failed"}`;
       const log = document.getElementById("PROGRESS_LOG");
       const item = document.createElement("div");
       item.className = "chunk-item";
       item.style.color = "var(--red)";
-      item.textContent = `✗ 段落 ${idx} 失败: ${msg.error||""}`;
+      item.textContent = `✗ ${_lang==="zh"?"段落":"Chunk"} ${idx} ${_lang==="zh"?"失败":"failed"}: ${msg.error||""}`;
       log.appendChild(item);
       log.scrollTop = log.scrollHeight;
     }
-    setStatus("on", `合成中 ${idx} / ${total}  ${pct}%`);
+    setStatus("on", `${_lang==="zh"?"合成中":"Synthesizing"} ${idx} / ${total}  ${pct}%`);
     return;
   }
 
@@ -1322,19 +1447,19 @@ function handleWS(msg) {
       buildTsIndex();
       showDoneUI(_currentOutputPath, msg.duration || 0);
     } else {
-      setStatus("err", "合成失败: " + (msg.error||""));
-      document.getElementById("OUTPUT_TITLE").textContent = "✗ 合成失败: " + (msg.error||"");
-      showToast("合成失败: " + (msg.error||""), "err");
+      setStatus("err", (_lang==="zh"?"合成失败: ":"Synthesis failed: ") + (msg.error||""));
+      document.getElementById("OUTPUT_TITLE").textContent = "✗ " + (_lang==="zh"?"合成失败: ":"Synthesis failed: ") + (msg.error||"");
+      showToast((_lang==="zh"?"合成失败: ":"Synthesis failed: ") + (msg.error||""), "err");
     }
     return;
   }
 
   if (msgType === "clone_done") {
     if (msg.ok) {
-      showToast(`声音克隆完成: ${msg.name}`, "ok");
+      showToast(t("toast_clone_done") + msg.name, "ok");
       wsSend({type:"get_voices"});
     } else {
-      showToast("克隆失败: " + (msg.error||""), "err");
+      showToast(t("toast_clone_err") + (msg.error||""), "err");
     }
     return;
   }
@@ -1350,11 +1475,15 @@ function handleWS(msg) {
 }
 
 // ── UI helpers ────────────────────────────────────────────
-function setStatus(cls, text) {
+// 记录当前状态对应的 i18n key（仅纯 key 状态才记录，动态拼接文字留空）
+let _statusKey = "status_connecting";
+
+function setStatus(cls, text, i18nKey) {
   const dot = document.getElementById("STATUS_DOT");
   const st  = document.getElementById("STATUS_TEXT");
   dot.className = "dot" + (cls ? " "+cls : "");
   st.textContent = text;
+  _statusKey = i18nKey || null;  // 记录 key，无 key 则为 null（动态文字）
 }
 
 function esc(s) {
@@ -1428,7 +1557,7 @@ function cloneActionButtons(cloneName) {
   saveBtn.type = "button";
   saveBtn.className = "btn";
   saveBtn.style.cssText = "padding:4px 6px;line-height:1";
-  saveBtn.title = "导出为 .ttsc";
+  saveBtn.title = _lang==="zh"?"导出为 .ttsc":"Export as .ttsc";
   saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`;
   saveBtn.addEventListener("click", ev => {
     ev.preventDefault();
@@ -1440,7 +1569,7 @@ function cloneActionButtons(cloneName) {
   delBtn.type = "button";
   delBtn.className = "btn btn-danger";
   delBtn.style.cssText = "padding:4px 6px;line-height:1";
-  delBtn.title = "删除";
+  delBtn.title = _lang==="zh"?"删除":"Delete";
   delBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
   delBtn.addEventListener("click", ev => {
     ev.preventDefault();
@@ -1458,12 +1587,32 @@ function renderVoiceGrid() {
   const grid = document.getElementById("VOICE_GRID");
   grid.innerHTML = "";
   _voices.forEach(v => {
+    const isBaseDefault = v.id === "base_default";
     const card = document.createElement("div");
     card.className = "voice-card" + (v.id === _selectedVoice ? " selected" : "");
     card.dataset.vid = v.id;
-    card.onclick = () => selectVoice(v.id);
+    // base_default: 점线 테두리 + 클릭 시 Clone 탭으로
+    if (isBaseDefault) {
+      card.style.borderStyle = "dashed";
+      card.style.opacity = "0.7";
+      card.onclick = () => {
+        selectVoice(v.id);
+        showToast(_lang==="zh"
+          ? "请在「克隆」标签页上传参考音频，完成克隆后选择克隆音色"
+          : "Go to the Clone tab to upload reference audio and create a cloned voice",
+          "warn");
+        switchTab("clone");
+      };
+    } else {
+      card.onclick = () => selectVoice(v.id);
+    }
     const emoji = v.gender === "female" ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16C15.866 16 19 12.866 19 9C19 5.13401 15.866 2 12 2C8.13401 2 5 5.13401 5 9C5 12.866 8.13401 16 12 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 16V22" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 19H9" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>` : v.gender === "clone" ? `<svg width="18" height="18" viewBox="0 -8 72 72" fill="none" aria-hidden="true"><path d="M47.71,24.61a15.61,15.61,0,0,0,2.44.19,11.08,11.08,0,0,0,8-3.11l1.19-1.19a2,2,0,1,0-2.88-2.88l-.29.29L46.09,7.82l.29-.28A2,2,0,0,0,43.5,4.66L42.31,5.85a11,11,0,0,0-3.11,8,16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14L32,22.16a6.54,6.54,0,0,1,2.1-.88l7.8,7.8a7.12,7.12,0,0,0,.09-1.17,10.69,10.69,0,0,0-.36-2.71l-4.07-4.07a12.88,12.88,0,0,1,2.61.63,18.21,18.21,0,0,1-1.6-4.6A15.61,15.61,0,0,0,36.08,17,10.65,10.65,0,0,0,25,28.08a16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14l-9.89-9.89a6.59,6.59,0,0,1,2.11-.88l7.79,7.79a6.93,6.93,0,0,0,.09-1.16,10.69,10.69,0,0,0-.36-2.71l-4.06-4.06a12.92,12.92,0,0,1,2.6.62,18.24,18.24,0,0,1-1.61-4.6,15.4,15.4,0,0,0-2.43-.19,11,11,0,0,0-8,3.11L12.66,35.5a2,2,0,0,0,2.88,2.88l.29-.29L25.91,48.17l-.29.29a2,2,0,1,0,2.88,2.88l1.19-1.19a11,11,0,0,0,3.11-8,16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6A7.73,7.73,0,0,1,30.16,24l9.89,9.89a6.54,6.54,0,0,1-2.1.88l-7.8-7.8a7.12,7.12,0,0,0-.09,1.17,10.56,10.56,0,0,0,.36,2.7l4.07,4.08a13.58,13.58,0,0,1-2.61-.63,18.21,18.21,0,0,1,1.6,4.6,15.61,15.61,0,0,0,2.44.19A10.65,10.65,0,0,0,47,27.92a16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6,7.73,7.73,0,0,1,1.12-4.14l9.89,9.89a6.82,6.82,0,0,1-2.11.88l-7.8-7.8a8.31,8.31,0,0,0-.08,1.17,10.69,10.69,0,0,0,.36,2.71l4.06,4.06a12.16,12.16,0,0,1-2.6-.63A18.28,18.28,0,0,1,47.71,24.61Z" fill="currentColor"/></svg>` : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.25 21.5C14.5302 21.5 18 18.0302 18 13.75C18 9.46979 14.5302 6 10.25 6C5.96979 6 2.5 9.46979 2.5 13.75C2.5 18.0302 5.96979 21.5 10.25 21.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M21.5 2.5L16 8" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 2.5H21.5V9" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    const desc  = v.gender === "clone" ? "声音克隆 · 需切换至 Base 模型" : (v.desc||"");
+    const desc = isBaseDefault
+      ? (_lang==="zh" ? "请在「克隆」标签页上传参考音频" : "Upload reference audio in the Clone tab")
+      : v.gender === "clone" ? t("voice_clone_need_base") : (v.desc||"");
+    const displayName = isBaseDefault
+      ? (_lang==="zh" ? "默认音色（声音克隆）" : "Default (Voice Clone)")
+      : v.name;
 
     const avatar = document.createElement("div");
     avatar.className = "voice-avatar";
@@ -1471,7 +1620,7 @@ function renderVoiceGrid() {
 
     const info = document.createElement("div");
     info.className = "voice-info";
-    info.innerHTML = `<div class="voice-name">${esc(v.name)}</div><div class="voice-desc">${esc(desc)}</div>`;
+    info.innerHTML = `<div class="voice-name">${esc(displayName)}</div><div class="voice-desc">${esc(desc)}</div>`;
 
     card.appendChild(avatar);
     card.appendChild(info);
@@ -1494,7 +1643,7 @@ function renderClonedList() {
   const cloned = _voices.filter(v => v.gender === "clone");
   list.innerHTML = "";
   if (!cloned.length) {
-    list.innerHTML = '<div style="font-size:12px;color:var(--hi)">暂无克隆音色</div>';
+    list.innerHTML = `<div style="font-size:12px;color:var(--hi)">${t("cloned_none")}</div>`;
     return;
   }
   cloned.forEach(v => {
@@ -1616,7 +1765,7 @@ function setSynthesizing(v) {
     btn.classList.add("btn-danger");
     btn.disabled = false;
   } else {
-    btn.textContent = "▶ 开始合成";
+    btn.textContent = "▶ " + t("start_synth");
     btn.classList.add("btn-primary");
     btn.classList.remove("btn-danger");
     updateSynthBtn();
@@ -1624,7 +1773,7 @@ function setSynthesizing(v) {
 }
 
 async function deleteClone(name) {
-  if (!(await htmlConfirm(`确定删除克隆音色「${name}」？`, "删除", "取消"))) return;
+  if (!(await htmlConfirm(_lang==="zh"?`确定删除克隆音色「${name}」？`:`Delete cloned voice "${name}"?`, _lang==="zh"?"删除":"Delete", _lang==="zh"?"取消":"Cancel"))) return;
   try {
     let r = await fetch(`/api/clone_voice?name=${encodeURIComponent(name)}`, {method:"DELETE", cache:"no-store"});
     // 某些 WebView/代理环境对 DELETE 处理不稳定时，退回 POST 兼容接口。
@@ -1643,12 +1792,12 @@ async function deleteClone(name) {
       _voices = _voices.filter(v => v.id !== `__clone__${name}`);
       renderVoiceGrid();
       renderClonedList();
-      showToast(`已删除克隆音色「${name}」`, "ok");
+      showToast((_lang==="zh"?`已删除克隆音色「${name}」`:`Deleted cloned voice "${name}"`), "ok");
     } else {
-      showToast("删除失败: " + (j.error || "未知错误"), "err");
+      showToast((_lang==="zh"?"删除失败: ":"Delete failed: ") + (j.error || (_lang==="zh"?"未知错误":"unknown error")), "err");
     }
   } catch(e) {
-    showToast("删除请求失败: " + (e && e.message ? e.message : e), "err");
+    showToast((_lang==="zh"?"删除请求失败: ":"Delete request failed: ") + (e && e.message ? e.message : e), "err");
   }
 }
 
@@ -1691,7 +1840,7 @@ function openBrowserFileInput(inputId) {
   }
 }
 
-async function saveTextToOutputDir(filename, content, okVerb="已保存") {
+async function saveTextToOutputDir(filename, content, okVerb=null) {
   try {
     const r = await fetch("/api/save_text_file", {
       method: "POST",
@@ -1700,10 +1849,10 @@ async function saveTextToOutputDir(filename, content, okVerb="已保存") {
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.ok) throw new Error(j.error || r.status);
-    showToast(`${okVerb}: ${j.path}`, "ok");
+    showToast(`${okVerb||(_lang==="zh"?"已保存":"Saved")}: ${j.path}`, "ok");
     return j;
   } catch(e) {
-    showToast("保存失败: " + (e && e.message ? e.message : e), "err");
+    showToast((_lang==="zh"?"保存失败: ":"Save failed: ") + (e && e.message ? e.message : e), "err");
     return null;
   }
 }
@@ -1717,11 +1866,11 @@ async function saveExistingFileToOutputDir(path, filename) {
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.ok) throw new Error(j.error || r.status);
-    const prefix = j.already_in_output_dir ? "文件已在输出目录" : "已保存到输出目录";
+    const prefix = j.already_in_output_dir ? (_lang==="zh"?"文件已在输出目录":"File already in output dir") : (_lang==="zh"?"已保存到输出目录":"Saved to output dir");
     showToast(`${prefix}: ${j.path}`, "ok");
     return j;
   } catch(e) {
-    showToast("保存失败: " + (e && e.message ? e.message : e), "err");
+    showToast((_lang==="zh"?"保存失败: ":"Save failed: ") + (e && e.message ? e.message : e), "err");
     return null;
   }
 }
@@ -1734,13 +1883,13 @@ async function chooseSessionFile() {
     try {
       const result = await window.pywebview.api.open_session_file();
       if (!result || !result.ok) {
-        if (!result || !result.cancelled) showToast("打开失败: " + ((result && result.error) || "未知错误"), "err");
+        if (!result || !result.cancelled) showToast((_lang==="zh"?"打开失败: ":"Open failed: ") + ((result && result.error) || (_lang==="zh"?"未知错误":"unknown error")), "err");
         return;
       }
       await loadSession(makeTextFileFromContent(result.filename || result.path || "session.ttso", result.content, result.path || ""));
       return;
     } catch(e) {
-      showToast("打开会话失败: " + e, "err");
+      showToast((_lang==="zh"?"打开会话失败: ":"Failed to open session: ") + e, "err");
       return;
     }
   }
@@ -1752,13 +1901,13 @@ async function chooseCloneImportFile() {
     try {
       const result = await window.pywebview.api.open_clone_file();
       if (!result || !result.ok) {
-        if (!result || !result.cancelled) showToast("打开失败: " + ((result && result.error) || "未知错误"), "err");
+        if (!result || !result.cancelled) showToast((_lang==="zh"?"打开失败: ":"Open failed: ") + ((result && result.error) || (_lang==="zh"?"未知错误":"unknown error")), "err");
         return;
       }
       await importClone(makeTextFileFromContent(result.filename || result.path || "clone.ttsc", result.content));
       return;
     } catch(e) {
-      showToast("导入克隆音色失败: " + e, "err");
+      showToast((_lang==="zh"?"导入克隆音色失败: ":"Failed to import clone: ") + e, "err");
       return;
     }
   }
@@ -1772,12 +1921,12 @@ async function chooseTextFile() {
     try {
       const result = await window.pywebview.api.open_text_file();
       if (!result || !result.ok) {
-        if (!result || !result.cancelled) showToast("打开失败: " + ((result && result.error) || "未知错误"), "err");
+        if (!result || !result.cancelled) showToast((_lang==="zh"?"打开失败: ":"Open failed: ") + ((result && result.error) || (_lang==="zh"?"未知错误":"unknown error")), "err");
         return;
       }
       await uploadFileData(result.filename || result.path || "input.txt", result.ext || "", result.b64 || "");
     } catch(e) {
-      showToast("打开文件失败: " + e, "err");
+      showToast((_lang==="zh"?"打开文件失败: ":"Failed to open file: ") + e, "err");
     }
   }
 }
@@ -1788,7 +1937,7 @@ async function chooseCloneAudioFile() {
     try {
       const result = await window.pywebview.api.open_audio_file();
       if (!result || !result.ok) {
-        if (!result || !result.cancelled) showToast("打开失败: " + ((result && result.error) || "未知错误"), "err");
+        if (!result || !result.cancelled) showToast((_lang==="zh"?"打开失败: ":"Open failed: ") + ((result && result.error) || (_lang==="zh"?"未知错误":"unknown error")), "err");
         return;
       }
       _cloneAudioFile = null;
@@ -1800,7 +1949,7 @@ async function chooseCloneAudioFile() {
       document.getElementById("CLONE_AUDIO_ZONE").classList.add("has-file");
       document.getElementById("CLONE_AUDIO_LABEL").textContent = _cloneAudioData.name;
     } catch(e) {
-      showToast("打开参考音频失败: " + e, "err");
+      showToast((_lang==="zh"?"打开参考音频失败: ":"Failed to open reference audio: ") + e, "err");
     }
   }
 }
@@ -1829,7 +1978,7 @@ async function uploadFile(file) {
   const b64 = await new Promise((res, rej) => {
     const fr = new FileReader();
     fr.onload  = () => res(fr.result.split(",")[1]);
-    fr.onerror = () => rej(new Error("读取失败"));
+    fr.onerror = () => rej(new Error(_lang==="zh"?"读取失败":"Read failed"));
     fr.readAsDataURL(file);
   });
   await uploadFileData(file.name, file.name.split(".").pop() || "txt", b64);
@@ -1839,14 +1988,14 @@ async function uploadFileData(filename, ext, b64) {
   const zone = document.getElementById("UPLOAD_ZONE");
   zone.classList.add("drag");
   document.getElementById("UPLOAD_LABEL").innerHTML =
-    `<strong>上传中…</strong> ${esc(filename)}`;
+    `<strong>${_lang==="zh"?"上传中…":"Uploading…"}</strong> ${esc(filename)}`;
 
   ext = String(ext || filename.split(".").pop() || "txt").replace(/^\./, "").toLowerCase();
   const allowedTextExts = new Set(["txt", "md", "srt", "docx", "pdf", "epub"]);
   if (!allowedTextExts.has(ext)) {
     zone.classList.remove("drag");
-    document.getElementById("UPLOAD_LABEL").innerHTML = `<strong>点击上传</strong> 或拖放文本文件`;
-    showToast("不支持的文件类型。请使用 TXT / MD / SRT / DOCX / PDF / EPUB 文件。", "err");
+    document.getElementById("UPLOAD_LABEL").innerHTML = `<strong>${t("upload_click")}</strong> ${t("upload_or")}`;
+    showToast(_lang==="zh"?"不支持的文件类型。请使用 TXT / MD / SRT / DOCX / PDF / EPUB 文件。":"Unsupported file type. Please use TXT / MD / SRT / DOCX / PDF / EPUB.", "err");
     return;
   }
   try {
@@ -1865,18 +2014,18 @@ async function uploadFileData(filename, ext, b64) {
         `<strong class="upload-filename">${esc(filename)}</strong>`;
       const meta = document.createElement("div");
       meta.className = "upload-meta";
-      meta.textContent = `${j.char_count.toLocaleString()} 字`;
+      meta.textContent = `${j.char_count.toLocaleString()} ${t("unit_char")}`;
       document.getElementById("UPLOAD_LABEL").appendChild(meta);
       document.getElementById("UPLOAD_ICON") && (document.getElementById("UPLOAD_ICON").textContent = "✓");
-      showToast(`已加载 ${j.char_count.toLocaleString()} 字`, "ok");
+      showToast(`${_lang==="zh"?"已加载":"Loaded"} ${j.char_count.toLocaleString()} ${t("unit_char")}`, "ok");
     } else {
-      showToast("解析失败: " + (j.error||""), "err");
+      showToast((_lang==="zh"?"解析失败: ":"Parse failed: ") + (j.error||""), "err");
       document.getElementById("UPLOAD_LABEL").innerHTML =
-        `<strong>点击上传</strong> 或拖放文本文件`;
+        `<strong>${t("upload_click")}</strong> ${t("upload_or")}`;
     }
   } catch(e) {
     zone.classList.remove("drag");
-    showToast("上传失败: " + e, "err");
+    showToast((_lang==="zh"?"上传失败: ":"Upload failed: ") + e, "err");
   }
 }
 
@@ -1898,7 +2047,7 @@ function clearText() {
   const zone = document.getElementById("UPLOAD_ZONE");
   if (zone) zone.classList.remove("has-file");
   const label = document.getElementById("UPLOAD_LABEL");
-  if (label) label.innerHTML = `<strong>点击上传</strong> 或拖放文本文件`;
+  if (label) label.innerHTML = `<strong>${t("upload_click")}</strong> ${t("upload_or")}`;
 }
 
 let _workerReady = false;
@@ -1910,7 +2059,7 @@ async function syncStatusFromServer() {
     const j = await r.json();
     if (j.worker_ready && !_workerReady) {
       _workerReady = true;
-      setStatus("on", t("status_ready"));
+      setStatus("on", t("status_ready"), "status_ready");
       updateSynthBtn();
       wsSend({type:"get_voices"});
     }
@@ -1923,7 +2072,13 @@ async function syncStatusFromServer() {
   } catch(e) {}
 }
 
+// 记录最后一次 showDoneUI 的参数，供切语言时重新渲染
+let _lastDoneOutputPath = "";
+let _lastDoneDuration = 0;
+
 function showDoneUI(outputPath, duration, opts = {}) {
+  _lastDoneOutputPath = outputPath || "";
+  _lastDoneDuration   = duration || 0;
   document.getElementById("BTN_DOWNLOAD").disabled = false;
   updateSubtitleButton();
   const bar = document.getElementById("PROGRESS_BAR");
@@ -1936,16 +2091,31 @@ function showDoneUI(outputPath, duration, opts = {}) {
   if (progressArea) progressArea.style.display = "none";
   if (playerArea) playerArea.style.display = "";
   const dur = duration ? duration.toFixed(1) + "s" : "";
-  const title = "✓ 合成完成" + (dur ? "  时长 " + dur : "");
+  const title = "✓ " + (_lang==="zh"?"合成完成":"Done") + (dur ? (_lang==="zh"?"  时长 ":" duration ") + dur : "");
   document.getElementById("OUTPUT_TITLE").textContent = title;
   setStatus("on", title);
   if (outputPath) {
     const url = `/api/download?path=${encodeURIComponent(outputPath)}`;
     initPlayerFromUrl(url);
     const fname = outputPath.split(/[\/]/).pop();
-    document.getElementById("AUDIO_META").textContent = (dur ? `时长 ${dur}  ·  ` : "") + fname;
+    document.getElementById("AUDIO_META").textContent = (dur ? `${_lang==="zh"?"时长":"Duration"} ${dur}  ·  ` : "") + fname;
   }
   if (opts.toast !== false) showToast(title, "ok");
+}
+
+// 仅重新渲染文字，不重新初始化播放器
+function _refreshDoneUI() {
+  if (!_synthDone && !_lastDoneOutputPath) return;
+  const playerArea = document.getElementById("PLAYER_AREA");
+  if (!playerArea || playerArea.style.display === "none") return;
+  const dur = _lastDoneDuration ? _lastDoneDuration.toFixed(1) + "s" : "";
+  const title = "✓ " + (_lang==="zh"?"合成完成":"Done") + (dur ? (_lang==="zh"?"  时长 ":" duration ") + dur : "");
+  document.getElementById("OUTPUT_TITLE").textContent = title;
+  setStatus("on", title);
+  if (_lastDoneOutputPath) {
+    const fname = _lastDoneOutputPath.split(/[\/]/).pop();
+    document.getElementById("AUDIO_META").textContent = (dur ? `${_lang==="zh"?"时长":"Duration"} ${dur}  ·  ` : "") + fname;
+  }
 }
 
 function getSessionDurationSeconds(session) {
@@ -1965,7 +2135,7 @@ function showLoadedSessionNoProgress(titleText) {
   if (progressArea) progressArea.style.display = "none";
   if (playerArea) playerArea.style.display = "none";
   document.getElementById("OUTPUT_PANEL").classList.add("visible");
-  document.getElementById("OUTPUT_TITLE").textContent = titleText || "已加载会话";
+  document.getElementById("OUTPUT_TITLE").textContent = titleText || (_lang==="zh"?"已加载会话":"Session loaded");
   updateSubtitleButton();
 }
 
@@ -1982,7 +2152,7 @@ function updateSynthBtn() {
   const hasText = _inputMode === "dialog"
     ? getDialogRowsForSubmit().length > 0
     : !!document.getElementById("TEXT_EDITOR").value.trim();
-  btn.title = hasText ? (!_workerReady ? "模型状态正在同步；点击后会由后端再次确认" : "") : "请先输入文本或加载 CSV";
+  btn.title = hasText ? (!_workerReady ? (_lang==="zh"?"模型状态正在同步；点击后会由后端再次确认":"Model syncing — click to try anyway") : "") : (_lang==="zh"?"请先输入文本或加载 CSV":"Please enter text or load a CSV first");
 }
 
 
@@ -2002,7 +2172,7 @@ function refreshDialogAvailability() {
 }
 function setInputMode(mode) {
   if (mode === "dialog" && !isCustomVoiceRepo(currentRepoValue())) {
-    showToast("三列表格模式仅适用于 CustomVoice 模型", "err");
+    showToast(_lang==="zh"?"三列表格模式仅适用于 CustomVoice 模型":"Dialog table mode requires a CustomVoice model", "err");
     return;
   }
   _inputMode = mode === "dialog" ? "dialog" : "text";
@@ -2157,17 +2327,17 @@ function parseCsvText(csv) {
   return rows.filter(r => r.some(x => String(x||"").trim() !== ""));
 }
 function chooseDialogCsv() {
-  if (!isCustomVoiceRepo(currentRepoValue())) { showToast("CSV 对话模式仅适用于 CustomVoice 模型", "err"); return; }
+  if (!isCustomVoiceRepo(currentRepoValue())) { showToast(_lang==="zh"?"CSV 对话模式仅适用于 CustomVoice 模型":"CSV dialog mode requires a CustomVoice model", "err"); return; }
   const inp = document.getElementById("DIALOG_CSV_INPUT");
   if (inp) { inp.value = ""; inp.click(); }
 }
 async function onDialogCsvSelected(input) {
   const file = input.files && input.files[0];
   if (!file) return;
-  if (!/\.csv$/i.test(file.name)) { showToast("请选择 CSV 文件", "err"); return; }
+  if (!/\.csv$/i.test(file.name)) { showToast(_lang==="zh"?"请选择 CSV 文件":"Please select a CSV file", "err"); return; }
   const csv = await file.text();
   let rows = parseCsvText(csv);
-  if (!rows.length) { showToast("CSV 内容为空", "err"); return; }
+  if (!rows.length) { showToast(_lang==="zh"?"CSV 内容为空":"CSV is empty", "err"); return; }
   const first = rows[0].map(x => String(x||"").trim().toLowerCase());
   if (first[0] === "speaker" || first[0] === "发言人") rows = rows.slice(1);
   _dialogRows = rows.map(r => ({
@@ -2178,7 +2348,7 @@ async function onDialogCsvSelected(input) {
   })).filter(r => r.text);
   if (!_dialogRows.length) _dialogRows = [{speaker:"serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
   setInputMode("dialog");
-  showToast(`已加载 ${_dialogRows.length} 行对话`, "ok");
+  showToast(`${_lang==="zh"?"已加载":"Loaded"} ${_dialogRows.length} ${t("unit_rows")}`, "ok");
 }
 function dialogPlainText() {
   return getDialogRowsForSubmit().map(r => r.text).join("\n");
@@ -2189,8 +2359,18 @@ async function startSynthesis() {
   const dialogRows = _inputMode === "dialog" ? getDialogRowsForSubmit() : [];
   const text = _inputMode === "dialog" ? dialogPlainText() : document.getElementById("TEXT_EDITOR").value.trim();
   if (!text && !dialogRows.length) {
-    showToast(_inputMode === "dialog" ? "三列表格中没有可合成文本" : "请先输入文本", "err");
+    showToast(_inputMode === "dialog" ? (_lang==="zh"?"三列表格中没有可合成文本":"No text to synthesize in dialog table") : (_lang==="zh"?"请先输入文本":"Please enter some text"), "err");
     updateSynthBtn();
+    return;
+  }
+  // base_default 不能直接合成，需要先克隆音色
+  if (_selectedVoice === "base_default") {
+    showToast(_lang==="zh"
+      ? "请先在「克隆」标签页上传参考音频并完成克隆，再选择克隆音色合成"
+      : "Please clone a voice first: go to the Clone tab, upload reference audio, then select it here",
+      "err");
+    // 自动跳转到克隆标签
+    switchTab("clone");
     return;
   }
   // 点击开始时主动同步一次状态，避免 WebSocket 状态标志滞后导致误判。
@@ -2198,7 +2378,7 @@ async function startSynthesis() {
     await syncStatusFromServer();
   }
   if (_inputMode === "dialog" && !isCustomVoiceRepo(currentRepoValue())) {
-    showToast("三列表格合成仅适用于 CustomVoice 模型", "err");
+    showToast(_lang==="zh"?"三列表格合成仅适用于 CustomVoice 模型":"Dialog synthesis requires a CustomVoice model", "err");
     return;
   }
 
@@ -2214,7 +2394,7 @@ async function startSynthesis() {
   _logVisible = false;
   document.getElementById("PROGRESS_LOG").style.display = "none";
   const _lt = document.getElementById("BTN_LOG_TOGGLE");
-  if (_lt) _lt.textContent = "展开日志";
+  if (_lt) _lt.textContent = t("expand_log");
   document.getElementById("OUTPUT_PANEL").classList.add("visible");
   document.getElementById("PROGRESS_BAR").style.width = "0%";
   document.getElementById("PROGRESS_LOG").innerHTML = "";
@@ -2244,9 +2424,9 @@ async function startSynthesis() {
     });
     const j = await r.json();
     if (!j.ok) {
-      showToast("合成启动失败: " + (j.error||""), "err");
+      showToast((_lang==="zh"?"合成启动失败: ":"Synthesis start failed: ") + (j.error||""), "err");
       setSynthesizing(false);
-      document.getElementById("OUTPUT_TITLE").textContent = "合成失败: " + (j.error||"");
+      document.getElementById("OUTPUT_TITLE").textContent = (_lang==="zh"?"合成失败: ":"Synthesis failed: ") + (j.error||"");
       return;
     }
     // 启动轮询保险，防止 WebSocket 消息丢失
@@ -2266,10 +2446,10 @@ async function startSynthesis() {
       } catch(e) {}
     }, 2000);
   } catch(e) {
-    showToast("请求失败: " + e, "err");
+    showToast((_lang==="zh"?"请求失败: ":"Request failed: ") + e, "err");
     setSynthesizing(false);
     const title = document.getElementById("OUTPUT_TITLE");
-    if (title) title.textContent = "合成启动失败";
+    if (title) title.textContent = _lang==="zh"?"合成启动失败":"Failed to start synthesis";
   }
 }
 
@@ -2277,8 +2457,8 @@ async function stopSynthesis() {
   await fetch("/api/stop", {method:"POST"});
   setSynthesizing(false);
   clearHighlight();
-  setStatus("on","已停止");
-  showToast("合成已停止");
+  setStatus("on",_lang==="zh"?"已停止":"Stopped");
+  showToast(_lang==="zh"?"合成已停止":"Synthesis stopped");
 }
 
 function _msToTimecode(ms) {
@@ -2331,7 +2511,7 @@ function toggleSubtitleMenu(btn) {
 
 async function exportSubtitle(fmt) {
   document.getElementById("SUBTITLE_MENU").style.display = "none";
-  if (!_timestamps.length) { showToast("无时间戳数据，请先完成合成", "err"); return; }
+  if (!_timestamps.length) { showToast(_lang==="zh"?"无时间戳数据，请先完成合成":"No timestamp data — please synthesize first", "err"); return; }
 
   const ts   = new Date().toISOString().slice(0,19).replace(/[T:]/g,"-");
   let content = "", mime = "text/plain", ext = fmt;
@@ -2348,7 +2528,7 @@ async function exportSubtitle(fmt) {
     ).join("\n\n");
 
   } else if (fmt === "md") {
-    content = `# 字幕\n\n`;
+    content = `# ${_lang==="zh"?"字幕":"Subtitles"}\n\n`;
     content += _timestamps.map((t, i) =>
       `## ${String(i+1).padStart(2,"0")} \`${_msToTimecode(t.audio_start_ms)}\`\n\n${t.text}\n`
     ).join("\n");
@@ -2368,7 +2548,7 @@ async function exportSubtitle(fmt) {
 
   } else if (fmt === "csv") {
     // Excel-compatible CSV with BOM
-    const rows = [["\uFEFF时间码", "结束时间", "时长(ms)", "文字"]];
+    const rows = [["\uFEFFTimecode", "End", "Duration(ms)", "Text"]];
     _timestamps.forEach(t => rows.push([
       _msToTimecode(t.audio_start_ms),
       _msToTimecode(t.audio_end_ms),
@@ -2380,7 +2560,7 @@ async function exportSubtitle(fmt) {
     ext  = "csv";
   }
 
-  await saveTextToOutputDir(`subtitle_${ts}.${ext}`, content, "已导出字幕");
+  await saveTextToOutputDir(`subtitle_${ts}.${ext}`, content, _lang==="zh"?"已导出字幕":"Subtitle exported");
 }
 
 // ── 会话加载 ──────────────────────────────────────────────
@@ -2423,7 +2603,7 @@ async function loadSession(file) {
   try {
     const sessionName = (file && file.name ? file.name : "session.ttso");
     if (!/\.(ttso|json)$/i.test(sessionName)) {
-      showToast("请选择 .ttso 或 .json 会话文件", "err");
+      showToast(_lang==="zh"?"请选择 .ttso 或 .json 会话文件":"Please select a .ttso or .json session file", "err");
       return;
     }
     const text = await file.text();
@@ -2462,7 +2642,7 @@ async function loadSession(file) {
       _timestamps  = s.timestamps;
       _sessionLog  = s.log || [];
       updateSubtitleButton();
-      showLoadedSessionNoProgress(`已加载会话 — ${_timestamps.length} 段时间戳`);
+      showLoadedSessionNoProgress(`${_lang==="zh"?"已加载会话":"Session loaded"} — ${_timestamps.length} ${_lang==="zh"?"段时间戳":"timestamp entries"}`);
     }
     // 恢复输出音频：优先使用 .ttso 中记录的音频信息，并通过后端解析绝对路径/同目录/输出目录候选。
     const audioResolved = await resolveSessionAudio(s, file);
@@ -2479,9 +2659,9 @@ async function loadSession(file) {
     } else if (s.output_path || s.audio?.path || s.audio?.filename) {
       _currentOutputPath = s.output_path || s.audio?.path || "";
       resetPlayerUI();
-      showLoadedSessionNoProgress(s.timestamps?.length ? `已加载会话 — ${_timestamps.length} 段时间戳` : "已加载会话");
+      showLoadedSessionNoProgress(s.timestamps?.length ? `${_lang==="zh"?"已加载会话":"Session loaded"} — ${_timestamps.length} ${_lang==="zh"?"段时间戳":"timestamp entries"}` : (_lang==="zh"?"已加载会话":"Session loaded"));
       if (_inputMode === "dialog") renderDialogTable();
-      showToast("会话已加载，但未找到原音频文件；请确认音频仍在原目录、会话同目录或默认输出目录。", "warn");
+      showToast(_lang==="zh"?"会话已加载，但未找到原音频文件；请确认音频仍在原目录、会话同目录或默认输出目录。":"Session loaded, but original audio file not found. Check the original directory, session directory, or default output directory.", "warn");
     }
     buildTsIndex();
     renderVoiceGrid();
@@ -2489,9 +2669,9 @@ async function loadSession(file) {
       const match = _voices.find(v => v.id === s.voice_id);
       if (match) selectVoice(s.voice_id);
     }
-    showToast(`已加载会话: ${file.name}`, "ok");
+    showToast(`${_lang==="zh"?"已加载会话":"Session loaded"}: ${file.name}`, "ok");
   } catch(e) {
-    showToast("加载失败: " + e, "err");
+    showToast((_lang==="zh"?"加载失败: ":"Load failed: ") + e, "err");
   }
 }
 
@@ -2538,7 +2718,7 @@ async function saveSession() {
   const json = JSON.stringify(session, null, 2);
   const ts   = new Date().toISOString().slice(0,19).replace(/[T:]/g, "-");
   const fname = `tts_session_${ts}.ttso`;
-  await saveTextToOutputDir(fname, json, "已保存会话");
+  await saveTextToOutputDir(fname, json, _lang==="zh"?"已保存会话":"Session saved");
 }
 
 
@@ -2875,56 +3055,64 @@ function highlightCurrentPlaybackChunk(ms) {
 }
 
 async function downloadAudio() {
-  if (!_currentOutputPath) { showToast("无可保存的音频", "err"); return; }
+  if (!_currentOutputPath) { showToast(_lang === "zh" ? "无可保存的音频" : "No audio to save", "err"); return; }
   const fname = _currentOutputPath.split("/").pop() || "tts_output.wav";
   await saveExistingFileToOutputDir(_currentOutputPath, fname);
 }
 
 // ── Model ────────────────────────────────────────────────
-const _MODEL_DESCS = {
-  "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit": "内置 9 种音色（serena / vivian / ryan / aiden 等），支持情感指令",
-  "mlx-community/Qwen3-TTS-12Hz-0.6B-CustomVoice-8bit": "轻量版内置音色，速度更快，质量略低",
-  "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit":        "无内置音色，专为声音克隆设计（需上传参考音频）",
-  "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-8bit":        "轻量声音克隆，速度更快",
-  "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit": "用自然语言描述目标音色（如 'female, British narrator'）",
+const _MODEL_DESC_KEYS = {
+  "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit": "mdl_desc_cv17",
+  "mlx-community/Qwen3-TTS-12Hz-0.6B-CustomVoice-8bit": "mdl_desc_cv06",
+  "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit":        "mdl_desc_base17",
+  "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-8bit":        "mdl_desc_base06",
+  "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit": "mdl_desc_vd17",
 };
 function updateModelDesc(repo) {
   const el = document.getElementById("MODEL_DESC");
-  if (el) el.textContent = _MODEL_DESCS[repo] || "";
+  if (el) el.textContent = _MODEL_DESC_KEYS[repo] ? t(_MODEL_DESC_KEYS[repo]) : "";
 }
 // ── Custom model dropdown ─────────────────────────────────────
+// baseLabel: 固定的英文型号部分；tagKey: i18n key for the parenthetical tag (or null)
 const _MODEL_GROUPS = [
-  { label: "CustomVoice — 内置音色", options: [
-    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit", label: "1.7B CustomVoice 8bit（推荐）" },
-    { value: "mlx-community/Qwen3-TTS-12Hz-0.6B-CustomVoice-8bit", label: "0.6B CustomVoice 8bit（轻量）" },
-    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16", label: "1.7B CustomVoice bf16（未安装）", disabled: true },
-    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit", label: "1.7B CustomVoice 6bit（未安装）", disabled: true },
+  { labelKey: "mdlgrp_cv", options: [
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-8bit", baseLabel: "1.7B CustomVoice 8bit", tagKey: "mdl_tag_recommended" },
+    { value: "mlx-community/Qwen3-TTS-12Hz-0.6B-CustomVoice-8bit", baseLabel: "0.6B CustomVoice 8bit", tagKey: "mdl_tag_lite" },
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-bf16", baseLabel: "1.7B CustomVoice bf16", tagKey: "mdl_tag_not_installed", disabled: true },
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit", baseLabel: "1.7B CustomVoice 6bit", tagKey: "mdl_tag_not_installed", disabled: true },
   ]},
-  { label: "Base — 声音克隆", options: [
-    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit", label: "1.7B Base 8bit" },
-    { value: "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-8bit", label: "0.6B Base 8bit（轻量）" },
-    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16", label: "1.7B Base bf16（未安装）", disabled: true },
-    { value: "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-bf16", label: "0.6B Base bf16（未安装）", disabled: true },
+  { labelKey: "mdlgrp_base", options: [
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit", baseLabel: "1.7B Base 8bit", tagKey: null },
+    { value: "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-8bit", baseLabel: "0.6B Base 8bit", tagKey: "mdl_tag_lite" },
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16", baseLabel: "1.7B Base bf16", tagKey: "mdl_tag_not_installed", disabled: true },
+    { value: "mlx-community/Qwen3-TTS-12Hz-0.6B-Base-bf16", baseLabel: "0.6B Base bf16", tagKey: "mdl_tag_not_installed", disabled: true },
   ]},
-  { label: "VoiceDesign — 文字描述音色", options: [
-    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit", label: "1.7B VoiceDesign 8bit" },
-    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16", label: "1.7B VoiceDesign bf16（未安装）", disabled: true },
+  { labelKey: "mdlgrp_vd", options: [
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit", baseLabel: "1.7B VoiceDesign 8bit", tagKey: null },
+    { value: "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16", baseLabel: "1.7B VoiceDesign bf16", tagKey: "mdl_tag_not_installed", disabled: true },
   ]},
 ];
+// 根据 baseLabel + tagKey 动态生成当前语言的显示文字
+function _mdlOptLabel(o) {
+  if (!o.tagKey) return o.label || o.baseLabel;
+  // 已被 refreshInstalledModels 覆写过 label 时用覆写值（含"未下载"等动态标注）
+  if (o._labelOverride) return o._labelOverride;
+  return `${o.baseLabel}（${t(o.tagKey)}）`;
+}
 
 function _buildModelDropPanel(currentVal) {
   const panel = document.getElementById("MDL_DROP_PANEL");
   if (!panel) return;
   let html = "";
   for (const g of _MODEL_GROUPS) {
-    html += `<div class="mdl-drop-group-label">${g.label}</div>`;
+    html += `<div class="mdl-drop-group-label">${t(g.labelKey)}</div>`;
     for (const o of g.options) {
       const sel = o.value === currentVal ? " selected" : "";
       const dis = o.disabled ? " disabled" : "";
-      html += `<div class="mdl-drop-panel-item${sel}${dis}" data-value="${o.value}">${o.label}</div>`;
+      html += `<div class="mdl-drop-panel-item${sel}${dis}" data-value="${o.value}">${_mdlOptLabel(o)}</div>`;
     }
   }
-  html += `<div class="mdl-drop-custom-item" data-value="__custom__">自定义 repo…</div>`;
+  html += `<div class="mdl-drop-custom-item" data-value="__custom__">${t("mdl_custom_repo")}</div>`;
   panel.innerHTML = html;
   panel.querySelectorAll("[data-value]").forEach(el => {
     if (!el.classList.contains("disabled")) {
@@ -2941,11 +3129,11 @@ function _pickModelDrop(val) {
   const labelEl = document.getElementById("MDL_DROP_LABEL");
   if (labelEl) {
     if (val === "__custom__") {
-      labelEl.textContent = "自定义 repo…";
+      labelEl.textContent = t("mdl_custom_repo");
     } else {
       for (const g of _MODEL_GROUPS) {
         const opt = g.options.find(o => o.value === val);
-        if (opt) { labelEl.textContent = opt.label; break; }
+        if (opt) { labelEl.textContent = _mdlOptLabel(opt); break; }
       }
     }
   }
@@ -2989,16 +3177,20 @@ function _syncModelDropFromSelect() {
     if (!opt.value || opt.value === "__custom__") continue;
     for (const g of _MODEL_GROUPS) {
       const entry = g.options.find(o => o.value === opt.value);
-      if (entry) { entry.disabled = opt.disabled; entry.label = opt.textContent; }
+      if (entry) {
+        entry.disabled = opt.disabled;
+        // Store override label only when server adds dynamic suffix (e.g. "not downloaded")
+        entry._labelOverride = null;
+      }
     }
   }
   // Update display label
   if (labelEl) {
     const cur = sel.value;
-    if (cur === "__custom__") { labelEl.textContent = "自定义 repo…"; return; }
+    if (cur === "__custom__") { labelEl.textContent = t("mdl_custom_repo"); return; }
     for (const g of _MODEL_GROUPS) {
       const o = g.options.find(x => x.value === cur);
-      if (o) { labelEl.textContent = o.label; return; }
+      if (o) { labelEl.textContent = _mdlOptLabel(o); return; }
     }
   }
 }
@@ -3027,12 +3219,12 @@ function loadModel() {
   const repo = sel.value === "__custom__"
     ? document.getElementById("MODEL_REPO_INPUT").value.trim()
     : sel.value;
-  if (!repo || repo === "__custom__") { showToast("请选择或输入模型 repo", "err"); return; }
+  if (!repo || repo === "__custom__") { showToast(_lang === "zh" ? "请选择或输入模型 repo" : "Please select or enter a model repo", "err"); return; }
   _settings.model_repo = repo;
   refreshDialogAvailability();
   _workerReady = false;
   updateSynthBtn();
-  setStatus("warn", "正在加载模型…");
+  setStatus("warn", t("status_loading"), "status_loading");
   wsSend({type:"load_model", repo});
 }
 
@@ -3046,7 +3238,7 @@ function saveBasicSettings() {
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify(_settings),
   });
-  showToast("设置已保存", "ok");
+  showToast(t("toast_settings_saved"), "ok");
 }
 
 // ── Clone ────────────────────────────────────────────────
@@ -3063,12 +3255,12 @@ function onCloneAudioSelected(inp) {
 }
 
 async function submitClone() {
-  if (!_cloneAudioFile && !_cloneAudioData) { showToast("请先选择参考音频", "err"); return; }
-  const name    = document.getElementById("CLONE_NAME").value.trim() || "我的声音";
+  if (!_cloneAudioFile && !_cloneAudioData) { showToast(_lang==="zh"?"请先选择参考音频":"Please select a reference audio file", "err"); return; }
+  const name    = document.getElementById("CLONE_NAME").value.trim() || t("ph_clone_name");
   const base    = document.getElementById("CLONE_BASE_VOICE").value;
   const refText = document.getElementById("CLONE_REF_TEXT").value.trim();
 
-  showToast("正在读取音频…");
+  showToast(_lang==="zh"?"正在读取音频…":"Reading audio…");
   try {
     let b64, ext;
     if (_cloneAudioData) {
@@ -3079,12 +3271,12 @@ async function submitClone() {
       b64 = await new Promise((res, rej) => {
         const r = new FileReader();
         r.onload  = () => res(r.result.split(",")[1]);
-        r.onerror = () => rej(new Error("文件读取失败"));
+        r.onerror = () => rej(new Error(_lang==="zh"?"文件读取失败":"File read failed"));
         r.readAsDataURL(_cloneAudioFile);
       });
     }
 
-    showToast("正在提交克隆…");
+    showToast(_lang==="zh"?"正在提交克隆…":"Submitting clone…");
     const body = { name, base_voice: base, audio_b64: b64, ext };
     if (refText) body.ref_text = refText;
 
@@ -3094,22 +3286,22 @@ async function submitClone() {
       body: JSON.stringify(body),
     });
     const j = await r.json();
-    if (!j.ok) showToast("克隆失败: " + (j.error||""), "err");
+    if (!j.ok) showToast(t("toast_clone_err") + (j.error||""), "err");
   } catch(e) {
-    showToast("克隆请求失败: " + e, "err");
+    showToast((_lang==="zh"?"克隆请求失败: ":"Clone request failed: ") + e, "err");
   }
 }
 
 
 async function exportClone(name) {
-  if (!name) { showToast("无可导出的克隆音色", "err"); return; }
+  if (!name) { showToast(_lang==="zh"?"无可导出的克隆音色":"No clone voice to export", "err"); return; }
   const safeName = String(name || "clone").replace(/[\\/:*?"<>|]+/g, "_").trim() || "clone";
 
   try {
     const r = await fetch(`/api/export_clone?name=${encodeURIComponent(name)}`, {method:"GET", cache:"no-store"});
     const data = await r.json().catch(() => ({}));
-    if (!r.ok || !data.ok) throw new Error(data.error || r.status || "导出接口返回失败");
-    if (!data.audio_b64) throw new Error("克隆音色音频数据为空，可能需要重新克隆或重新导入");
+    if (!r.ok || !data.ok) throw new Error(data.error || r.status || (_lang==="zh"?"导出接口返回失败":"Export API failed"));
+    if (!data.audio_b64) throw new Error(_lang==="zh"?"克隆音色音频数据为空，可能需要重新克隆或重新导入":"Clone audio data is empty — please re-clone or re-import");
     const payload = {
       file_type: "ttsc",
       version: "0.2",
@@ -3120,9 +3312,9 @@ async function exportClone(name) {
       audio_b64: data.audio_b64,
       ext: data.ext || ".wav"
     };
-    await saveTextToOutputDir(`${safeName}.ttsc`, JSON.stringify(payload, null, 2), "已导出克隆音色");
+    await saveTextToOutputDir(`${safeName}.ttsc`, JSON.stringify(payload, null, 2), _lang==="zh"?"已导出克隆音色":"Clone voice exported");
   } catch(e) {
-    showToast("导出失败: " + (e && e.message ? e.message : e), "err");
+    showToast((_lang==="zh"?"导出失败: ":"Export failed: ") + (e && e.message ? e.message : e), "err");
   }
 }
 
@@ -3131,12 +3323,12 @@ async function importClone(file) {
   try {
     const cloneName = (file && file.name ? file.name : "clone.ttsc");
     if (!/\.(ttsc|json)$/i.test(cloneName)) {
-      showToast("请选择 .ttsc 或 .json 克隆音色文件", "err");
+      showToast(_lang==="zh"?"请选择 .ttsc 或 .json 克隆音色文件":"Please select a .ttsc or .json clone voice file", "err");
       return;
     }
     const text = await file.text();
     const data = JSON.parse(text);
-    if (!data.audio_b64) { showToast("导入失败: .ttsc 中没有音频数据", "err"); return; }
+    if (!data.audio_b64) { showToast(_lang==="zh"?"导入失败: .ttsc 中没有音频数据":"Import failed: no audio data in .ttsc", "err"); return; }
     const r = await fetch("/api/import_clone", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
@@ -3144,13 +3336,13 @@ async function importClone(file) {
     });
     const j = await r.json();
     if (!r.ok || !j.ok) {
-      showToast("导入失败: " + (j.error || r.status), "err");
+      showToast((_lang==="zh"?"导入失败: ":"Import failed: ") + (j.error || r.status), "err");
       return;
     }
-    showToast(`已导入克隆音色: ${data.name || file.name}`, "ok");
+    showToast(`${_lang==="zh"?"已导入克隆音色":"Cloned voice imported"}: ${data.name || file.name}`, "ok");
     wsSend({type:"get_voices"});
   } catch(e) {
-    showToast("导入失败: " + e, "err");
+    showToast((_lang==="zh"?"导入失败: ":"Import failed: ") + e, "err");
   }
 }
 
@@ -3256,7 +3448,7 @@ function _updateDlCmd() {
     : "";
   box.textContent = `${prefix}hf download ${_dlSelectedRepo}`;
   // Also update hint
-  const hint = document.getElementById("DL_HINT");
+  const hint = document.getElementById("DL_HINT_TEXT") || document.getElementById("DL_HINT");
   if (hint) hint.innerHTML = (_lang === "en"
     ? "After download, go to the Model tab and click Load Model.<br>"
     : "下载完成后，请在「模型」标签页点击「加载模型」。<br>")
@@ -3364,7 +3556,7 @@ function applyAdvSettings() {
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify(_settings),
   });
-  showToast("高级参数已应用", "ok");
+  showToast(t("toast_adv_applied"), "ok");
 }
 
 function saveAndCloseAdv() {
@@ -3379,7 +3571,7 @@ function resetAdvToDefault() {
     if (p.type === "bool") el.checked = !!p.default;
     else el.value = p.default;
   });
-  showToast("已恢复默认值");
+  showToast(t("toast_reset_defaults"));
 }
 
 // ── Presets ───────────────────────────────────────────────
@@ -3451,7 +3643,7 @@ function applyAdvPreset() {
 }
 
 function saveAdvPreset() {
-  const name = prompt("预设名称:");
+  const name = prompt(_lang==="zh"?"预设名称:":"Preset name:");
   if (!name) return;
   const params = collectAdvParams();
   const preset = {name, params};
@@ -3463,14 +3655,14 @@ function saveAdvPreset() {
     body: JSON.stringify(_settings),
   });
   updateAdvPresetSelect();
-  showToast("预设已保存: " + name, "ok");
+  showToast((_lang==="zh"?"预设已保存: ":"Preset saved: ") + name, "ok");
 }
 
 function deleteAdvPreset() {
   const sel = document.getElementById("ADV_PRESET_SELECT");
   const idx = parseInt(sel.value) - BUILTIN_PRESETS.length;
-  if (idx < 0) { showToast("内置预设无法删除", "err"); return; }
-  htmlConfirm("确定删除此预设？", "删除", "取消").then(ok => {
+  if (idx < 0) { showToast(_lang==="zh"?"内置预设无法删除":"Built-in presets cannot be deleted", "err"); return; }
+  htmlConfirm(_lang==="zh"?"确定删除此预设？":"Delete this preset?", _lang==="zh"?"删除":"Delete", _lang==="zh"?"取消":"Cancel").then(ok => {
     if (!ok) return;
     _settings.advanced_presets.splice(idx, 1);
     fetch("/api/settings", {
@@ -3479,7 +3671,7 @@ function deleteAdvPreset() {
       body: JSON.stringify(_settings),
     });
     updateAdvPresetSelect();
-    showToast("预设已删除");
+    showToast(_lang==="zh"?"预设已删除":"Preset deleted");
   });
 }
 
@@ -3555,7 +3747,7 @@ const _KNOWN_H2 = '43da6cc6e1b3747553706f17de53cf27beffbf35f617b652893bc1076d5e2
       <button class="btn" onclick="closeDlWizard()" data-i18n="dl_dismiss">稍后再说</button>
     </div>
     <div style="font-size:11px;color:var(--hi);margin-top:10px;line-height:1.6" id="DL_HINT">
-      下载完成后，请在「模型」标签页点击「加载模型」。
+      <span id="DL_HINT_TEXT"></span>
     </div>
   </div>
 </div>

@@ -123,8 +123,8 @@ def _init_model(repo: str):
 # mlx-audio 8bit CustomVoice 实际支持的小写音色 ID（运行时从模型读取会更准确）
 # 以下为已知列表，_list_voices() 会在模型加载后动态更新
 _VOICES_BASE = [
-    {"id": "base_default", "name": "默认音色（声音克隆）", "lang": "zh/en/ja/ko",
-     "gender": "neutral", "desc": "Base 模型请使用声音克隆功能"},
+    {"id": "base_default", "name": "Default (Voice Clone)", "lang": "zh/en/ja/ko",
+     "gender": "neutral", "desc": "Upload reference audio in the Clone tab"},
 ]
 
 # mlx-community 8bit CustomVoice 实际音色（小写）
@@ -365,6 +365,12 @@ def _synth_chunk_to_file(text: str, voice_id: str, speed: float,
     if _model_type == "base":
         ref_audio = ""
         ref_text  = ""
+        if voice_id == "base_default":
+            raise RuntimeError(
+                "Please clone a voice first: go to the Clone tab, upload 5–30 s of "
+                "reference audio, then select the cloned voice here.\n"
+                "（请先克隆音色：在「克隆」标签页上传 5~30 秒参考音频，完成后选择克隆音色再合成。）"
+            )
         if voice_id.startswith("__clone__"):
             clone_name = voice_id[len("__clone__"):]
             info = _cloned_voices.get(clone_name, {})
@@ -373,8 +379,9 @@ def _synth_chunk_to_file(text: str, voice_id: str, speed: float,
 
         if not ref_audio:
             raise RuntimeError(
-                "Base 模型需要参考音频才能合成。"
-                "请在「克隆」标签页上传参考音频，或切换到 CustomVoice 模型使用内置音色。"
+                "Base model requires reference audio. "
+                "Please upload reference audio in the Clone tab, or switch to a CustomVoice model.\n"
+                "（Base 模型需要参考音频才能合成。请在「克隆」标签页上传参考音频，或切换到 CustomVoice 模型。）"
             )
 
         # ref_text 为空时不传，mlx-audio 会自动用 ASR 推断
