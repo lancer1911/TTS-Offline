@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lancer1911 TTS Offline v0.3j</title>
+<title>Lancer1911 TTS Offline v0.5d</title>
 <style>
 /* ── CSS Variables ─────────────────────────────────────────── */
 :root{
@@ -151,6 +151,7 @@ body.dialog-capable .dialog-tools{display:flex}
 .dialog-table select,.dialog-table input,.dialog-table textarea{width:100%;box-sizing:border-box;background:var(--bg2);color:var(--tx);border:0.5px solid var(--b1);border-radius:6px;padding:5px 6px;font:inherit;font-size:12px}
 .dialog-table textarea{min-height:44px;resize:vertical;line-height:1.45}
 .dialog-table tr.dialog-row-current td{background:rgba(139,92,246,.20)!important;box-shadow:inset 3px 0 0 var(--ac)}.dialog-table tbody tr{cursor:pointer}.dialog-table tbody tr:hover td{background:rgba(139,92,246,.07)}.dialog-table tbody tr.dialog-row-current:hover td{background:rgba(139,92,246,.26)!important}
+.dialog-table tr.dialog-row-bad td{background:rgba(239,68,68,.18)!important;box-shadow:inset 3px 0 0 var(--red)!important}.dialog-table tr.dialog-row-bad textarea,.dialog-table tr.dialog-row-bad input,.dialog-table tr.dialog-row-bad select{border-color:rgba(239,68,68,.65)!important}
 .dialog-time-cell{display:none}
 .dialog-row-actions{display:flex;gap:4px;justify-content:center}
 body.dialog-mode #TEXT_EDITOR_WRAP{display:none!important}
@@ -280,6 +281,23 @@ audio{width:100%;accent-color:var(--ac)}
 .app-confirm-actions .btn{flex:1;border-radius:999px;padding:9px 16px;font-size:14px}
 .app-confirm-actions .btn-primary{box-shadow:0 6px 18px color-mix(in srgb,var(--ac) 28%,transparent)}
 
+/* Base CSV character-to-voice mapping modal */
+.voice-map-modal{width:min(720px,calc(100vw - 34px));max-height:min(78vh,720px);background:var(--bg2);
+  border:0.5px solid var(--b1);border-radius:var(--r3);box-shadow:0 24px 80px rgba(0,0,0,.42);
+  padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.voice-map-title{font-size:15px;font-weight:700;color:var(--tx-strong);line-height:1.45}
+.voice-map-help{font-size:12px;color:var(--su);line-height:1.6}
+.voice-map-list{display:flex;flex-direction:column;gap:8px;overflow:auto;padding:2px 2px 4px;max-height:48vh}
+.voice-map-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(180px,1.2fr);gap:10px;align-items:center;
+  background:var(--bg3);border:0.5px solid var(--b1);border-radius:var(--r2);padding:9px 10px}
+.voice-map-person{font-size:13px;font-weight:650;color:var(--tx-strong);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.voice-map-select{background:var(--bg2);border:0.5px solid var(--b2);border-radius:9px;color:var(--tx);
+  padding:7px 9px;font-size:13px;width:100%}
+.voice-map-select:focus{outline:none;border-color:var(--ac)}
+.voice-map-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:2px}
+.voice-map-actions .btn{border-radius:999px;padding:8px 16px}
+
+
 /* Clone voice modal */
 .clone-modal{width:min(520px,calc(100vw - 34px));background:var(--bg2);
   border:0.5px solid var(--b1);border-radius:var(--r3);
@@ -295,7 +313,7 @@ audio{width:100%;accent-color:var(--ac)}
   background:var(--bg3)}
 .clone-audio-zone:hover{border-color:var(--ac)}
 .clone-audio-zone.has-file{border-style:solid;border-color:var(--grn)}
-.clone-hint{font-size:11px;color:var(--hi);margin-top:10px;line-height:1.6}
+.clone-hint{font-size:11px;color:var(--hi);margin-top:10px;line-height:1.6}#CLONE_MODE_BASE,#CLONE_MODE_ANCHOR,#CLONE_MODE_UNSUPPORTED{flex:1;flex-direction:column;min-height:0}.anchor-box{margin-top:16px;padding:12px;border:0.5px solid var(--b1);border-radius:var(--r2);background:var(--bg3)}.anchor-title{font-size:13px;font-weight:650;color:var(--tx-strong);margin-bottom:6px}.anchor-help,.anchor-note{display:none}.anchor-row{margin-bottom:10px}.anchor-row textarea{min-height:76px;resize:vertical}.anchor-row textarea#ANCHOR_INSTRUCTION,.anchor-row textarea#ANCHOR_SAMPLE_TEXT{box-sizing:border-box;height:54px!important;min-height:54px!important;max-height:54px!important;line-height:16px;resize:none;overflow:auto;}.anchor-emotion-select{appearance:auto}.anchor-bulk-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}.anchor-tip{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;margin-left:6px;border:.5px solid var(--b1);border-radius:50%;font-size:10px;font-weight:700;line-height:1;color:var(--hi);background:var(--bg3);cursor:help;vertical-align:1px;user-select:none}.anchor-tip:hover,.anchor-tip:focus{color:var(--tx-strong);border-color:var(--hi);outline:none}.app-tooltip{position:fixed;left:-9999px;top:-9999px;z-index:99999;display:block;max-width:min(320px,calc(100vw - 24px));padding:9px 10px;border:.5px solid var(--b1);border-radius:10px;background:var(--bg2);box-shadow:0 8px 24px rgba(0,0,0,.22);color:var(--tx);font-size:11px;font-weight:400;line-height:1.55;white-space:normal;text-align:left;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease}.app-tooltip.show{opacity:1;visibility:visible}.anchor-group-card{border:.5px solid var(--b1);border-radius:var(--r2);background:var(--bg3);overflow:hidden}.anchor-group-head{display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:pointer}.anchor-group-head:hover{background:var(--acd)}.anchor-group-title{flex:1;font-weight:650;font-size:13px;color:var(--tx-strong)}.anchor-group-meta{font-size:11px;color:var(--hi)}.anchor-group-body{display:none;padding:0 8px 8px 8px}.anchor-group-card.open .anchor-group-body{display:flex;flex-direction:column;gap:5px}.anchor-emotion-row{margin-left:8px}.anchor-chevron{font-size:11px;color:var(--hi);transition:transform .15s}.anchor-group-card.open .anchor-chevron{transform:rotate(90deg)}
 
 /* Tabs in sidebar */
 .sb-tabs{display:flex;border-bottom:0.5px solid var(--b1)}
@@ -383,7 +401,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
       <span>TTS OFFLINE</span>
     </div>
     <div class="brand-sub">
-      <span class="brand-ver">v0.3j</span>
+      <span class="brand-ver">v0.5d</span>
       <span id="author-badge" title="">
         <svg width="11" height="13" viewBox="0 0 11 13" fill="none" aria-hidden="true">
           <path d="M5.5 0.5L1 2.5V6C1 9 3 11.5 5.5 12.5C8 11.5 10 9 10 6V2.5L5.5 0.5Z"
@@ -507,51 +525,92 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
 
     <!-- Clone pane -->
     <div class="sb-pane" id="PANE_CLONE">
-      <div class="sb-section">
-        <div class="sb-title" data-i18n="voice_clone">声音克隆</div>
-        <div style="font-size:12px;color:var(--su);line-height:1.65;margin-bottom:10px">
-          <span data-i18n="clone_intro">上传 5~30 秒的参考音频（WAV/MP3），模型将学习该音色特征用于合成。</span>
-        </div>
-        <div class="clone-row">
-          <div class="clone-label" data-i18n="clone_name">克隆名称</div>
-          <input class="clone-input" id="CLONE_NAME" placeholder="我的声音" value="我的声音" data-i18n-ph="ph_clone_name">
-        </div>
-        <div class="clone-row">
-          <div class="clone-label" data-i18n="ref_audio">参考音频</div>
-          <div class="clone-audio-zone" id="CLONE_AUDIO_ZONE"
-            onclick="chooseCloneAudioFile()">
-            <div id="CLONE_AUDIO_LABEL" data-i18n="clone_audio_label">点击选择音频文件</div>
-            <div style="font-size:11px;color:var(--hi);margin-top:4px">WAV · MP3 · M4A · FLAC</div>
+      <div id="CLONE_MODE_BASE">
+        <div class="sb-section">
+          <div class="sb-title" data-i18n="voice_clone">声音克隆</div>
+          <div style="font-size:12px;color:var(--su);line-height:1.65;margin-bottom:10px">
+            <span data-i18n="clone_intro">上传 5~30 秒的参考音频（WAV/MP3），模型将学习该音色特征用于合成。</span>
           </div>
-          <input type="file" id="CLONE_AUDIO_INPUT"
-            accept=".wav,.mp3,.m4a,.flac,.ogg,audio/wav,audio/x-wav,audio/mpeg,audio/mp4,audio/flac,audio/ogg"
-            style="display:none"
-            onchange="onCloneAudioSelected(this)">
+          <div class="clone-row">
+            <div class="clone-label" data-i18n="clone_name">克隆名称</div>
+            <input class="clone-input" id="CLONE_NAME" placeholder="我的声音" value="我的声音" data-i18n-ph="ph_clone_name">
+          </div>
+          <div class="clone-row">
+            <div class="clone-label" data-i18n="ref_audio">参考音频</div>
+            <div class="clone-audio-zone" id="CLONE_AUDIO_ZONE" onclick="chooseCloneAudioFile()">
+              <div id="CLONE_AUDIO_LABEL" data-i18n="clone_audio_label">点击选择音频文件</div>
+              <div style="font-size:11px;color:var(--hi);margin-top:4px">WAV · MP3 · M4A · FLAC</div>
+            </div>
+            <input type="file" id="CLONE_AUDIO_INPUT"
+              accept=".wav,.mp3,.m4a,.flac,.ogg,audio/wav,audio/x-wav,audio/mpeg,audio/mp4,audio/flac,audio/ogg"
+              style="display:none"
+              onchange="onCloneAudioSelected(this)">
+          </div>
+          <div class="clone-row">
+          </div>
+          <button class="btn btn-primary" onclick="submitClone()" style="width:100%">
+            <span data-i18n="start_clone">开始克隆</span>
+          </button>
+          <div class="clone-hint"><span data-i18n="clone_hint">提示：参考音频越清晰、越纯净（无背景噪声），克隆效果越好。</span><br><br>⚠️ <strong style="color:var(--warn)" data-i18n="clone_warn">声音克隆仅支持 Base 模型（Qwen3-TTS-12Hz-1.7B/0.6B-Base-8bit）。</strong><br><span data-i18n="clone_warn2">请在「模型」标签页切换到 Base 模型后再使用克隆功能。</span><br><br></div>
+
+          <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button class="btn" style="padding:4px 10px;font-size:12px" onclick="chooseCloneImportFile()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="import">导入</span></button>
+            <input type="file" id="CLONE_IMPORT_INPUT" accept=".ttsc,.ttscx" style="display:none" onchange="if(this.files[0])importCloneOrPack(this.files[0]);this.value=''">
+          </div>
         </div>
-        <div class="clone-row">
-          <div class="clone-label" data-i18n="ref_text">参考音频文字（可选，填写可提升克隆质量）</div>
-          <input class="clone-input" id="CLONE_REF_TEXT"
-            placeholder="参考音频中说的内容，例如：你好，这是我的声音。" data-i18n-ph="ph_ref_text">
-        </div>
-        <div class="clone-row">
-          <div class="clone-label" data-i18n="base_voice">基础音色（风格参考）</div>
-          <select class="clone-input" id="CLONE_BASE_VOICE">
-          </select>
-        </div>
-        <button class="btn btn-primary" onclick="submitClone()" style="width:100%">
-          <span data-i18n="start_clone">开始克隆</span>
-        </button>
-        <div class="clone-hint"><span data-i18n="clone_hint">提示：参考音频越清晰、越纯净（无背景噪声），克隆效果越好。</span><br><br>⚠️ <strong style="color:var(--warn)" data-i18n="clone_warn">声音克隆仅支持 Base 模型（Qwen3-TTS-12Hz-1.7B/0.6B-Base-8bit）。</strong><br><span data-i18n="clone_warn2">请在「模型」标签页切换到 Base 模型后再使用克隆功能。</span><br><br></div>
-        <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          <button class="btn" style="padding:4px 10px;font-size:12px"
-            onclick="chooseCloneImportFile()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="import">导入</span></button>
-          <input type="file" id="CLONE_IMPORT_INPUT" accept=".ttsc,.json,application/json" style="display:none"
-            onchange="if(this.files[0])importClone(this.files[0]);this.value=''">
+        <div class="sb-section" style="flex:1;overflow-y:auto">
+          <div class="sb-title" data-i18n="cloned_voices">已克隆音色</div>
+          <div id="CLONED_VOICE_LIST" style="display:flex;flex-direction:column;gap:5px"></div>
+          <div class="sb-title" data-i18n="anchored_voices" style="margin-top:14px">已锚定音色</div>
+          <div id="ANCHOR_VOICE_LIST_BASE" style="display:flex;flex-direction:column;gap:5px"></div>
         </div>
       </div>
-      <div class="sb-section" style="flex:1;overflow-y:auto">
-        <div class="sb-title" data-i18n="cloned_voices">已克隆音色</div>
-        <div id="CLONED_VOICE_LIST" style="display:flex;flex-direction:column;gap:5px"></div>
+
+      <div id="CLONE_MODE_ANCHOR" style="display:none">
+        <div class="sb-section">
+          <div class="sb-title"><span data-i18n="role_anchor_title">角色锚定（测试）</span><span class="anchor-tip tip-right" tabindex="0" data-i18n-tip="role_anchor_help">?</span></div>
+          <div class="anchor-row">
+            <div class="clone-label" data-i18n="anchor_name">锚点名称</div>
+            <input class="clone-input" id="ANCHOR_NAME" value="Narrator Anchor" data-i18n-ph="ph_anchor_name" oninput="onAnchorNameInput()" onblur="onAnchorNameBlur()">
+          </div>
+          <div class="anchor-row">
+            <div class="clone-label" data-i18n="anchor_source_speaker">来源音色</div>
+            <select class="clone-input" id="ANCHOR_SPEAKER" onchange="onAnchorSourceChanged()"></select>
+          </div>
+          <div class="anchor-row">
+            <div class="clone-label"><span data-i18n="anchor_emotion">锚定情绪</span><span class="anchor-tip tip-right" tabindex="0" data-i18n-tip="anchor_emotion_hint">?</span></div>
+            <select class="clone-input anchor-emotion-select" id="ANCHOR_EMOTION" onchange="applyAnchorEmotionPreset(true)"></select>
+          </div>
+          <div class="anchor-row">
+            <div class="clone-label" data-i18n="anchor_instruction">锚定指令</div>
+            <textarea class="clone-input" id="ANCHOR_INSTRUCTION" data-i18n-ph="ph_anchor_instruction">平静自然，保持同一音色，不夸张表演。</textarea>
+          </div>
+          <div class="anchor-row">
+            <div class="clone-label" data-i18n="anchor_sample_text">样本文字</div>
+            <textarea class="clone-input" id="ANCHOR_SAMPLE_TEXT" data-i18n-ph="ph_anchor_sample_text">你好，这是用于固定角色音色的参考样本。请保持平稳、自然、清晰的表达。</textarea>
+          </div>
+          <button class="btn btn-primary" onclick="submitRoleAnchor()" style="width:100%" data-i18n="create_role_anchor">生成并保存角色锚点</button>
+          <div class="anchor-bulk-row" style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn" onclick="submitAllBuiltInAnchors()" style="width:100%;padding:7px 10px;font-size:12px" data-i18n="create_all_builtin_anchors">锚定所有内置音色与预设情绪</button>
+            <button class="btn btn-danger" onclick="clearAllAnchorVoices()" style="width:100%;padding:7px 10px;font-size:12px" data-i18n="clear_all_anchor_voices">清空全部锚定</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+            <button class="btn" onclick="exportAnchorPack()" style="width:100%;padding:6px 10px;font-size:12px" data-i18n="export_anchor_pack">导出锚定包 (.ttscx)</button>
+            <button class="btn" onclick="chooseAnchorPackFile()" style="width:100%;padding:6px 10px;font-size:12px" data-i18n="import_anchor_pack">导入锚定包 (.ttscx)</button>
+            <input type="file" id="ANCHOR_PACK_INPUT" accept=".ttscx,.json" style="display:none" onchange="if(this.files[0])importAnchorPack(this.files[0]);this.value=''">
+          </div>
+        </div>
+        <div class="sb-section" style="flex:1;overflow-y:auto">
+          <div class="sb-title"><span data-i18n="anchored_voices">已锚定音色</span><span class="anchor-tip tip-right" tabindex="0" data-i18n-tip="anchor_bulk_hint">?</span></div>
+          <div id="ANCHOR_VOICE_LIST" style="display:flex;flex-direction:column;gap:5px"></div>
+        </div>
+      </div>
+
+      <div id="CLONE_MODE_UNSUPPORTED" style="display:none">
+        <div class="sb-section">
+          <div class="sb-title" data-i18n="tab_clone">克隆</div>
+          <div style="font-size:12px;color:var(--su);line-height:1.65" data-i18n="clone_unsupported_hint">请先在「模型」标签页加载 Base 模型或 CustomVoice / VoiceDesign 模型。</div>
+        </div>
       </div>
     </div>
   </div>
@@ -580,9 +639,10 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
       <div class="text-area-header">
         <span class="text-area-label" id="TEXT_AREA_LABEL" data-i18n="text_content">文本内容</span>
         <div class="dialog-tools" id="DIALOG_TOOLS">
-          <button class="btn" id="BTN_DIALOG_MODE" onclick="toggleDialogMode()" style="padding:3px 8px;font-size:11px"><span data-i18n="dialog_mode">三列表格</span></button>
+          <button class="btn" id="BTN_DIALOG_MODE" onclick="toggleDialogMode()" style="padding:3px 8px;font-size:11px"><span data-i18n="dialog_mode">CSV 表格</span></button>
           <button class="btn" id="BTN_DIALOG_CSV" onclick="chooseDialogCsv()" style="padding:3px 8px;font-size:11px" data-i18n="load_csv">加载 CSV</button>
           <button class="btn" id="BTN_DIALOG_ADD" onclick="addDialogRow()" style="padding:3px 8px;font-size:11px" data-i18n="add_row">+ 行</button>
+          <button class="btn" id="BTN_DIALOG_SAVE_CSV" onclick="downloadCurrentDialogCsv()" style="padding:3px 8px;font-size:11px" data-i18n="save_csv">保存 CSV</button>
         </div>
         <span class="text-count" id="CHAR_COUNT">0</span>
         <button class="btn" onclick="clearText()" style="padding:3px 8px;font-size:11px" data-i18n="clear">清空</button>
@@ -612,9 +672,10 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
         <table class="dialog-table" id="DIALOG_TABLE">
           <thead>
             <tr>
-              <th style="width:18%" data-i18n="th_speaker">Speaker</th>
-              <th style="width:30%" data-i18n="th_instruction">Control Instruction</th>
-              <th data-i18n="th_text">Text</th>
+              <th id="DIALOG_TH_1" style="width:16%" data-i18n="th_speaker">Speaker</th>
+              <th id="DIALOG_TH_2" style="width:18%" data-i18n="th_instruction">Control Instruction</th>
+              <th id="DIALOG_TH_3" style="width:16%" data-i18n="th_text">Text</th>
+              <th id="DIALOG_TH_4" data-i18n="th_text">Text</th>
               <th class="dialog-time-cell" data-i18n="th_start">Start</th>
               <th class="dialog-time-cell" data-i18n="th_end">End</th>
               <th style="width:58px;text-align:center" data-i18n="action">操作</th>
@@ -757,6 +818,20 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
   </div>
 </div>
 
+
+<!-- ── Base CSV Voice Mapping Modal ─────────────────────────── -->
+<div class="modal-mask" id="VOICE_MAP_MASK">
+  <div class="voice-map-modal" role="dialog" aria-modal="true" aria-labelledby="VOICE_MAP_TITLE">
+    <div class="voice-map-title" id="VOICE_MAP_TITLE"></div>
+    <div class="voice-map-help" id="VOICE_MAP_HELP"></div>
+    <div class="voice-map-list" id="VOICE_MAP_LIST"></div>
+    <div class="voice-map-actions">
+      <button class="btn" id="VOICE_MAP_CANCEL" onclick="closeVoiceMapModal(false)"></button>
+      <button class="btn btn-primary" id="VOICE_MAP_OK" onclick="closeVoiceMapModal(true)"></button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Toast ──────────────────────────────────────────────── -->
 <div class="toast" id="TOAST"></div>
 
@@ -792,11 +867,162 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Enter")  { e.preventDefault(); closeHtmlConfirm(true); }
 });
 
+let _voiceMapResolver = null;
+function htmlVoiceMapModal(persons, choices, existingMap={}, personChoices={}) {
+  return new Promise(resolve => {
+    const mask = document.getElementById("VOICE_MAP_MASK");
+    const title = document.getElementById("VOICE_MAP_TITLE");
+    const help = document.getElementById("VOICE_MAP_HELP");
+    const list = document.getElementById("VOICE_MAP_LIST");
+    const ok = document.getElementById("VOICE_MAP_OK");
+    const cancel = document.getElementById("VOICE_MAP_CANCEL");
+    if (!mask || !title || !help || !list || !ok || !cancel) { resolve(null); return; }
+    _voiceMapResolver = resolve;
+    title.textContent = _lang === "zh" ? "为 CSV 人物指定基础音色" : "Assign base voices to CSV characters";
+    help.textContent = _lang === "zh"
+      ? "这里只选择音色人名，不选择情绪。合成时会自动用“音色人名 + 第三列情绪”匹配对应锚点，例如 Vivian + 悲伤 → Vivian-悲伤。系统会尽量按人物性别缩小候选范围。"
+      : "Select the voice name only, not the emotion. During synthesis, the app combines the voice name with the CSV emotion column, e.g. Vivian + Sad → Vivian-Sad. The list is filtered by inferred character gender where possible.";
+    ok.textContent = _lang === "zh" ? "应用到 CSV" : "Apply to CSV";
+    cancel.textContent = _lang === "zh" ? "取消" : "Cancel";
+    const allChoices = choices || [];
+    list.innerHTML = (persons || []).map(p => {
+      const rowChoices = (personChoices && personChoices[p] && personChoices[p].length) ? personChoices[p] : allChoices;
+      const opts = rowChoices.map(v => `<option value="${esc(v)}">${esc(baseVoiceChoiceLabel(v))}</option>`).join("");
+      const current = existingMap[p] || rowChoices[0] || allChoices[0] || "";
+      const gender = inferCharacterGender(p, []);
+      const hint = gender === "female" ? (_lang==="zh"?"已按女性人物筛选":"female candidates")
+                 : gender === "male" ? (_lang==="zh"?"已按男性人物筛选":"male candidates")
+                 : "";
+      return `<div class="voice-map-row" data-person="${esc(p)}">
+        <div class="voice-map-person" title="${esc(p)}">${esc(p)}${hint ? `<div style="font-size:11px;color:var(--hi);font-weight:600;margin-top:3px;">${esc(hint)}</div>` : ""}</div>
+        <select class="voice-map-select" data-person="${esc(p)}">${opts}</select>
+      </div>`;
+    }).join("");
+    list.querySelectorAll("select.voice-map-select").forEach(sel => {
+      const p = sel.dataset.person || "";
+      const rowChoices = (personChoices && personChoices[p] && personChoices[p].length) ? personChoices[p] : allChoices;
+      const current = existingMap[p] || rowChoices[0] || allChoices[0] || "";
+      if (Array.from(sel.options).some(o => o.value === current)) sel.value = current;
+    });
+    mask.classList.add("visible");
+    setTimeout(() => { const first = list.querySelector("select"); if (first) first.focus(); }, 0);
+  });
+}
+function closeVoiceMapModal(result) {
+  const mask = document.getElementById("VOICE_MAP_MASK");
+  const list = document.getElementById("VOICE_MAP_LIST");
+  if (mask) mask.classList.remove("visible");
+  const resolver = _voiceMapResolver;
+  _voiceMapResolver = null;
+  if (!resolver) return;
+  if (!result) { resolver(null); return; }
+  const mapping = {};
+  if (list) list.querySelectorAll("select.voice-map-select").forEach(sel => {
+    mapping[sel.dataset.person || ""] = sel.value || "";
+  });
+  resolver(mapping);
+}
+document.addEventListener("keydown", (e) => {
+  const mask = document.getElementById("VOICE_MAP_MASK");
+  if (!mask || !mask.classList.contains("visible")) return;
+  if (e.key === "Escape") { e.preventDefault(); closeVoiceMapModal(false); }
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); closeVoiceMapModal(true); }
+});
+
 const ICON_MOON = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" fill="white"/></svg>`;
 const ICON_SUN  = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5" fill="white"/><line x1="12" y1="1" x2="12" y2="3" stroke-width="2.8"/><line x1="12" y1="21" x2="12" y2="23" stroke-width="2.8"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke-width="2.8"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke-width="2.8"/><line x1="1" y1="12" x2="3" y2="12" stroke-width="2.8"/><line x1="21" y1="12" x2="23" y2="12" stroke-width="2.8"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke-width="2.8"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke-width="2.8"/></svg>`;
 
 // ── State ──────────────────────────────────────────────────
 // ── Playback icons ───────────────────────────────────────
+const ANCHOR_EMOTION_PRESETS = [
+  {id:"neutral", zh:"平静 / 旁白", en:"Neutral / narration", sample:"窗外的光线逐渐变亮，房间里安静而清晰。", instruction:"平静自然，语速适中，发音清晰，保持同一角色音色，不夸张表演；只朗读样本文字，不添加任何额外台词。"},
+  {id:"happy", zh:"高兴 / 明亮", en:"Happy / bright", sample:"太好了，事情终于有了转机。谢谢你一直陪在我身边。", instruction:"语气轻快、明亮，带有真实的高兴和笑意，但不要过度夸张，保持同一角色音色。"},
+  {id:"sad", zh:"悲伤 / 低落", en:"Sad / subdued", sample:"夜色慢慢沉下来，风从很远的地方吹过。", instruction:"语气低沉、缓慢，带有克制的悲伤和失落感，不要哭喊，不要改变说话人身份；只朗读样本文字，不添加任何额外台词。"},
+  {id:"excited", zh:"亢奋 / 激动", en:"Excited / energetic", sample:"就是现在，我们终于等到了这个机会，所有人都必须立刻行动。", instruction:"语气更有能量，节奏略快，带有兴奋和激动，但仍保持清晰发音和同一角色音色。"},
+  {id:"angry", zh:"愤怒 / 克制", en:"Angry / controlled", sample:"我已经给过你机会了，但你一次又一次地越过底线。", instruction:"语气严厉、压抑，带有克制的愤怒，不要尖叫，不要破音，保持同一角色音色。"},
+  {id:"tense", zh:"紧张 / 压迫", en:"Tense / pressured", sample:"别出声，他们就在门外。我们必须马上想办法离开这里。", instruction:"语气紧张、压低，节奏略快，带有压力和警觉感，但保持稳定音色和清楚吐字。"},
+  {id:"fear", zh:"恐惧 / 不安", en:"Fearful / uneasy", sample:"我不知道那是什么声音，但它越来越近了。", instruction:"语气不安、略微颤抖，带有恐惧感，但不要尖叫或过度变声，保持同一角色音色。"},
+  {id:"surprised", zh:"惊讶 / 意外", en:"Surprised", sample:"什么？你是说这一切从一开始就是计划好的？", instruction:"语气带有明显惊讶和疑问，起伏略大，但控制在自然范围内，保持同一角色音色。"},
+  {id:"serious", zh:"严肃 / 冷静", en:"Serious / firm", sample:"这不是一次普通的决定，它会影响我们今后所有的选择。", instruction:"语气严肃、稳重、冷静，停顿明确，避免情绪化表演，保持同一角色音色。"},
+  {id:"gentle", zh:"温柔 / 安抚", en:"Gentle / comforting", sample:"别害怕，我在这里。慢慢来，把你想说的话告诉我。", instruction:"语气柔和、温暖、安抚，语速稍慢，情绪稳定，不要甜腻或夸张，保持同一角色音色。"},
+  {id:"worried", zh:"担忧 / 犹豫", en:"Worried / hesitant", sample:"我还是有些担心。如果判断错了，我们可能没有第二次机会。", instruction:"语气带有担忧和犹豫，停顿略多，音量保持自然，不要过度颤抖，保持同一角色音色。"},
+  {id:"tired", zh:"疲惫 / 虚弱", en:"Tired / weak", sample:"我真的有些累了，但在结束之前，我还不能停下来。", instruction:"语气疲惫、略低、力量不足，语速稍慢，但吐字仍清楚，保持同一角色音色。"}
+];
+
+function populateAnchorEmotionPresets(){
+  const sel = document.getElementById("ANCHOR_EMOTION");
+  if (!sel) return;
+  const current = sel.value || "neutral";
+  sel.innerHTML = ANCHOR_EMOTION_PRESETS.map(p => `<option value="${p.id}">${esc(_lang==="zh" ? p.zh : p.en)}</option>`).join("");
+  sel.value = ANCHOR_EMOTION_PRESETS.some(p => p.id === current) ? current : "neutral";
+}
+
+function anchorPresetById(id){
+  return ANCHOR_EMOTION_PRESETS.find(p => p.id === id) || ANCHOR_EMOTION_PRESETS[0];
+}
+
+let _anchorNameUserEdited = false;
+let _anchorLastAutoName = "";
+
+function anchorEmotionLabel(preset){
+  const raw = _lang === "zh" ? preset.zh : preset.en;
+  return String(raw || "neutral").split(" / ")[0].trim() || "neutral";
+}
+
+function anchorSourceLabel(){
+  const speakerEl = document.getElementById("ANCHOR_SPEAKER");
+  if (!speakerEl) return (_selectedVoice || "Role").replace(/^__clone__/, "");
+  const opt = speakerEl.options && speakerEl.selectedIndex >= 0 ? speakerEl.options[speakerEl.selectedIndex] : null;
+  const label = (opt && opt.textContent ? opt.textContent : speakerEl.value || _selectedVoice || "Role").trim();
+  return label.replace(/^__clone__/, "").replace(/\s+/g, "_") || "Role";
+}
+
+function makeAnchorAutoName(){
+  const sel = document.getElementById("ANCHOR_EMOTION");
+  const preset = anchorPresetById(sel ? sel.value : "neutral");
+  return `${anchorSourceLabel()}-${anchorEmotionLabel(preset)}`;
+}
+
+function updateAnchorAutoName(force=false){
+  const nameEl = document.getElementById("ANCHOR_NAME");
+  if (!nameEl) return;
+  if (_anchorNameUserEdited && !force) return;
+  const auto = makeAnchorAutoName();
+  nameEl.value = auto;
+  _anchorLastAutoName = auto;
+  _anchorNameUserEdited = false;
+}
+
+function onAnchorNameInput(){
+  const nameEl = document.getElementById("ANCHOR_NAME");
+  const val = String(nameEl?.value || "").trim();
+  // If the user clears the field, return to automatic naming on the next source/emotion change or blur.
+  if (!val) {
+    _anchorNameUserEdited = false;
+    return;
+  }
+  _anchorNameUserEdited = val !== String(_anchorLastAutoName || "").trim();
+}
+
+function onAnchorNameBlur(){
+  const nameEl = document.getElementById("ANCHOR_NAME");
+  if (nameEl && !String(nameEl.value || "").trim()) updateAnchorAutoName(true);
+}
+
+function onAnchorSourceChanged(){
+  updateAnchorAutoName(false);
+}
+
+function applyAnchorEmotionPreset(userTriggered=false){
+  const sel = document.getElementById("ANCHOR_EMOTION");
+  const preset = anchorPresetById(sel ? sel.value : "neutral");
+  const instructionEl = document.getElementById("ANCHOR_INSTRUCTION");
+  const sampleEl = document.getElementById("ANCHOR_SAMPLE_TEXT");
+  if (instructionEl) instructionEl.value = preset.instruction;
+  if (sampleEl) sampleEl.value = preset.sample;
+  updateAnchorAutoName(false);
+}
+
 const ICON_DNA = `<span class="clone-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 -8 72 72" fill="none" aria-hidden="true"><path d="M47.71,24.61a15.61,15.61,0,0,0,2.44.19,11.08,11.08,0,0,0,8-3.11l1.19-1.19a2,2,0,1,0-2.88-2.88l-.29.29L46.09,7.82l.29-.28A2,2,0,0,0,43.5,4.66L42.31,5.85a11,11,0,0,0-3.11,8,16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14L32,22.16a6.54,6.54,0,0,1,2.1-.88l7.8,7.8a7.12,7.12,0,0,0,.09-1.17,10.69,10.69,0,0,0-.36-2.71l-4.07-4.07a12.88,12.88,0,0,1,2.61.63,18.21,18.21,0,0,1-1.6-4.6A15.61,15.61,0,0,0,36.08,17,10.65,10.65,0,0,0,25,28.08a16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14l-9.89-9.89a6.59,6.59,0,0,1,2.11-.88l7.79,7.79a6.93,6.93,0,0,0,.09-1.16,10.69,10.69,0,0,0-.36-2.71l-4.06-4.06a12.92,12.92,0,0,1,2.6.62,18.24,18.24,0,0,1-1.61-4.6,15.4,15.4,0,0,0-2.43-.19,11,11,0,0,0-8,3.11L12.66,35.5a2,2,0,0,0,2.88,2.88l.29-.29L25.91,48.17l-.29.29a2,2,0,1,0,2.88,2.88l1.19-1.19a11,11,0,0,0,3.11-8,16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6A7.73,7.73,0,0,1,30.16,24l9.89,9.89a6.54,6.54,0,0,1-2.1.88l-7.8-7.8a7.12,7.12,0,0,0-.09,1.17,10.56,10.56,0,0,0,.36,2.7l4.07,4.08a13.58,13.58,0,0,1-2.61-.63,18.21,18.21,0,0,1,1.6,4.6,15.61,15.61,0,0,0,2.44.19A10.65,10.65,0,0,0,47,27.92a16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6,7.73,7.73,0,0,1,1.12-4.14l9.89,9.89a6.82,6.82,0,0,1-2.11.88l-7.8-7.8a8.31,8.31,0,0,0-.08,1.17,10.69,10.69,0,0,0,.36,2.71l4.06,4.06a12.16,12.16,0,0,1-2.6-.63A18.28,18.28,0,0,1,47.71,24.61Z" fill="currentColor"/></svg></span>`;
 const ICON_BOX = `<span class="tab-icon" aria-hidden="true"><svg width="14" height="14" viewBox="64 64 384 384" fill="none" aria-hidden="true"><g fill="currentColor"><path d="M320,64 L320,320 L64,320 L64,64 L320,64 Z M171.749388,128 L146.817842,128 L99.4840387,256 L121.976629,256 L130.913039,230.977 L187.575039,230.977 L196.319607,256 L220.167172,256 L171.749388,128 Z M260.093778,128 L237.691519,128 L237.691519,256 L260.093778,256 L260.093778,128 Z M159.094727,149.47526 L181.409039,213.333 L137.135039,213.333 L159.094727,149.47526 Z M341.333333,256 L384,256 L384,298.666667 L341.333333,298.666667 L341.333333,256 Z M85.3333333,341.333333 L128,341.333333 L128,384 L85.3333333,384 L85.3333333,341.333333 Z M170.666667,341.333333 L213.333333,341.333333 L213.333333,384 L170.666667,384 L170.666667,341.333333 Z M85.3333333,0 L128,0 L128,42.6666667 L85.3333333,42.6666667 L85.3333333,0 Z M256,341.333333 L298.666667,341.333333 L298.666667,384 L256,384 L256,341.333333 Z M170.666667,0 L213.333333,0 L213.333333,42.6666667 L170.666667,42.6666667 L170.666667,0 Z M256,0 L298.666667,0 L298.666667,42.6666667 L256,42.6666667 L256,0 Z M341.333333,170.666667 L384,170.666667 L384,213.333333 L341.333333,213.333333 L341.333333,170.666667 Z M0,256 L42.6666667,256 L42.6666667,298.666667 L0,298.666667 L0,256 Z M341.333333,85.3333333 L384,85.3333333 L384,128 L341.333333,128 L341.333333,85.3333333 Z M0,170.666667 L42.6666667,170.666667 L42.6666667,213.333333 L0,213.333333 L0,170.666667 Z M0,85.3333333 L42.6666667,85.3333333 L42.6666667,128 L0,128 L0,85.3333333 Z" fill="currentColor"/></g></svg></span>`;
 const ICON_DNA_TAB = `<span class="tab-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 -8 72 72" fill="none" aria-hidden="true"><path d="M47.71,24.61a15.61,15.61,0,0,0,2.44.19,11.08,11.08,0,0,0,8-3.11l1.19-1.19a2,2,0,1,0-2.88-2.88l-.29.29L46.09,7.82l.29-.28A2,2,0,0,0,43.5,4.66L42.31,5.85a11,11,0,0,0-3.11,8,16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14L32,22.16a6.54,6.54,0,0,1,2.1-.88l7.8,7.8a7.12,7.12,0,0,0,.09-1.17,10.69,10.69,0,0,0-.36-2.71l-4.07-4.07a12.88,12.88,0,0,1,2.61.63,18.21,18.21,0,0,1-1.6-4.6A15.61,15.61,0,0,0,36.08,17,10.65,10.65,0,0,0,25,28.08a16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14l-9.89-9.89a6.59,6.59,0,0,1,2.11-.88l7.79,7.79a6.93,6.93,0,0,0,.09-1.16,10.69,10.69,0,0,0-.36-2.71l-4.06-4.06a12.92,12.92,0,0,1,2.6.62,18.24,18.24,0,0,1-1.61-4.6,15.4,15.4,0,0,0-2.43-.19,11,11,0,0,0-8,3.11L12.66,35.5a2,2,0,0,0,2.88,2.88l.29-.29L25.91,48.17l-.29.29a2,2,0,1,0,2.88,2.88l1.19-1.19a11,11,0,0,0,3.11-8,16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6A7.73,7.73,0,0,1,30.16,24l9.89,9.89a6.54,6.54,0,0,1-2.1.88l-7.8-7.8a7.12,7.12,0,0,0-.09,1.17,10.56,10.56,0,0,0,.36,2.7l4.07,4.08a13.58,13.58,0,0,1-2.61-.63,18.21,18.21,0,0,1,1.6,4.6,15.61,15.61,0,0,0,2.44.19A10.65,10.65,0,0,0,47,27.92a16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6,7.73,7.73,0,0,1,1.12-4.14l9.89,9.89a6.82,6.82,0,0,1-2.11.88l-7.8-7.8a8.31,8.31,0,0,0-.08,1.17,10.69,10.69,0,0,0,.36,2.71l4.06,4.06a12.16,12.16,0,0,1-2.6-.63A18.28,18.28,0,0,1,47.71,24.61Z" fill="currentColor"/></svg></span>`;
@@ -831,11 +1057,21 @@ const ADV_AUDIO_PARAMS = [
 ];
 
 const BUILTIN_PRESETS = [
-  {nameKey:"preset_audiobook_en", params:{temperature:0.65,top_p:0.85,top_k:30,chunk_size:120,silence_gap_ms:450,fade_ms:10}},
-  {nameKey:"preset_audiobook_zh", params:{temperature:0.75,top_p:0.85,top_k:40,chunk_size:160,silence_gap_ms:400}},
-  {nameKey:"preset_podcast",      params:{temperature:0.9, top_p:0.9, top_k:50,silence_gap_ms:300}},
-  {nameKey:"preset_dubbing",      params:{temperature:0.8, top_p:0.88,top_k:40,silence_gap_ms:200}},
-  {nameKey:"preset_reading",      params:{temperature:0.7, top_p:0.85,top_k:30,chunk_size:140,silence_gap_ms:500}},
+  // ── 有声书 / 电子书（Base 模型 CSV 多角色，推荐默认）──────────────────────
+  // temperature 0.20：足够低以保持每句音色一致，同时保留自然抑扬；
+  // top_k 20 / top_p 0.85：收紧采样分布，减少低频噪声帧出现概率；
+  // silence_gap_ms 400：句间停顿略长，适合有声书节奏；
+  // chunk_size 80：Base 模型对中文短句更稳定，超过此长度自动分段。
+  {nameKey:"preset_ebook_dialog",  params:{temperature:0.20,top_p:0.85,top_k:20,chunk_size:80, silence_gap_ms:400,fade_ms:10}, isDefault:true},
+  {nameKey:"preset_audiobook_en",  params:{temperature:0.65,top_p:0.85,top_k:30,chunk_size:120,silence_gap_ms:450,fade_ms:10}},
+  {nameKey:"preset_audiobook_zh",  params:{temperature:0.75,top_p:0.85,top_k:40,chunk_size:160,silence_gap_ms:400}},
+  {nameKey:"preset_podcast",       params:{temperature:0.9, top_p:0.9, top_k:50,silence_gap_ms:300}},
+  {nameKey:"preset_dubbing",       params:{temperature:0.8, top_p:0.88,top_k:40,silence_gap_ms:200}},
+  {nameKey:"preset_reading",       params:{temperature:0.7, top_p:0.85,top_k:30,chunk_size:140,silence_gap_ms:500}},
+  // ── 声音稳定性预设 ────────────────────────────────────────────────────────
+  {nameKey:"preset_stable_max",    params:{temperature:0.15,top_p:0.80,top_k:15,silence_gap_ms:300}},
+  {nameKey:"preset_stable_bal",    params:{temperature:0.20,top_p:0.85,top_k:20,silence_gap_ms:300}},
+  {nameKey:"preset_stable_exp",    params:{temperature:0.40,top_p:0.88,top_k:35,silence_gap_ms:300}},
 ];
 
 // ── Init ──────────────────────────────────────────────────
@@ -848,15 +1084,14 @@ const _DICT = {
     tts_model:"TTS 模型", select_model:"选择模型", load_model:"加载模型",
     output_settings:"输出设置", format:"格式", output_dir:"输出目录", save_settings:"保存设置",
     voice_clone:"声音克隆", clone_name:"克隆名称", ref_audio:"参考音频",
-    ref_text:"参考音频文字（可选，填写可提升克隆质量）",
-    base_voice:"基础音色（风格参考）", start_clone:"开始克隆",
-    import:"导入", cloned_voices:"已克隆音色",
+start_clone:"开始克隆",
+    import:"导入", cloned_voices:"已克隆音色", anchored_voices:"已锚定音色",
     start_synth:"开始合成", synth_progress:"合成进度",
     subtitles:"字幕", download_audio:"⬇ 下载音频",
     expand_log:"展开日志", collapse_log:"收起日志",
     follow:"跟随", action:"操作",
-    text_content:"文本内容", dialog_mode:"三列表格", normal_text:"普通文本",
-    load_csv:"加载 CSV", clear:"清空",
+    text_content:"文本内容", dialog_mode:"CSV 表格", normal_text:"普通文本",
+    load_csv:"加载 CSV", save_csv:"保存 CSV", clear:"清空",
     adv_title:"高级 TTS 参数", close:"关闭",
     presets:"参数预设", apply_preset:"套用预设", save_preset:"保存为预设", del_preset:"删除预设",
     sampling_params:"采样参数", text_proc:"文本处理", audio_post:"音频后处理",
@@ -867,14 +1102,13 @@ const _DICT = {
     status_connecting:"正在连接…", status_ready:"就绪", status_loading:"正在加载…",
     status_no_model:"模型未加载 — 请在「模型」标签页点击「加载模型」",
     synth_cancel:"■ 取消合成", voice_desc_clone:"声音克隆",
-    cloned_none:"暂无克隆音色",
+    cloned_none:"暂无克隆音色", anchored_none:"暂无锚定音色",
     upload_click:"点击上传", upload_or:"或拖放文本文件",
     upload_fmts:"TXT · MD · DOCX · SRT · PDF · EPUB",
     adv_intro:"以下参数影响 TTS 模型推理行为。建议普通用户仅调整左侧栏中的语速和音色；高级参数适合需要精细控制输出风格的用户。修改后点击\"保存并关闭\"生效。",
     adv_preset_help:"预设会覆盖当前高级参数。自定义预设保存在本机设置文件中。",
     ph_custom_repo:"输入自定义 HuggingFace repo",
     ph_clone_name:"我的声音",
-    ph_ref_text:"参考音频中说的内容，例如：你好，这是我的声音。",
     ph_text_editor:"在此输入或粘贴文本，或上传文件…",
     ph_instruction:"例如：用平静但略带担忧的语气说",
     ph_dialog_text:"需要转换的文字内容",
@@ -884,11 +1118,14 @@ const _DICT = {
     clone_warn2:"请在「模型」标签页切换到 Base 模型后再使用克隆功能。",
     model_desc_cv:"内置 9 种音色（serena / vivian / ryan / aiden 等），支持情感指令控制",
     add_row:"+ 行", unit_char:"字", unit_rows:"行",
-    preset_audiobook_en:"Audiobook（稳定长文本）",
+    preset_ebook_dialog:"电子书多角色（推荐默认）", preset_audiobook_en:"Audiobook（稳定长文本）",
     preset_audiobook_zh:"有声书（沉稳）",
     preset_podcast:"播客（自然）",
     preset_dubbing:"配音（快）",
     preset_reading:"朗读（慢清晰）",
+    preset_stable_max:"极致稳定（音色最一致）",
+    preset_stable_bal:"稳定自然（推荐 · 与方案一一致）",
+    preset_stable_exp:"稳定表现（保留情感变化）",
     custom_preset_suffix:" [自定义]",
     preset_applied:"已套用预设",
     dl_title:"未检测到 Qwen3-TTS 模型",
@@ -944,11 +1181,13 @@ const _DICT = {
     toast_settings_saved:"设置已保存",
     toast_adv_applied:"高级参数已应用",
     toast_reset_defaults:"已恢复默认值",
-    voice_clone_need_base:"声音克隆 · 需切换至 Base 模型",
-    bv_chelsie:"Chelsie（自然女声）",
-    bv_ethan:"Ethan（沉稳男声）",
-    bv_brenda:"Brenda（温暖女声）",
-    bv_alex:"Alex（叙事男声）",
+    voice_clone_need_base:"声音克隆 · 需切换至 Base 模型", voice_desc_anchor:"角色锚点", clone_unsupported_hint:"请先在「模型」标签页加载 Base 模型或 CustomVoice / VoiceDesign 模型。",
+    role_anchor_title:"角色锚定（测试）", role_anchor_help:"先用当前 CustomVoice/VoiceDesign 生成一段满意样本，并保存为可复用锚点；随后切换到 Base 模型，在音色或 CSV speaker 中选择该锚点，可减少长文本身份漂移。",
+    anchor_name:"锚点名称", anchor_source_speaker:"来源音色", anchor_emotion:"锚定情绪", anchor_emotion_hint:"建议同一角色分别保存“平静/高兴/悲伤/亢奋”等多个锚点；锚点名称会按来源音色和情绪自动更新，手动编辑后不再覆盖。后续 CSV speaker 列可直接选择对应锚点。", anchor_instruction:"锚定指令", anchor_sample_text:"样本文字", create_role_anchor:"生成并保存角色锚点",
+    ph_anchor_name:"角色-情绪锚点", ph_anchor_instruction:"平静自然，语速适中，发音清晰，保持同一角色音色，不夸张表演。", ph_anchor_sample_text:"你好，这是用于固定角色平静音色的参考样本。请保持平稳、自然、清晰的表达。",
+    toast_anchor_creating:"正在生成角色锚点…", toast_anchor_done:"角色锚点已保存：", toast_anchor_err:"角色锚点失败：",
+    create_all_builtin_anchors:"锚定所有内置音色与预设情绪", clear_all_anchor_voices:"清空全部锚定", export_anchor_pack:"导出锚定包 (.ttscx)", import_anchor_pack:"导入锚定包 (.ttscx)", toast_pack_exporting:"正在导出锚定包…", toast_pack_exported:"锚定包已导出", toast_pack_importing:"正在导入锚定包…", toast_pack_imported:"锚定包导入完成", toast_pack_err:"锚定包操作失败:", anchor_bulk_hint:"批量锚定会自动内部保存，并会在 CustomVoice 模式下立即显示为下方音色卡片；退出程序后下次会默认调入，无需重复锚定。已有同名锚点会跳过。", anchor_group_hint:"点击展开情绪锚点", anchor_bulk_confirm:"将为所有内置音色生成全部预设情绪锚点，并自动保存到本机。已有同名锚点会跳过。是否继续？", anchor_bulk_progress:"正在批量锚定", anchor_bulk_done:"批量锚定完成", anchor_bulk_skipped:"已跳过", anchor_clear_confirm:"确定清空全部角色锚点吗？普通克隆音色不会删除。", anchor_clear_done:"已清空角色锚点", anchor_clear_none:"没有需要清空的角色锚点",
+
   },
   en: {
     save:"Save", load:"Load", adv_settings:"Advanced",
@@ -957,15 +1196,14 @@ const _DICT = {
     tts_model:"TTS Model", select_model:"Select Model", load_model:"Load Model",
     output_settings:"Output", format:"Format", output_dir:"Output Dir", save_settings:"Save Settings",
     voice_clone:"Voice Clone", clone_name:"Clone Name", ref_audio:"Reference Audio",
-    ref_text:"Reference Text (optional, improves clone quality)",
-    base_voice:"Base Voice (style reference)", start_clone:"Start Clone",
-    import:"Import", cloned_voices:"Cloned Voices",
+    start_clone:"Start Clone",
+    import:"Import", cloned_voices:"Cloned Voices", anchored_voices:"Anchored Voices",
     start_synth:"Synthesize", synth_progress:"Progress",
     subtitles:"Subtitles", download_audio:"⬇ Download",
     expand_log:"Show Log", collapse_log:"Hide Log",
     follow:"Follow", action:"Actions",
     text_content:"Text", dialog_mode:"Dialog Table", normal_text:"Plain Text",
-    load_csv:"Load CSV", clear:"Clear",
+    load_csv:"Load CSV", save_csv:"Save CSV", clear:"Clear",
     adv_title:"Advanced TTS Parameters", close:"Close",
     presets:"Presets", apply_preset:"Apply", save_preset:"Save Preset", del_preset:"Delete",
     sampling_params:"Sampling", text_proc:"Text Processing", audio_post:"Audio Post",
@@ -976,14 +1214,13 @@ const _DICT = {
     status_connecting:"Connecting…", status_ready:"Ready", status_loading:"Loading…",
     status_no_model:"No model — go to Model tab and click Load Model",
     synth_cancel:"■ Stop", voice_desc_clone:"Cloned Voice",
-    cloned_none:"No cloned voices",
+    cloned_none:"No cloned voices", anchored_none:"No anchored voices",
     upload_click:"Click to upload", upload_or:"or drag & drop a text file",
     upload_fmts:"TXT · MD · DOCX · SRT · PDF · EPUB",
     adv_intro:"The following parameters affect TTS inference. Regular users should only adjust speed and voice in the sidebar; these advanced options are for fine-grained control. Click \"Save & Close\" to apply.",
     adv_preset_help:"Presets override all current advanced parameters. Custom presets are saved in local settings.",
     ph_custom_repo:"Enter custom HuggingFace repo",
     ph_clone_name:"My Voice",
-    ph_ref_text:"What is said in the reference audio, e.g.: Hello, this is my voice.",
     ph_text_editor:"Type or paste text here, or upload a file…",
     ph_instruction:"e.g.: Speak in a calm but slightly worried tone",
     ph_dialog_text:"Text to synthesize",
@@ -993,11 +1230,14 @@ const _DICT = {
     clone_warn2:"Switch to a Base model in the Model tab before using clone.",
     model_desc_cv:"9 built-in voices (serena / vivian / ryan / aiden …), supports emotion instructions",
     add_row:"+ Row", unit_char:"chars", unit_rows:"rows",
-    preset_audiobook_en:"Audiobook (stable long text)",
+    preset_ebook_dialog:"E-book / Multi-voice (recommended default)", preset_audiobook_en:"Audiobook (stable long text)",
     preset_audiobook_zh:"Audiobook (mellow)",
     preset_podcast:"Podcast (natural)",
     preset_dubbing:"Dubbing (fast)",
     preset_reading:"Reading (slow & clear)",
+    preset_stable_max:"Max Stability (most consistent voice)",
+    preset_stable_bal:"Stable & Natural (recommended · matches fix)",
+    preset_stable_exp:"Stable Expressive (retains emotion)",
     custom_preset_suffix:" [custom]",
     preset_applied:"Preset applied",
     dl_title:"No Qwen3-TTS models found",
@@ -1053,11 +1293,12 @@ const _DICT = {
     toast_settings_saved:"Settings saved",
     toast_adv_applied:"Advanced settings applied",
     toast_reset_defaults:"Defaults restored",
-    voice_clone_need_base:"Cloned Voice · requires Base model",
-    bv_chelsie:"Chelsie (natural female)",
-    bv_ethan:"Ethan (calm male)",
-    bv_brenda:"Brenda (warm female)",
-    bv_alex:"Alex (narrative male)",
+    voice_clone_need_base:"Cloned Voice · requires Base model", voice_desc_anchor:"Role Anchor", clone_unsupported_hint:"Load a Base model or a CustomVoice / VoiceDesign model in the Model tab first.",
+    role_anchor_title:"Role Anchor (test)", role_anchor_help:"Generate one stable sample from the current CustomVoice/VoiceDesign model and save it as a reusable anchor. Then switch to a Base model and select this anchor in Voice or CSV speaker to reduce long-text identity drift.",
+    anchor_name:"Anchor Name", anchor_source_speaker:"Source Speaker", anchor_instruction:"Anchor Instruction", anchor_sample_text:"Sample Text", create_role_anchor:"Generate & Save Role Anchor",
+    ph_anchor_name:"Narrator Anchor", ph_anchor_instruction:"Calm and natural; keep the same speaker identity; do not over-act.", ph_anchor_sample_text:"Hello, this is a reference sample for anchoring the character voice. Please speak steadily, naturally, and clearly.",
+    toast_anchor_creating:"Creating role anchor…", toast_anchor_done:"Role anchor saved: ", toast_anchor_err:"Role anchor failed: ",
+    create_all_builtin_anchors:"Anchor all voices & emotions", clear_all_anchor_voices:"Clear all anchors", export_anchor_pack:"Export Anchor Pack (.ttscx)", import_anchor_pack:"Import Anchor Pack (.ttscx)", toast_pack_exporting:"Exporting anchor pack…", toast_pack_exported:"Anchor pack exported", toast_pack_importing:"Importing anchor pack…", toast_pack_imported:"Anchor pack imported", toast_pack_err:"Anchor pack error:", anchor_bulk_hint:"Batch anchors are saved internally and shown immediately as anchor cards under CustomVoice; they will be loaded automatically next time. Existing anchors with the same name will be skipped.", anchor_group_hint:"Click to expand emotion anchors", anchor_bulk_confirm:"Generate all preset emotion anchors for every built-in voice and save them locally? Existing anchors with the same name will be skipped.", anchor_bulk_progress:"Batch anchoring", anchor_bulk_done:"Batch anchoring completed", anchor_bulk_skipped:"skipped", anchor_clear_confirm:"Clear all role anchors? Normal cloned voices will be kept.", anchor_clear_done:"Role anchors cleared", anchor_clear_none:"No role anchors to clear",
   }
 };
 
@@ -1065,6 +1306,69 @@ let _lang = localStorage.getItem("lang") || "zh";
 
 function t(key) {
   return (_DICT[_lang] || _DICT.zh)[key] || (_DICT.zh)[key] || key;
+}
+
+let __appTooltipEl = null;
+let __appTooltipTarget = null;
+function ensureAppTooltip(){
+  if (!__appTooltipEl) {
+    const tip = document.createElement("div");
+    tip.className = "app-tooltip";
+    tip.setAttribute("role", "tooltip");
+    document.body.appendChild(tip);
+    __appTooltipEl = tip;
+    window.addEventListener("resize", () => positionAppTooltip());
+    window.addEventListener("scroll", () => positionAppTooltip(), true);
+  }
+  document.querySelectorAll(".anchor-tip").forEach(el => {
+    if (el.dataset.tipBound === "1") return;
+    el.dataset.tipBound = "1";
+    const show = () => showAppTooltip(el);
+    const hide = () => hideAppTooltip(el);
+    el.addEventListener("mouseenter", show);
+    el.addEventListener("mouseleave", hide);
+    el.addEventListener("focus", show);
+    el.addEventListener("blur", hide);
+    el.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
+  });
+  return __appTooltipEl;
+}
+function showAppTooltip(el){
+  const tip = ensureAppTooltip();
+  const msg = (el?.dataset?.tip || el?.getAttribute?.("aria-label") || "").trim();
+  if (!msg) return;
+  __appTooltipTarget = el;
+  tip.textContent = msg;
+  tip.classList.add("show");
+  positionAppTooltip(el);
+}
+function hideAppTooltip(el){
+  if (el && __appTooltipTarget && el !== __appTooltipTarget) return;
+  if (!__appTooltipEl) return;
+  __appTooltipEl.classList.remove("show");
+  __appTooltipEl.style.left = "-9999px";
+  __appTooltipEl.style.top = "-9999px";
+  __appTooltipTarget = null;
+}
+function positionAppTooltip(el = __appTooltipTarget){
+  const tip = __appTooltipEl;
+  if (!tip || !el || !tip.classList.contains("show")) return;
+  const margin = 8;
+  const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+  const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+  tip.style.maxWidth = Math.max(180, Math.min(320, vw - margin * 2)) + "px";
+  tip.style.left = "-9999px";
+  tip.style.top = "-9999px";
+  const rect = el.getBoundingClientRect();
+  const tRect = tip.getBoundingClientRect();
+  let left = el.classList.contains("tip-right") ? (rect.right - tRect.width) : rect.left;
+  if (left < margin) left = margin;
+  if (left + tRect.width > vw - margin) left = vw - tRect.width - margin;
+  let top = rect.bottom + margin;
+  if (top + tRect.height > vh - margin) top = rect.top - tRect.height - margin;
+  if (top < margin) top = margin;
+  tip.style.left = Math.round(left) + "px";
+  tip.style.top = Math.round(top) + "px";
 }
 
 function applyLang(lang) {
@@ -1096,6 +1400,13 @@ function applyLang(lang) {
     const val = t(key);
     if (val !== undefined) el.title = val;
   });
+  document.querySelectorAll("[data-i18n-tip]").forEach(el => {
+    const key = el.dataset.i18nTip;
+    const val = t(key);
+    if (val !== undefined) el.dataset.tip = val;
+    el.setAttribute("aria-label", val || key);
+  });
+  ensureAppTooltip();
   // Dynamic strings that are set by JS (not static HTML)
   const logBtn = document.getElementById("BTN_LOG_TOGGLE");
   if (logBtn) logBtn.textContent = _logVisible ? t("collapse_log") : t("expand_log");
@@ -1103,7 +1414,7 @@ function applyLang(lang) {
   if (dialogBtn) dialogBtn.textContent = _inputMode === "dialog" ? t("normal_text") : t("dialog_mode");
   const areaLabel = document.getElementById("TEXT_AREA_LABEL");
   if (areaLabel) areaLabel.textContent = _inputMode === "dialog"
-    ? (lang === "en" ? "Dialog CSV / Table" : "多人对话 CSV / 三列表格")
+    ? (lang === "en" ? "Dialog CSV / Table" : "多人对话 CSV / CSV 表格")
     : t("text_content");
   // Theme button title
   const themBtn = document.getElementById("THEME_BTN");
@@ -1139,17 +1450,6 @@ function applyLang(lang) {
   _syncModelDropFromSelect();
   // Refresh MODEL_DESC for currently selected repo
   if (typeof currentRepoValue === "function") updateModelDesc(currentRepoValue());
-  // Refresh Base Voice select options
-  const bvSel = document.getElementById("CLONE_BASE_VOICE");
-  if (bvSel) {
-    const cur = bvSel.value;
-    bvSel.innerHTML = [
-      {v:"Chelsie", k:"bv_chelsie"},
-      {v:"Ethan",   k:"bv_ethan"},
-      {v:"Brenda",  k:"bv_brenda"},
-      {v:"Alex",    k:"bv_alex"},
-    ].map(o => `<option value="${o.v}"${cur===o.v?" selected":""}>${t(o.k)}</option>`).join("");
-  }
   // Confirm modal default button text (shown before any custom call)
   const cok = document.getElementById("CONFIRM_OK");
   const ccancel = document.getElementById("CONFIRM_CANCEL");
@@ -1178,6 +1478,10 @@ function applyLang(lang) {
   if (typeof onTextInput === "function") onTextInput();
   // Refresh preset names
   if (typeof updateAdvPresetSelect === "function") updateAdvPresetSelect();
+  if (typeof renderAnchorSpeakerOptions === "function") renderAnchorSpeakerOptions();
+  if (typeof populateAnchorEmotionPresets === "function") populateAnchorEmotionPresets();
+  if (typeof applyAnchorEmotionPreset === "function") applyAnchorEmotionPreset(false);
+  if (typeof refreshClonePaneMode === "function") refreshClonePaneMode();
   // 状态栏：仅当当前状态是纯 i18n key 时才翻译，动态文字（合成进度等）保持不动
   if (typeof _statusKey === "string" && _statusKey) {
     const st = document.getElementById("STATUS_TEXT");
@@ -1219,6 +1523,8 @@ window.addEventListener("DOMContentLoaded", () => {
   buildAdvGrid("ADV_TEXT_GRID", ADV_TEXT_PARAMS);
   buildAdvGrid("ADV_AUDIO_GRID", ADV_AUDIO_PARAMS);
   updateAdvPresetSelect();
+  populateAnchorEmotionPresets();
+  applyAnchorEmotionPreset(false);
   refreshInstalledModels();
 });
 
@@ -1314,7 +1620,16 @@ function handleWS(msg) {
 
   if (msgType === "init") {
     _settings = msg.settings || {};
+    // init.json からのデータを即時適用（独立持久化）
+    _applyCloneInit(msg.clone_init);
+    // init.json がまだ生成されていない場合、settings から直接補完
+    if (!msg.clone_init || (!Object.keys(msg.clone_init.cloned_voices||{}).length && !Object.keys(msg.clone_init.anchor_voices||{}).length)) {
+      // settings.cloned_voices は既に _settings に入っている（上の代入で）
+      // mergeSavedClonesIntoVoiceList で _voices に反映させる
+    }
     applySettingsToUI();
+    mergeSavedClonesIntoVoiceList();
+    if (typeof renderClonedList === "function") renderClonedList();
     if (msg.worker_ready) {
       _workerReady = true;
       setStatus("on", t("status_ready"), "status_ready");
@@ -1336,7 +1651,31 @@ function handleWS(msg) {
       setStatus("on", t("status_ready"), "status_ready");
       showToast(t("toast_model_loaded"), "ok");
       updateSynthBtn();
-      wsSend({type:"get_voices"});
+      // 加载模型后立即从服务端拉取 clone_init，强制刷新克隆/锚定音色 UI
+      // 不依赖 msg.clone_init（可能因 init.json 尚未生成而为空）
+      fetch("/api/clone_init", {cache:"no-store"})
+        .then(r => r.json()).catch(() => ({}))
+        .then(ci => {
+          _applyCloneInit(ci);
+          // 同时从 settings 补全（双保险）
+          return fetch("/api/settings", {cache:"no-store"})
+            .then(r => r.json()).catch(() => ({}));
+        })
+        .then(j => {
+          if (j && j.cloned_voices) {
+            if (!_settings) _settings = {};
+            if (!_settings.cloned_voices) _settings.cloned_voices = {};
+            for (const [k, v] of Object.entries(j.cloned_voices)) {
+              if (!_settings.cloned_voices[k]) _settings.cloned_voices[k] = v;
+              else _settings.cloned_voices[k] = Object.assign({}, v, _settings.cloned_voices[k]);
+            }
+          }
+          if (typeof refreshClonePaneMode === "function") refreshClonePaneMode();
+          mergeSavedClonesIntoVoiceList();
+          renderVoiceGrid();
+          renderClonedList();
+          wsSend({type:"get_voices"});
+        });
     } else {
       _workerReady = false;
       setStatus("err",t("toast_model_err") + (msg.error||""));
@@ -1347,10 +1686,26 @@ function handleWS(msg) {
 
   if (msgType === "voices") {
     _voices = msg.voices || [];
+    mergeSavedClonesIntoVoiceList();
+    // During long synthesis, voice-list refreshes are not needed and can be very
+    // expensive when many 12-emotion anchors exist.  Avoid re-rendering the voice
+    // grid/dialog table here so progress updates and polling stay responsive.
+    if (typeof _isSynthesizing !== "undefined" && _isSynthesizing) return;
     renderVoiceGrid();
     renderClonedList();
-    refreshDialogAvailability();
-    if (_inputMode === "dialog") renderDialogTable();
+    renderAnchorSpeakerOptions();
+    // Pull persisted anchors once more, then re-render. This prevents the CSV voice selector
+    // from showing only the clones currently returned by the worker.
+    syncClonedVoicesFromServer(false).then(() => {
+      if (typeof _isSynthesizing !== "undefined" && _isSynthesizing) return;
+      mergeSavedClonesIntoVoiceList();
+      renderVoiceGrid();
+      renderClonedList();
+      renderAnchorSpeakerOptions();
+      _sanitizeDialogRowSpeakers();
+      refreshDialogAvailability();
+      if (_inputMode === "dialog") renderDialogTable();
+    });
     return;
   }
 
@@ -1387,25 +1742,14 @@ function handleWS(msg) {
 
     if (msg.stage === "chunk") {
       // 收集时间戳
-      if (msg.audio_start_ms !== undefined) {
-        _timestamps.push({
-          chunk_idx:     msg.chunk_idx,
-          text:          msg.text || msg.text_preview || "",
-          audio_start_ms: msg.audio_start_ms,
-          audio_end_ms:   msg.audio_end_ms,
-          speaker:       msg.speaker || "",
-          instruction:   msg.instruction || "",
-          row_index:      msg.row_index,
-        });
-        updateDialogRowTimeFromProgress(msg);
-        updateSubtitleButton();
-      }
+      if (msg.audio_start_ms !== undefined) upsertTimestampFromMsg(msg);
       // 当前段预览 + 文本框高亮
       const spkLabel = msg.speaker ? `[${msg.speaker}] ` : "";
       document.getElementById("PROGRESS_CUR").textContent =
         `▶ ${spkLabel}${msg.text_preview||""}`;
       if (_inputMode === "dialog" && msg.row_index !== undefined && msg.row_index !== null) {
         highlightDialogRow(msg.row_index);
+        if (msg.bad_audio_status === "silence") markDialogRowBadAudio(msg.row_index, msg.bad_audio_reason || "bad audio replaced by silence");
       } else if (msg.text_preview) {
         highlightChunk(msg.text_preview);
       }
@@ -1419,9 +1763,12 @@ function handleWS(msg) {
       const log = document.getElementById("PROGRESS_LOG");
       const item = document.createElement("div");
       item.className = "chunk-item";
+      if (msg.bad_audio_status === "silence") item.style.color = "var(--red)";
+      else if (msg.bad_audio_status === "repaired") item.style.color = "var(--warn)";
+      const repairTag = msg.bad_audio_status === "silence" ? " ⚠ silence" : (msg.bad_audio_status === "repaired" ? " ↻ repaired" : "");
       item.innerHTML = `<span class="ci-idx">${String(idx).padStart(2,'0')}</span>`
         + `<span class="ci-text">${esc(((msg.speaker?"["+msg.speaker+"] ":"") + (msg.text_preview||"")).slice(0,40))}</span>`
-        + `<span class="ci-time">${msg.elapsed}s${ts}</span>`;
+        + `<span class="ci-time">${msg.elapsed}s${ts}${repairTag}</span>`;
       log.appendChild(item);
       log.scrollTop = log.scrollHeight;
     } else if (msg.stage === "chunk_error") {
@@ -1441,12 +1788,16 @@ function handleWS(msg) {
   if (msgType === "tts_done") {
     setSynthesizing(false);
     clearHighlight();
-    if (msg.ok) {
+    if (msg.ok && msg.output_path) {
       _synthDone = true;
       _currentOutputPath = msg.output_path || "";
+      applyFinalTimestamps(msg.timestamps || []);
       buildTsIndex();
+      // 完成时按当前播放位置/0点刷新一次高亮，避免合成结束后停在旧进度行。
+      if (_followMode) highlightCurrentPlaybackChunk((ensureAudioEl()?.currentTime || 0) * 1000);
       showDoneUI(_currentOutputPath, msg.duration || 0);
     } else {
+      _currentOutputPath = "";   // 合成失败时清空，防止播放器请求不存在的文件
       setStatus("err", (_lang==="zh"?"合成失败: ":"Synthesis failed: ") + (msg.error||""));
       document.getElementById("OUTPUT_TITLE").textContent = "✗ " + (_lang==="zh"?"合成失败: ":"Synthesis failed: ") + (msg.error||"");
       showToast((_lang==="zh"?"合成失败: ":"Synthesis failed: ") + (msg.error||""), "err");
@@ -1456,8 +1807,24 @@ function handleWS(msg) {
 
   if (msgType === "clone_done") {
     if (msg.ok) {
-      showToast(t("toast_clone_done") + msg.name, "ok");
-      wsSend({type:"get_voices"});
+      if (!_settings.cloned_voices) _settings.cloned_voices = {};
+      if (msg.name) {
+        const oldMeta = _settings.cloned_voices[msg.name] || {};
+        _settings.cloned_voices[msg.name] = {
+          // 保留服务端持久化字段，不能用前端空值覆盖
+          audio_path: msg.audio_path || oldMeta.audio_path || "",
+          anchor: !!msg.anchor,
+          source_speaker: msg.source_speaker || oldMeta.source_speaker || "",
+          emotion: msg.emotion || oldMeta.emotion || "",
+          emotion_label: msg.emotion_label || oldMeta.emotion_label || "",
+          instruction: msg.instruction || oldMeta.instruction || "",
+        };
+      }
+      if (typeof _isSynthesizing === "undefined" || !_isSynthesizing) {
+        showToast((msg.anchor ? t("toast_anchor_done") : t("toast_clone_done")) + msg.name, "ok");
+        wsSend({type:"get_voices"});
+        renderClonedList();
+      }
     } else {
       showToast(t("toast_clone_err") + (msg.error||""), "err");
     }
@@ -1465,7 +1832,34 @@ function handleWS(msg) {
   }
 
   if (msgType === "clone_deleted") {
+    if (_settings && _settings.cloned_voices && msg.name) delete _settings.cloned_voices[msg.name];
     _voices = _voices.filter(v => v.id !== `__clone__${msg.name}`);
+    renderVoiceGrid();
+    renderClonedList();
+    refreshDialogAvailability();
+    if (_inputMode === "dialog") renderDialogTable();
+    return;
+  }
+
+  if (msgType === "anchor_pack_imported") {
+    // 另一个客户端/重新加载时同步
+    syncClonedVoicesFromServer(false).then(() => {
+      mergeSavedClonesIntoVoiceList();
+      renderVoiceGrid();
+      renderClonedList();
+      wsSend({type:"get_voices"});
+    });
+    return;
+  }
+
+  if (msgType === "anchors_cleared") {
+    const names = msg.names || [];
+    if (_settings && _settings.cloned_voices) {
+      names.forEach(name => delete _settings.cloned_voices[name]);
+    }
+    const gone = new Set(names.map(name => `__clone__${name}`));
+    _voices = _voices.filter(v => !gone.has(v.id));
+    if (gone.has(_selectedVoice)) _selectedVoice = _voices.find(v => v.gender !== "clone")?.id || "";
     renderVoiceGrid();
     renderClonedList();
     refreshDialogAvailability();
@@ -1497,6 +1891,62 @@ function jsArg(s) {
 function updateSubtitleButton() {
   const btn = document.getElementById("BTN_SUBTITLE");
   if (btn) btn.disabled = !_timestamps.length;
+}
+
+function normalizeTimestampEntry(src) {
+  if (!src) return null;
+  const s = Number(src.audio_start_ms);
+  const e = Number(src.audio_end_ms);
+  const ci = Number(src.chunk_idx);
+  if (!Number.isFinite(s) || !Number.isFinite(e) || !Number.isFinite(ci)) return null;
+  return {
+    chunk_idx: ci,
+    total_chunks: Number(src.total_chunks || 0) || undefined,
+    text: src.text || src.text_preview || "",
+    text_preview: src.text_preview || src.text || "",
+    audio_start_ms: Math.max(0, s),
+    audio_end_ms: Math.max(Math.max(0, s), e),
+    speaker: src.speaker || "",
+    instruction: src.instruction || "",
+    row_index: src.row_index,
+    pause_ms: Number(src.pause_ms || 0) || 0,
+    bad_audio_status: src.bad_audio_status || "ok",
+    bad_audio_attempts: Number(src.bad_audio_attempts || 0) || 0,
+    bad_audio_reason: src.bad_audio_reason || "",
+  };
+}
+
+function upsertTimestampFromMsg(msg) {
+  const entry = normalizeTimestampEntry(msg);
+  if (!entry) return false;
+  const idx = _timestamps.findIndex(x => Number(x.chunk_idx) === Number(entry.chunk_idx));
+  if (idx >= 0) _timestamps[idx] = {..._timestamps[idx], ...entry};
+  else _timestamps.push(entry);
+  _timestamps.sort((a,b) => Number(a.chunk_idx)-Number(b.chunk_idx));
+  updateDialogRowTimeFromProgress(entry);
+  updateSubtitleButton();
+  return true;
+}
+
+function applyFinalTimestamps(list) {
+  if (!Array.isArray(list) || !list.length) return false;
+  const out = [];
+  for (const item of list) {
+    const entry = normalizeTimestampEntry(item);
+    if (entry) out.push(entry);
+  }
+  if (!out.length) return false;
+  out.sort((a,b) => Number(a.chunk_idx)-Number(b.chunk_idx));
+  _timestamps = out;
+  // 用 done 中的完整时间戳覆盖前端实时/轮询过程中可能漏掉的行，
+  // 尤其在首尾静音裁剪后，播放器跟随必须以最终合并音频为准。
+  if (_inputMode === "dialog") {
+    resetDialogRowTimes();
+    _timestamps.forEach(t => updateDialogRowTimeFromProgress(t));
+    _timestamps.forEach(t => { if (t.bad_audio_status === "silence") markDialogRowBadAudio(t.row_index, t.bad_audio_reason || "bad audio replaced by silence"); });
+  }
+  updateSubtitleButton();
+  return true;
 }
 
 let _toastTimer;
@@ -1535,7 +1985,17 @@ function applySettingsToUI() {
   document.getElementById("SPEED_SLIDER").value = _speed;
   document.getElementById("SPEED_VAL").textContent = _speed.toFixed(2) + "×";
   // Advanced
-  const adv = s.advanced_params || {};
+  // 迁移：若 advanced_params 仍是旧的高随机性默认值（temperature>=0.9），
+  // 自动替换为电子书默认预设，避免老用户继续使用不稳定参数。
+  let adv = s.advanced_params || {};
+  const _defPreset = BUILTIN_PRESETS.find(p => p.isDefault);
+  if (_defPreset) {
+    const _isOldDefault = (adv.temperature === undefined || adv.temperature >= 0.85);
+    if (_isOldDefault) {
+      adv = {..._defPreset.params};
+      _settings.advanced_params = adv;
+    }
+  }
   [...ADV_SAMPLING_PARAMS, ...ADV_TEXT_PARAMS, ...ADV_AUDIO_PARAMS].forEach(p => {
     const el = document.getElementById("ADV_" + p.key);
     if (!el) return;
@@ -1547,11 +2007,25 @@ function applySettingsToUI() {
 }
 
 // ── Voice Grid ────────────────────────────────────────────
+let _clonePreviewAudio = null;
+
 function cloneActionButtons(cloneName) {
   const wrap = document.createElement("div");
   wrap.style.display = "flex";
   wrap.style.gap = "4px";
   wrap.style.flexShrink = "0";
+
+  const playBtn = document.createElement("button");
+  playBtn.type = "button";
+  playBtn.className = "btn";
+  playBtn.style.cssText = "padding:4px 6px;line-height:1";
+  playBtn.title = _lang==="zh"?"试听参考/锚定音频":"Preview reference/anchor audio";
+  playBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+  playBtn.addEventListener("click", ev => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    previewCloneAudio(cloneName);
+  });
 
   const saveBtn = document.createElement("button");
   saveBtn.type = "button";
@@ -1577,16 +2051,120 @@ function cloneActionButtons(cloneName) {
     deleteClone(cloneName);
   });
 
+  wrap.appendChild(playBtn);
   wrap.appendChild(saveBtn);
   wrap.appendChild(delBtn);
   return wrap;
+}
+
+async function previewCloneAudio(cloneName) {
+  if (!cloneName) return;
+  try {
+    const url = `/api/clone_audio?name=${encodeURIComponent(cloneName)}&t=${Date.now()}`;
+    if (_clonePreviewAudio) {
+      try { _clonePreviewAudio.pause(); } catch(e) {}
+      _clonePreviewAudio = null;
+    }
+    _clonePreviewAudio = new Audio(url);
+    _clonePreviewAudio.onended = () => showToast((_lang==="zh"?"试听结束：":"Preview finished: ") + cloneName, "ok");
+    _clonePreviewAudio.onerror = () => showToast((_lang==="zh"?"试听失败，请确认音频文件仍存在：":"Preview failed; please make sure the audio file still exists: ") + cloneName, "err");
+    await _clonePreviewAudio.play();
+    const meta = cloneMetaByName(cloneName);
+    const label = meta && meta.anchor ? (_lang==="zh"?"正在试听锚点：":"Previewing anchor: ") : (_lang==="zh"?"正在试听克隆参考音频：":"Previewing clone reference: ");
+    showToast(label + cloneName, "ok");
+  } catch(e) {
+    showToast((_lang==="zh"?"试听失败：":"Preview failed: ") + (e && e.message ? e.message : e), "err");
+  }
+}
+
+function renderAnchorSpeakerOptions() {
+  const sel = document.getElementById("ANCHOR_SPEAKER");
+  if (!sel) return;
+  const prev = sel.value || _selectedVoice || "serena";
+  const custom = (_voices || []).filter(v => v.gender !== "clone" && v.id !== "base_default");
+  const fallback = ["serena","vivian","sohee","aiden","ryan","eric","dylan","uncle_fu","ono_anna"];
+  const ids = custom.length ? custom.map(v => v.id) : fallback;
+  const names = {};
+  custom.forEach(v => { names[v.id] = v.name || v.id; });
+  sel.innerHTML = ids.map(id => `<option value="${esc(id)}" ${String(id).toLowerCase()===String(prev).toLowerCase()?"selected":""}>${esc(names[id] || id)}</option>`).join("");
+  if (![...sel.options].some(o => o.selected) && sel.options.length) sel.selectedIndex = 0;
+  updateAnchorAutoName(false);
+}
+
+function getAnchorSpeakerItems(){
+  const custom = (_voices || []).filter(v => v.gender !== "clone" && v.id !== "base_default");
+  if (custom.length) return custom.map(v => ({id:v.id, name:v.name || v.id}));
+  return ["serena","vivian","sohee","aiden","ryan","eric","dylan","uncle_fu","ono_anna"].map(id => ({id, name:id}));
+}
+
+function sourceDisplayNameById(sourceId){
+  const src = String(sourceId || "").trim();
+  const item = getAnchorSpeakerItems().find(v => String(v.id).toLowerCase() === src.toLowerCase());
+  return (item && item.name) || src || (_lang === "zh" ? "未知音色" : "Unknown voice");
+}
+
+function stripAnchorEmotionSuffix(name) {
+  let v = String(name || "").trim();
+  if (!v) return "";
+  const labels = [];
+  (ANCHOR_EMOTION_PRESETS || []).forEach(p => {
+    [p.id, p.zh, p.en].forEach(x => {
+      if (!x) return;
+      labels.push(String(x).trim());
+      labels.push(String(x).split(" /")[0].trim());
+    });
+  });
+  labels.sort((a,b)=>b.length-a.length).forEach(label => {
+    if (!label) return;
+    const suffixes = ["-"+label, "_"+label, " "+label];
+    suffixes.forEach(suf => {
+      if (v.toLowerCase().endsWith(suf.toLowerCase())) v = v.slice(0, -suf.length).trim();
+    });
+  });
+  return v;
+}
+
+function voiceGenderByName(name) {
+  const n = String(name || "").toLowerCase().replace(/[\s_-]+/g, "");
+  const female = ["vivian", "serena", "sohee", "onoanna", "anna"];
+  const male = ["aiden", "ryan", "eric", "dylan", "unclefu", "uncle", "fu"];
+  if (female.some(x => n.includes(x))) return "female";
+  if (male.some(x => n.includes(x))) return "male";
+  return "unknown";
+}
+
+function inferCharacterGender(person, rows=[]) {
+  const p = String(person || "").trim();
+  const low = p.toLowerCase();
+  if (!p) return "unknown";
+  if (["旁白", "叙述", "narrator", "narration", "旁述"].some(x => low.includes(x))) return "neutral";
+  if (/(女人|女性|女子|女孩|女儿|母亲|妈妈|妻子|姐姐|妹妹|小姐|太太|夫人|姑娘|女声|老太太|老妇|叶文洁|程心|庄颜|申玉菲|慕星|杨冬|雷迪亚兹夫人)/.test(p)) return "female";
+  if (/(男人|男性|男子|男孩|儿子|父亲|爸爸|丈夫|哥哥|弟弟|先生|男声|老头|老人|年轻男性|汪淼|罗辑|章北海|史强|丁仪|杨卫宁|白沐霖|雷志成)/.test(p)) return "male";
+  const sampleText = (rows || []).filter(r => String(r.person||"").trim() === p).slice(0, 3).map(r => r.text || "").join(" ");
+  if (/(她说|她问|她道|她回答|她想|她的)/.test(sampleText)) return "female";
+  if (/(他说|他问|他道|他回答|他想|他的)/.test(sampleText)) return "male";
+  return "unknown";
+}
+
+function filterVoiceChoicesForPerson(person, choices, rows=[]) {
+  const gender = inferCharacterGender(person, rows);
+  const all = (choices || []).slice();
+  if (gender !== "female" && gender !== "male") return all;
+  const filtered = all.filter(v => {
+    const vg = voiceGenderByName(v);
+    return vg === gender || vg === "unknown";
+  });
+  return filtered.length ? filtered : all;
 }
 
 // ── Voice Grid ────────────────────────────────────────────
 function renderVoiceGrid() {
   const grid = document.getElementById("VOICE_GRID");
   grid.innerHTML = "";
+  const _isBaseMode = isBaseRepo(currentRepoValue());
   _voices.forEach(v => {
+    // 克隆/锚定音色只在 Base 模式下显示于音色选择栏
+    if (v.gender === "clone" && !_isBaseMode) return;
     const isBaseDefault = v.id === "base_default";
     const card = document.createElement("div");
     card.className = "voice-card" + (v.id === _selectedVoice ? " selected" : "");
@@ -1638,29 +2216,176 @@ function renderVoiceGrid() {
   });
 }
 
-function renderClonedList() {
-  const list = document.getElementById("CLONED_VOICE_LIST");
-  const cloned = _voices.filter(v => v.gender === "clone");
-  list.innerHTML = "";
-  if (!cloned.length) {
-    list.innerHTML = `<div style="font-size:12px;color:var(--hi)">${t("cloned_none")}</div>`;
-    return;
+// 把后端下发的 clone_init（来自 init.json）合并进 _settings.cloned_voices。
+// clone_init = { cloned_voices: {...}, anchor_voices: {...} }
+// 所有条目都合并进 _settings.cloned_voices，保留已有字段不被覆盖。
+function _applyCloneInit(cloneInit) {
+  if (!cloneInit || typeof cloneInit !== "object") return;
+  if (!_settings) _settings = {};
+  if (!_settings.cloned_voices) _settings.cloned_voices = {};
+  const all = Object.assign({}, cloneInit.cloned_voices || {}, cloneInit.anchor_voices || {});
+  for (const [name, meta] of Object.entries(all)) {
+    if (!_settings.cloned_voices[name]) {
+      _settings.cloned_voices[name] = meta;
+    } else {
+      // 保留服务端字段（audio_path 等），前端已有的优先
+      _settings.cloned_voices[name] = Object.assign({}, meta, _settings.cloned_voices[name]);
+    }
   }
-  cloned.forEach(v => {
-    const cloneName = v.id.replace("__clone__", "");
-    const card = document.createElement("div");
-    card.className = "voice-card";
-    card.style.cursor = "default";
-    card.style.alignItems = "center";
-    card.innerHTML = `
-      <div class="voice-avatar"><span class="clone-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 -8 72 72" fill="none" aria-hidden="true"><path d="M47.71,24.61a15.61,15.61,0,0,0,2.44.19,11.08,11.08,0,0,0,8-3.11l1.19-1.19a2,2,0,1,0-2.88-2.88l-.29.29L46.09,7.82l.29-.28A2,2,0,0,0,43.5,4.66L42.31,5.85a11,11,0,0,0-3.11,8,16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14L32,22.16a6.54,6.54,0,0,1,2.1-.88l7.8,7.8a7.12,7.12,0,0,0,.09-1.17,10.69,10.69,0,0,0-.36-2.71l-4.07-4.07a12.88,12.88,0,0,1,2.61.63,18.21,18.21,0,0,1-1.6-4.6A15.61,15.61,0,0,0,36.08,17,10.65,10.65,0,0,0,25,28.08a16.59,16.59,0,0,0,2.14,8,12.82,12.82,0,0,1,1.62,6,7.73,7.73,0,0,1-1.12,4.14l-9.89-9.89a6.59,6.59,0,0,1,2.11-.88l7.79,7.79a6.93,6.93,0,0,0,.09-1.16,10.69,10.69,0,0,0-.36-2.71l-4.06-4.06a12.92,12.92,0,0,1,2.6.62,18.24,18.24,0,0,1-1.61-4.6,15.4,15.4,0,0,0-2.43-.19,11,11,0,0,0-8,3.11L12.66,35.5a2,2,0,0,0,2.88,2.88l.29-.29L25.91,48.17l-.29.29a2,2,0,1,0,2.88,2.88l1.19-1.19a11,11,0,0,0,3.11-8,16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6A7.73,7.73,0,0,1,30.16,24l9.89,9.89a6.54,6.54,0,0,1-2.1.88l-7.8-7.8a7.12,7.12,0,0,0-.09,1.17,10.56,10.56,0,0,0,.36,2.7l4.07,4.08a13.58,13.58,0,0,1-2.61-.63,18.21,18.21,0,0,1,1.6,4.6,15.61,15.61,0,0,0,2.44.19A10.65,10.65,0,0,0,47,27.92a16.59,16.59,0,0,0-2.14-8,12.82,12.82,0,0,1-1.62-6,7.73,7.73,0,0,1,1.12-4.14l9.89,9.89a6.82,6.82,0,0,1-2.11.88l-7.8-7.8a8.31,8.31,0,0,0-.08,1.17,10.69,10.69,0,0,0,.36,2.71l4.06,4.06a12.16,12.16,0,0,1-2.6-.63A18.28,18.28,0,0,1,47.71,24.61Z" fill="currentColor"/></svg></span></div>
-      <div class="voice-info">
-        <div class="voice-name">${esc(v.name)}</div>
-        <div class="voice-desc" data-i18n="voice_desc_clone">声音克隆</div>
-      </div>`;
-    card.appendChild(cloneActionButtons(cloneName));
-    list.appendChild(card);
+}
+
+async function syncClonedVoicesFromServer(render=true) {
+  try {
+    // 同时拉取 settings 和 clone_init，确保克隆/锚定音色完整
+    const [r1, r2] = await Promise.all([
+      fetch("/api/settings",    {cache:"no-store"}),
+      fetch("/api/clone_init",  {cache:"no-store"}),
+    ]);
+    const j  = await r1.json().catch(() => ({}));
+    const ci = await r2.json().catch(() => ({}));
+    if (j && typeof j === "object") {
+      _settings = {..._settings, ...j};
+      if (j.cloned_voices && typeof j.cloned_voices === "object") {
+        _settings.cloned_voices = {...((_settings && _settings.cloned_voices) || {}), ...j.cloned_voices};
+      }
+    }
+    // clone_init 数据补全（以 settings 中已有条目为优先）
+    _applyCloneInit(ci);
+  } catch(e) {
+    console.warn("sync cloned voices failed", e);
+  }
+  if (render && typeof renderClonedList === "function") renderClonedList();
+}
+
+function cloneMetaByName(name) {
+  return ((_settings && _settings.cloned_voices) || {})[name] || {};
+}
+
+function isAnchorVoiceName(name) {
+  const meta = cloneMetaByName(name);
+  return !!meta.anchor;
+}
+
+function renderClonedList() {
+  const cloneList = document.getElementById("CLONED_VOICE_LIST");
+  const anchorLists = [
+    document.getElementById("ANCHOR_VOICE_LIST"),
+    document.getElementById("ANCHOR_VOICE_LIST_BASE"),
+  ].filter(Boolean);
+  const byName = new Map();
+  (_voices || []).filter(v => v.gender === "clone").forEach(v => byName.set(v.id.replace("__clone__", ""), v));
+  Object.keys((_settings && _settings.cloned_voices) || {}).forEach(name => {
+    if (!byName.has(name)) byName.set(name, {id:`__clone__${name}`, name, gender:"clone", desc:"saved"});
   });
+  const all = Array.from(byName.values());
+  const normal = all.filter(v => !isAnchorVoiceName(v.id.replace("__clone__", "")));
+  const anchors = all.filter(v => isAnchorVoiceName(v.id.replace("__clone__", "")));
+
+  const renderNormalClones = (list, items) => {
+    if (!list) return;
+    list.innerHTML = "";
+    if (!items.length) {
+      list.innerHTML = `<div style="font-size:12px;color:var(--hi)">${t("cloned_none")}</div>`;
+      return;
+    }
+    items.forEach(v => {
+      const cloneName = v.id.replace("__clone__", "");
+      const card = document.createElement("div");
+      card.className = "voice-card";
+      card.style.cursor = "default";
+      card.style.alignItems = "center";
+      card.innerHTML = `
+        <div class="voice-avatar">${ICON_DNA}</div>
+        <div class="voice-info">
+          <div class="voice-name">${esc(v.name)}</div>
+          <div class="voice-desc">${esc(t("voice_desc_clone"))}</div>
+        </div>`;
+      card.appendChild(cloneActionButtons(cloneName));
+      list.appendChild(card);
+    });
+  };
+
+  const renderAnchorGroups = (list, items) => {
+    if (!list) return;
+    list.innerHTML = "";
+    if (!items.length) {
+      list.innerHTML = `<div style="font-size:12px;color:var(--hi)">${t("anchored_none")}</div>`;
+      return;
+    }
+    const groups = new Map();
+    items.forEach(v => {
+      const cloneName = v.id.replace("__clone__", "");
+      const meta = cloneMetaByName(cloneName);
+      const src = meta.source_speaker || cloneName.split("-")[0] || "";
+      const key = String(src || "unknown").trim().toLowerCase();
+      if (!groups.has(key)) groups.set(key, {source:src, display:sourceDisplayNameById(src), items:[]});
+      groups.get(key).items.push({v, cloneName, meta});
+    });
+    const order = getAnchorSpeakerItems().map(v => String(v.id).toLowerCase());
+    const presetOrder = new Map(ANCHOR_EMOTION_PRESETS.map((p, idx) => [p.id, idx]));
+    const sortedGroups = Array.from(groups.values()).sort((a,b) => {
+      const ai = order.indexOf(String(a.source).toLowerCase());
+      const bi = order.indexOf(String(b.source).toLowerCase());
+      if (ai >= 0 || bi >= 0) return (ai >= 0 ? ai : 9999) - (bi >= 0 ? bi : 9999);
+      return String(a.display).localeCompare(String(b.display));
+    });
+    sortedGroups.forEach(group => {
+      group.items.sort((a,b) => {
+        const ai = presetOrder.has(a.meta.emotion) ? presetOrder.get(a.meta.emotion) : 999;
+        const bi = presetOrder.has(b.meta.emotion) ? presetOrder.get(b.meta.emotion) : 999;
+        if (ai !== bi) return ai - bi;
+        return a.cloneName.localeCompare(b.cloneName);
+      });
+      const wrap = document.createElement("div");
+      wrap.className = "anchor-group-card";
+      const head = document.createElement("div");
+      head.className = "anchor-group-head";
+      head.title = t("anchor_group_hint");
+      head.innerHTML = `
+        <div class="voice-avatar">${ICON_DNA}</div>
+        <div class="anchor-group-title">${esc(group.display)}</div>
+        <div class="anchor-group-meta">${group.items.length}</div>
+        <div class="anchor-chevron">›</div>`;
+      head.onclick = () => wrap.classList.toggle("open");
+      const body = document.createElement("div");
+      body.className = "anchor-group-body";
+      group.items.forEach(({v, cloneName, meta}) => {
+        const emo = meta.emotion_label || meta.emotion || v.name;
+        const row = document.createElement("div");
+        row.className = "voice-card anchor-emotion-row";
+        row.style.cursor = "default";
+        row.style.alignItems = "center";
+        row.innerHTML = `
+          <div class="voice-info">
+            <div class="voice-name">${esc(emo)}</div>
+            <div class="voice-desc">${esc(cloneName)}</div>
+          </div>`;
+        row.appendChild(cloneActionButtons(cloneName));
+        body.appendChild(row);
+      });
+      wrap.appendChild(head);
+      wrap.appendChild(body);
+      list.appendChild(wrap);
+    });
+  };
+
+  renderNormalClones(cloneList, normal);
+  anchorLists.forEach(list => renderAnchorGroups(list, anchors));
+  refreshClonePaneMode();
+}
+
+function refreshClonePaneMode() {
+  const repo = currentRepoValue();
+  const base = document.getElementById("CLONE_MODE_BASE");
+  const anchor = document.getElementById("CLONE_MODE_ANCHOR");
+  const unsupported = document.getElementById("CLONE_MODE_UNSUPPORTED");
+  if (!base || !anchor || !unsupported) return;
+  const isVD = String(repo || "").toLowerCase().includes("voicedesign");
+  const showBase = isBaseRepo(repo);
+  const showAnchor = isCustomVoiceRepo(repo) || isVD;
+  base.style.display = showBase ? "flex" : "none";
+  anchor.style.display = showAnchor ? "flex" : "none";
+  unsupported.style.display = (!showBase && !showAnchor) ? "flex" : "none";
 }
 
 // ── 文本高亮 ──────────────────────────────────────────────
@@ -1789,6 +2514,7 @@ async function deleteClone(name) {
       if (_selectedVoice === `__clone__${name}`) {
         _selectedVoice = _voices.find(v => v.gender !== "clone")?.id || "";
       }
+      if (_settings && _settings.cloned_voices) delete _settings.cloned_voices[name];
       _voices = _voices.filter(v => v.id !== `__clone__${name}`);
       renderVoiceGrid();
       renderClonedList();
@@ -1904,14 +2630,53 @@ async function chooseCloneImportFile() {
         if (!result || !result.cancelled) showToast((_lang==="zh"?"打开失败: ":"Open failed: ") + ((result && result.error) || (_lang==="zh"?"未知错误":"unknown error")), "err");
         return;
       }
-      await importClone(makeTextFileFromContent(result.filename || result.path || "clone.ttsc", result.content));
+      const fobj = makeTextFileFromContent(result.filename || result.path || "clone.ttsc", result.content);
+      await importCloneOrPack(fobj);
       return;
     } catch(e) {
-      showToast((_lang==="zh"?"导入克隆音色失败: ":"Failed to import clone: ") + e, "err");
+      showToast((_lang==="zh"?"导入失败: ":"Failed to import: ") + e, "err");
       return;
     }
   }
   openBrowserFileInput("CLONE_IMPORT_INPUT");
+}
+
+// pywebview 专用：通过路径调服务端直接读取 .ttscx（避免 bridge 大文件传输）
+async function _importAnchorPackFromPath(filePath) {
+  if (!filePath) { showToast(_lang==="zh"?"路径为空":"Empty path", "err"); return; }
+  showToast(t("toast_pack_importing"), "warn");
+  try {
+    const r = await fetch("/api/import_anchor_pack_from_path", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({path: filePath}),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || r.status);
+    const msg = _lang==="zh"
+      ? `导入完成：新增 ${j.imported}，跳过 ${j.skipped}，失败 ${j.failed.length}`
+      : `Import done: +${j.imported} new, ${j.skipped} skipped, ${j.failed.length} failed`;
+    showToast(msg, j.failed.length ? "warn" : "ok");
+    await syncClonedVoicesFromServer(false);
+    mergeSavedClonesIntoVoiceList();
+    renderVoiceGrid();
+    renderClonedList();
+    if (_inputMode === "dialog") renderDialogTable();
+    wsSend({type:"get_voices"});
+  } catch(e) {
+    showToast(t("toast_pack_err") + " " + (e && e.message ? e.message : e), "err");
+  }
+}
+
+// 根据文件类型分发：.ttscx → importAnchorPack，.ttsc/.json → importClone
+async function importCloneOrPack(file) {
+  if (!file) return;
+  const fname = (file.name || file.path || "").toLowerCase();
+  if (fname.endsWith(".ttscx")) {
+    await importAnchorPack(file);
+  } else {
+    await importClone(file);
+  }
 }
 
 async function chooseTextFile() {
@@ -2053,6 +2818,54 @@ function clearText() {
 let _workerReady = false;
 let _synthDone = false;  // 防止重复处理 done
 
+let _lastPolledProgressKey = "";
+
+function applyPolledTtsProgress(msg) {
+  if (!msg || msg.type === "tts_done") return;
+  const stage = msg.stage || "";
+  if (!stage) return;
+  const key = `${stage}:${msg.chunk_idx ?? ""}:${msg.total_chunks ?? ""}:${msg.audio_end_ms ?? ""}`;
+  if (key === _lastPolledProgressKey) return;
+  _lastPolledProgressKey = key;
+
+  document.getElementById("OUTPUT_PANEL").classList.add("visible");
+  document.getElementById("PROGRESS_AREA").style.display = "";
+  document.getElementById("PLAYER_AREA").style.display = "none";
+
+  if (stage === "start") {
+    const total = Number(msg.total_chunks || 1);
+    document.getElementById("OUTPUT_TITLE").textContent = `${_lang==="zh"?"合成中… 共":"Synthesizing… total"} ${total} ${_lang==="zh"?"段":"chunks"}`;
+    document.getElementById("PROGRESS_BAR").style.width = "2%";
+    document.getElementById("PROGRESS_PCT").textContent = "0%";
+    document.getElementById("PROGRESS_CUR").textContent = _lang==="zh"?"准备中…":"Preparing…";
+    document.getElementById("PROGRESS_BAR").classList.add("active");
+    setStatus("warn", `${_lang==="zh"?"合成中":"Synthesizing"} 0 / ${total}`);
+    return;
+  }
+
+  const total = Math.max(1, Number(msg.total_chunks || 1));
+  const idx = Math.max(1, Number(msg.chunk_idx || 0) + 1);
+  const pct = Math.max(2, Math.min(99, Math.round(idx / total * 100)));
+  document.getElementById("PROGRESS_BAR").style.width = pct + "%";
+  document.getElementById("PROGRESS_PCT").textContent = pct + "%";
+  document.getElementById("OUTPUT_TITLE").textContent = `${_lang==="zh"?"合成中":"Synthesizing"}  ${idx} / ${total}`;
+
+  if (stage === "chunk") {
+    const spkLabel = msg.speaker ? `[${msg.speaker}] ` : "";
+    document.getElementById("PROGRESS_CUR").textContent = `▶ ${spkLabel}${msg.text_preview||""}`;
+    if (msg.audio_start_ms !== undefined) upsertTimestampFromMsg(msg);
+    if (_inputMode === "dialog" && msg.row_index !== undefined && msg.row_index !== null) {
+      highlightDialogRow(msg.row_index);
+      if (msg.bad_audio_status === "silence") markDialogRowBadAudio(msg.row_index, msg.bad_audio_reason || "bad audio replaced by silence");
+    } else if (msg.text_preview) {
+      highlightChunk(msg.text_preview);
+    }
+  } else if (stage === "chunk_error") {
+    document.getElementById("PROGRESS_CUR").textContent = `✗ ${_lang==="zh"?"段落":"Chunk"} ${idx} ${_lang==="zh"?"失败":"failed"}`;
+  }
+  setStatus("on", `${_lang==="zh"?"合成中":"Synthesizing"} ${idx} / ${total}  ${pct}%`);
+}
+
 async function syncStatusFromServer() {
   try {
     const r = await fetch("/api/status");
@@ -2061,7 +2874,11 @@ async function syncStatusFromServer() {
       _workerReady = true;
       setStatus("on", t("status_ready"), "status_ready");
       updateSynthBtn();
+      if (typeof refreshClonePaneMode === "function") refreshClonePaneMode();
       wsSend({type:"get_voices"});
+    }
+    if (j.progress && typeof applyPolledTtsProgress === "function") {
+      applyPolledTtsProgress(j.progress);
     }
     // 如果服务器显示已完成但前端还没更新
     if (j.status === "done" && j.output_path && !_synthDone) {
@@ -2160,19 +2977,72 @@ function updateSynthBtn() {
 function isCustomVoiceRepo(repo) {
   return String(repo || _settings.model_repo || "").toLowerCase().includes("customvoice");
 }
+function isBaseRepo(repo) {
+  const r = String(repo || _settings.model_repo || "").toLowerCase();
+  return r.includes("-base-") || r.endsWith("-base") || r.includes("base-8bit") || r.includes("base-bf16");
+}
+function isDialogCapableRepo(repo) {
+  return isCustomVoiceRepo(repo) || isBaseRepo(repo);
+}
 function currentRepoValue() {
   const sel = document.getElementById("MODEL_REPO_SELECT");
   if (!sel) return _settings.model_repo || "";
   return sel.value === "__custom__" ? (document.getElementById("MODEL_REPO_INPUT")?.value || "") : sel.value;
 }
+let _lastDialogModelType = null;  // "base" | "customvoice" | null
+
+function _sanitizeDialogRowSpeakers() {
+  if (!_dialogRows || !_dialogRows.length) return;
+  const repo = currentRepoValue();
+  if (isBaseRepo(repo)) {
+    // Base モデル：有効な speaker = 克隆音色名（裸名）
+    mergeSavedClonesIntoVoiceList();
+    const validNames = new Set(allCloneNames());
+    const hasInvalid = _dialogRows.some(r => r.speaker && !validNames.has(r.speaker));
+    if (hasInvalid) {
+      _dialogRows = [];
+      if (_inputMode === "dialog") {
+        showToast(_lang === "zh"
+          ? "已切换至 Base 模型，对话表格已重置，请重新选择克隆音色"
+          : "Switched to Base model — dialog table reset. Please select cloned voices.",
+          "warn");
+      }
+    }
+  } else if (isCustomVoiceRepo(repo)) {
+    // CustomVoice モデル：有効な speaker = 内置音色 ID
+    const validIds = new Set((_voices || []).filter(v => v.gender !== "clone").map(v => v.id.toLowerCase()));
+    const hasInvalid = _dialogRows.some(r => r.speaker && !validIds.has(r.speaker.toLowerCase()));
+    if (hasInvalid) {
+      _dialogRows = [];
+      if (_inputMode === "dialog") {
+        showToast(_lang === "zh"
+          ? "已切换至 CustomVoice 模型，对话表格已重置"
+          : "Switched to CustomVoice model — dialog table reset.",
+          "warn");
+      }
+    }
+  }
+}
+
 function refreshDialogAvailability() {
-  const ok = isCustomVoiceRepo(currentRepoValue());
+  const repo = currentRepoValue();
+  const ok = isDialogCapableRepo(repo);
   document.body.classList.toggle("dialog-capable", ok);
+
+  // 检测模型类型是否发生变化（base ↔ customvoice）
+  const nowType = isBaseRepo(repo) ? "base" : (isCustomVoiceRepo(repo) ? "customvoice" : null);
+  if (_lastDialogModelType !== null && nowType !== null && nowType !== _lastDialogModelType) {
+    // 模型类型切换，旧的 speaker 名在新模型下无效，清空表格
+    _dialogRows = [];
+    if (_inputMode === "dialog") renderDialogTable();
+  }
+  if (nowType !== null) _lastDialogModelType = nowType;
+
   if (!ok && _inputMode === "dialog") setInputMode("text");
 }
 function setInputMode(mode) {
-  if (mode === "dialog" && !isCustomVoiceRepo(currentRepoValue())) {
-    showToast(_lang==="zh"?"三列表格模式仅适用于 CustomVoice 模型":"Dialog table mode requires a CustomVoice model", "err");
+  if (mode === "dialog" && !isDialogCapableRepo(currentRepoValue())) {
+    showToast(_lang==="zh"?"CSV 表格模式仅适用于 CustomVoice 或 Base 模型":"Dialog table mode requires a CustomVoice or Base model", "err");
     return;
   }
   _inputMode = mode === "dialog" ? "dialog" : "text";
@@ -2180,7 +3050,7 @@ function setInputMode(mode) {
   const btn = document.getElementById("BTN_DIALOG_MODE");
   const label = document.getElementById("TEXT_AREA_LABEL");
   if (btn) btn.textContent = _inputMode === "dialog" ? t("normal_text") : t("dialog_mode");
-  if (label) label.textContent = _inputMode === "dialog" ? (_lang==="en"?"Dialog CSV / Table":"多人对话 CSV / 三列表格") : t("text_content");
+  if (label) label.textContent = _inputMode === "dialog" ? (_lang==="en"?"Dialog CSV / Table":"多人对话 CSV / CSV 表格") : t("text_content");
   renderDialogTable();
   onTextInput();
   updateSynthBtn();
@@ -2188,15 +3058,141 @@ function setInputMode(mode) {
 function toggleDialogMode() {
   if (_inputMode !== "dialog") {
     if (!_dialogRows.length) {
+      const defaultSpeaker = isBaseRepo(currentRepoValue())
+        ? ((_voices||[]).find(v=>v.gender==="clone")?.name || "")
+        : (_selectedVoice || "serena").replace(/^__clone__/, "");
       const txt = document.getElementById("TEXT_EDITOR").value.trim();
-      _dialogRows = [{speaker: (_selectedVoice || "serena").replace(/^__clone__/, ""), instruction: (collectAdvParams().style_instruct || ""), text: txt}];
+      _dialogRows = [{speaker: defaultSpeaker, instruction: "", text: txt}];
     }
     setInputMode("dialog");
   } else {
     setInputMode("text");
   }
 }
+function savedCloneNames() {
+  return Object.keys((_settings && _settings.cloned_voices) || {});
+}
+function allCloneNames() {
+  const map = new Map();
+  (_voices || []).filter(v => v.gender === "clone").forEach(v => {
+    const name = v.name || String(v.id || "").replace(/^__clone__/, "");
+    if (name) map.set(name, name);
+  });
+  savedCloneNames().forEach(name => { if (name) map.set(name, name); });
+  return Array.from(map.values());
+}
+function mergeSavedClonesIntoVoiceList() {
+  if (!_settings || !_settings.cloned_voices) return;
+  const existing = new Set((_voices || []).map(v => v.id));
+  savedCloneNames().forEach(name => {
+    const id = `__clone__${name}`;
+    if (!existing.has(id)) {
+      _voices.push({id, name, gender:"clone", desc:"saved"});
+      existing.add(id);
+    }
+  });
+}
+function baseCloneNames() {
+  return allCloneNames();
+}
+function dialogEmotionLabelById(id) {
+  const preset = anchorPresetById(id || "neutral");
+  return String((_lang === "zh" ? preset.zh : preset.en) || preset.id).split(" / ")[0].trim();
+}
+function normalizeDialogEmotion(raw) {
+  const v = String(raw || "").trim();
+  if (!v) return "neutral";
+  const low = v.toLowerCase();
+  for (const p of ANCHOR_EMOTION_PRESETS) {
+    const zh1 = String(p.zh || "").split(" / ")[0].trim();
+    const zh2 = String(p.zh || "").trim();
+    const en1 = String(p.en || "").split(" / ")[0].trim().toLowerCase();
+    const en2 = String(p.en || "").trim().toLowerCase();
+    if (low === p.id || v === zh1 || v === zh2 || low === en1 || low === en2) return p.id;
+  }
+  return "neutral";
+}
+function emotionOptionsHtml(selected) {
+  const sel = normalizeDialogEmotion(selected || "neutral");
+  return ANCHOR_EMOTION_PRESETS.map(p => {
+    const label = (_lang === "zh" ? p.zh : p.en).split(" / ")[0].trim();
+    return `<option value="${esc(p.id)}" ${p.id===sel?"selected":""}>${esc(label)}</option>`;
+  }).join("");
+}
+function _voiceBaseNameFromClone(cloneName) {
+  const meta = cloneMetaByName(cloneName);
+  if (meta && meta.anchor && meta.source_speaker) return sourceDisplayNameById(meta.source_speaker);
+  const stripped = stripAnchorEmotionSuffix(cloneName);
+  return stripped || String(cloneName || "");
+}
+function baseVoiceChoices() {
+  const names = baseCloneNames();
+  const map = new Map();
+  names.forEach(name => {
+    const base = stripAnchorEmotionSuffix(_voiceBaseNameFromClone(name)).trim();
+    if (base) map.set(base.toLowerCase(), base);
+  });
+  // 只显示“基础音色人名”。即使历史锚点缺少 anchor metadata，也会把 Sohee-严肃 折叠为 Sohee。
+  names.forEach(name => {
+    const meta = cloneMetaByName(name);
+    const base = stripAnchorEmotionSuffix(meta && meta.anchor ? _voiceBaseNameFromClone(name) : name).trim();
+    if (base && !map.has(base.toLowerCase())) map.set(base.toLowerCase(), base);
+  });
+  return Array.from(map.values()).sort((a,b)=>a.localeCompare(b));
+}
+function anchorCountForBaseVoice(baseName) {
+  const target = String(baseName || "").trim().toLowerCase();
+  if (!target) return 0;
+  let count = 0;
+  allCloneNames().forEach(name => {
+    const meta = cloneMetaByName(name);
+    let base = "";
+    if (meta && meta.anchor && meta.source_speaker) base = sourceDisplayNameById(meta.source_speaker || "");
+    else base = stripAnchorEmotionSuffix(_voiceBaseNameFromClone(name));
+    if (String(base || "").trim().toLowerCase() === target && meta && meta.anchor) count++;
+  });
+  return count;
+}
+function baseVoiceChoiceLabel(name) {
+  const count = anchorCountForBaseVoice(name);
+  if (!count) return name;
+  return `${name} (${count}/${ANCHOR_EMOTION_PRESETS.length})`;
+}
+function baseVoiceOptionsHtml(selected) {
+  const choices = baseVoiceChoices();
+  const sel = String(selected || "").trim();
+  if (!choices.length) return `<option value="" disabled>${_lang==="zh"?"暂无克隆/锚定音色":"No cloned/anchored voices"}</option>`;
+  return choices.map(name => `<option value="${esc(name)}" ${name===sel?"selected":""}>${esc(baseVoiceChoiceLabel(name))}</option>`).join("");
+}
+function resolveBaseDialogSpeaker(row) {
+  const clones = baseCloneNames();
+  const cloneSet = new Set(clones);
+  const voice = String(row.voice || row.speaker || "").trim();
+  const emotion = normalizeDialogEmotion(row.emotion || "neutral");
+  const emoLabel = dialogEmotionLabelById(emotion);
+  if (cloneSet.has(voice)) return voice;
+  const direct = `${voice}-${emoLabel}`;
+  if (cloneSet.has(direct)) return direct;
+  // 支持按 anchor 的 source_speaker / 显示名 + emotion 匹配
+  for (const name of clones) {
+    const meta = cloneMetaByName(name);
+    if (!meta || !meta.anchor) continue;
+    const src = sourceDisplayNameById(meta.source_speaker || "");
+    const sourceOk = src.toLowerCase() === voice.toLowerCase() || String(meta.source_speaker||"").toLowerCase() === voice.toLowerCase();
+    const emoOk = normalizeDialogEmotion(meta.emotion || meta.emotion_label) === emotion || String(meta.emotion_label||"").split(" / ")[0].trim() === emoLabel;
+    if (sourceOk && emoOk) return name;
+  }
+  // 没有对应情绪锚点时，退回同一来源下的平静锚点或第一个同源 clone
+  for (const name of clones) {
+    const meta = cloneMetaByName(name);
+    const src = meta && meta.anchor ? sourceDisplayNameById(meta.source_speaker || "") : _voiceBaseNameFromClone(name);
+    if (src.toLowerCase() === voice.toLowerCase()) return name;
+  }
+  return clones[0] || voice;
+}
 function speakerOptionsHtml(selected) {
+  if (isBaseRepo(currentRepoValue())) return baseVoiceOptionsHtml(selected);
+  // CustomVoice 模型：列出内置音色
   const customVoices = (_voices || []).filter(v => v.gender !== "clone");
   const fallback = ["serena","vivian","uncle_fu","ryan","aiden","ono_anna","sohee","eric","dylan"];
   const ids = customVoices.length ? customVoices.map(v => v.id) : fallback;
@@ -2204,27 +3200,69 @@ function speakerOptionsHtml(selected) {
   customVoices.forEach(v => { names[v.id] = v.name || v.id; });
   return ids.map(id => `<option value="${esc(id)}" ${String(id).toLowerCase()===String(selected||"").toLowerCase()?"selected":""}>${esc(names[id] || id)}</option>`).join("");
 }
+function updateDialogTableHeaders() {
+  const isBase = isBaseRepo(currentRepoValue());
+  const th1 = document.getElementById("DIALOG_TH_1");
+  const th2 = document.getElementById("DIALOG_TH_2");
+  const th3 = document.getElementById("DIALOG_TH_3");
+  const th4 = document.getElementById("DIALOG_TH_4");
+  if (!th1 || !th2 || !th3 || !th4) return;
+  if (isBase) {
+    th1.textContent = _lang === "zh" ? "人物" : "Character";
+    th2.textContent = _lang === "zh" ? "音色" : "Voice";
+    th3.textContent = _lang === "zh" ? "情绪" : "Emotion";
+    th4.textContent = _lang === "zh" ? "文字内容" : "Text";
+    th1.style.width = "14%"; th2.style.width = "18%"; th3.style.width = "14%"; th4.style.width = "";
+  } else {
+    th1.textContent = _lang === "zh" ? "发言人" : "Speaker";
+    th2.textContent = _lang === "zh" ? "Control Instruction" : "Control Instruction";
+    th3.textContent = _lang === "zh" ? "文字内容" : "Text";
+    th4.textContent = _lang === "zh" ? "" : "";
+    th1.style.width = "18%"; th2.style.width = "30%"; th3.style.width = ""; th4.style.width = "0";
+  }
+}
 function renderDialogTable() {
   const body = document.getElementById("DIALOG_TBODY");
   if (!body) return;
-  if (!_dialogRows.length) _dialogRows = [{speaker:_selectedVoice || "serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
+  updateDialogTableHeaders();
+  if (!_dialogRows.length) {
+    _dialogRows = isBaseRepo(currentRepoValue())
+      ? [{person:"旁白", voice:baseVoiceChoices()[0] || "", emotion:"neutral", text:"", speaker:"", start_ms:null, end_ms:null, start_time:"", end_time:""}]
+      : [{speaker:_selectedVoice || "serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
+  }
   body.innerHTML = "";
   _dialogRows.forEach((row, i) => {
     const tr = document.createElement("tr");
     tr.dataset.rowIndex = String(i);
     if (row._active) tr.classList.add("dialog-row-current");
+    if (row._bad_audio) { tr.classList.add("dialog-row-bad"); tr.title = row._bad_audio_note || "Bad audio fallback"; }
     tr.onclick = (e) => {
       if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT" ||
           e.target.tagName === "TEXTAREA" || e.target.tagName === "BUTTON") return;
       seekToDialogRow(i);
     };
-    tr.innerHTML = `
-      <td><select data-i="${i}" data-k="speaker" onchange="onDialogCellChange(this)">${speakerOptionsHtml(row.speaker)}</select></td>
-      <td><input data-i="${i}" data-k="instruction" value="${esc(row.instruction||"")}" oninput="onDialogCellChange(this)" placeholder="${t('ph_instruction')}"></td>
-      <td><textarea data-i="${i}" data-k="text" oninput="onDialogCellChange(this)" placeholder="${t('ph_dialog_text')}">${esc(row.text||"")}</textarea></td>
-      <td class="dialog-time-cell" data-time="start">${esc(row.start_time||"")}</td>
-      <td class="dialog-time-cell" data-time="end">${esc(row.end_time||"")}</td>
-      <td><div class="dialog-row-actions"><button class="btn" style="padding:3px 6px" onclick="insertDialogRow(${i+1})">+</button><button class="btn" style="padding:3px 6px" onclick="removeDialogRow(${i})">×</button></div></td>`;
+    const isBase = isBaseRepo(currentRepoValue());
+    if (isBase) {
+      if (!row.person) row.person = row.speaker || "旁白";
+      if (!row.voice) row.voice = row.speaker && !String(row.speaker).includes("-") ? row.speaker : (baseVoiceChoices()[0] || "");
+      row.emotion = normalizeDialogEmotion(row.emotion || "neutral");
+      tr.innerHTML = `
+        <td><input data-i="${i}" data-k="person" value="${esc(row.person||"")}" oninput="onDialogCellChange(this)" placeholder="${_lang==="zh"?"旁白/人物":"Narrator/Character"}"></td>
+        <td><select data-i="${i}" data-k="voice" onchange="onDialogCellChange(this)">${baseVoiceOptionsHtml(row.voice)}</select></td>
+        <td><select data-i="${i}" data-k="emotion" onchange="onDialogCellChange(this)">${emotionOptionsHtml(row.emotion)}</select></td>
+        <td><textarea data-i="${i}" data-k="text" oninput="onDialogCellChange(this)" placeholder="${t('ph_dialog_text')}">${esc(row.text||"")}</textarea></td>
+        <td class="dialog-time-cell" data-time="start">${esc(row.start_time||"")}</td>
+        <td class="dialog-time-cell" data-time="end">${esc(row.end_time||"")}</td>
+        <td><div class="dialog-row-actions"><button class="btn" style="padding:3px 6px" onclick="insertDialogRow(${i+1})">+</button><button class="btn" style="padding:3px 6px" onclick="removeDialogRow(${i})">×</button></div></td>`;
+    } else {
+      tr.innerHTML = `
+        <td><select data-i="${i}" data-k="speaker" onchange="onDialogCellChange(this)">${speakerOptionsHtml(row.speaker)}</select></td>
+        <td><input data-i="${i}" data-k="instruction" value="${esc(row.instruction||"")}" oninput="onDialogCellChange(this)" placeholder="${t('ph_instruction')}"></td>
+        <td colspan="2"><textarea data-i="${i}" data-k="text" oninput="onDialogCellChange(this)" placeholder="${t('ph_dialog_text')}">${esc(row.text||"")}</textarea></td>
+        <td class="dialog-time-cell" data-time="start">${esc(row.start_time||"")}</td>
+        <td class="dialog-time-cell" data-time="end">${esc(row.end_time||"")}</td>
+        <td><div class="dialog-row-actions"><button class="btn" style="padding:3px 6px" onclick="insertDialogRow(${i+1})">+</button><button class="btn" style="padding:3px 6px" onclick="removeDialogRow(${i})">×</button></div></td>`;
+    }
     body.appendChild(tr);
   });
 }
@@ -2232,33 +3270,123 @@ function onDialogCellChange(el) {
   const i = Number(el.dataset.i); const k = el.dataset.k;
   if (!_dialogRows[i]) return;
   _dialogRows[i][k] = el.value;
-  if (k === "text" || k === "speaker" || k === "instruction") {
+  if (k === "emotion") _dialogRows[i][k] = normalizeDialogEmotion(el.value);
+  if (["text","speaker","instruction","person","voice","emotion"].includes(k)) {
     _dialogRows[i].start_ms = null; _dialogRows[i].end_ms = null;
     _dialogRows[i].start_time = ""; _dialogRows[i].end_time = "";
+    _dialogRows[i]._bad_audio = false; _dialogRows[i]._bad_audio_note = "";
   }
   onTextInput();
   updateSynthBtn();
 }
+function _defaultSpeaker() {
+  if (isBaseRepo(currentRepoValue())) return baseVoiceChoices()[0] || "";
+  return (_selectedVoice || "serena").replace(/^__clone__/, "");
+}
 function addDialogRow() { insertDialogRow(_dialogRows.length); }
 function insertDialogRow(idx) {
-  _dialogRows.splice(idx, 0, {speaker:_selectedVoice || "serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""});
+  const row = isBaseRepo(currentRepoValue())
+    ? {person:"", voice:_defaultSpeaker(), emotion:"neutral", speaker:"", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}
+    : {speaker:_defaultSpeaker(), instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""};
+  _dialogRows.splice(idx, 0, row);
   renderDialogTable(); onTextInput(); updateSynthBtn();
 }
 function removeDialogRow(idx) {
-  if (_dialogRows.length <= 1) _dialogRows = [{speaker:_selectedVoice || "serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
-  else _dialogRows.splice(idx, 1);
+  if (_dialogRows.length <= 1) {
+    _dialogRows = isBaseRepo(currentRepoValue())
+      ? [{person:"旁白", voice:_defaultSpeaker(), emotion:"neutral", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}]
+      : [{speaker:_defaultSpeaker(), instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
+  } else _dialogRows.splice(idx, 1);
   renderDialogTable(); onTextInput(); updateSynthBtn();
 }
 function getDialogRowsForSubmit() {
-  return (_dialogRows || []).map(r => ({
-    speaker: String(r.speaker || "").trim(),
-    instruction: String(r.instruction || "").trim(),
-    text: String(r.text || "").trim(),
-    start_ms: Number.isFinite(Number(r.start_ms)) ? Number(r.start_ms) : null,
-    end_ms: Number.isFinite(Number(r.end_ms)) ? Number(r.end_ms) : null,
-    start_time: String(r.start_time || ""),
-    end_time: String(r.end_time || ""),
-  })).filter(r => r.text);
+  return (_dialogRows || []).map(r => {
+    const isBase = isBaseRepo(currentRepoValue());
+    const person = String(r.person || r.speaker || "").trim();
+    const voice = String(r.voice || r.speaker || "").trim();
+    const emotion = normalizeDialogEmotion(r.emotion || "neutral");
+    return {
+      person,
+      voice,
+      emotion,
+      emotion_label: dialogEmotionLabelById(emotion),
+      speaker: isBase ? resolveBaseDialogSpeaker({voice, emotion, speaker:r.speaker}) : String(r.speaker || "").trim(),
+      instruction: isBase ? "" : String(r.instruction || "").trim(),
+      text: String(r.text || "").trim(),
+      start_ms: Number.isFinite(Number(r.start_ms)) ? Number(r.start_ms) : null,
+      end_ms: Number.isFinite(Number(r.end_ms)) ? Number(r.end_ms) : null,
+      start_time: String(r.start_time || ""),
+      end_time: String(r.end_time || ""),
+    };
+  }).filter(r => r.text);
+}
+function csvEscape(v){
+  const s = String(v ?? "");
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function buildBaseDialogCsv(rows){
+  const out = [["人物","音色","情绪","文字内容"]];
+  (rows || _dialogRows || []).forEach(r => {
+    if (!String(r.text||"").trim()) return;
+    const emo = dialogEmotionLabelById(normalizeDialogEmotion(r.emotion || "neutral"));
+    out.push([r.person || r.speaker || "", r.voice || "", emo, r.text || ""]);
+  });
+  return out.map(r => r.map(csvEscape).join(",")).join("\n");
+}
+async function downloadTextFile(filename, content, mime="text/csv;charset=utf-8"){
+  // pywebview may render blob/data downloads inside the app window instead of writing
+  // to disk.  Reuse the existing backend save path used by subtitle/session exports.
+  const text = String(content ?? "");
+  const finalContent = /csv/i.test(mime) && !text.startsWith("\uFEFF") ? "\uFEFF" + text : text;
+  return await saveTextToOutputDir(filename, finalContent, _lang==="zh"?"已保存":"Saved");
+}
+async function downloadCurrentDialogCsv(){
+  if (isBaseRepo(currentRepoValue())) {
+    await downloadTextFile("tts_base_dialog_resolved.csv", buildBaseDialogCsv(_dialogRows));
+  } else {
+    const out = [["speaker","control_instruction","text"]];
+    (_dialogRows||[]).forEach(r => { if (String(r.text||"").trim()) out.push([r.speaker||"", r.instruction||"", r.text||""]); });
+    await downloadTextFile("tts_dialog.csv", out.map(r => r.map(csvEscape).join(",")).join("\n"));
+  }
+}
+async function ensureBaseCsvVoiceMapping(rows){
+  await syncClonedVoicesFromServer(false);
+  mergeSavedClonesIntoVoiceList();
+  const choices = baseVoiceChoices();
+  if (!choices.length) {
+    showToast(_lang==="zh"?"请先在克隆/锚定界面创建 Base 可用音色":"Please create cloned/anchored voices first", "err");
+    return rows;
+  }
+  const persons = Array.from(new Set(rows.map(r => String(r.person||"").trim()).filter(Boolean)));
+  const needPersons = persons.filter(p => rows.some(r => String(r.person||"").trim() === p && !String(r.voice||"").trim()));
+  if (!needPersons.length) return rows;
+  const existingMap = {};
+  persons.forEach(p => {
+    const found = rows.find(r => String(r.person||"").trim() === p && String(r.voice||"").trim());
+    if (found) existingMap[p] = String(found.voice).trim();
+  });
+  const personChoices = {};
+  needPersons.forEach(p => { personChoices[p] = filterVoiceChoicesForPerson(p, choices, rows); });
+  const mapping = await htmlVoiceMapModal(needPersons, choices, existingMap, personChoices);
+  if (!mapping) {
+    showToast(_lang==="zh"?"已取消音色补全，可稍后在表格中手动选择":"Voice mapping cancelled; you can select voices in the table later", "err");
+    renderDialogTable();
+    return rows;
+  }
+  let changed = false;
+  rows.forEach(r => {
+    const p = String(r.person||"").trim();
+    if (p && !String(r.voice||"").trim() && mapping[p]) {
+      r.voice = mapping[p];
+      changed = true;
+    }
+  });
+  if (changed) {
+    renderDialogTable();
+    const ok = await htmlConfirm(_lang==="zh"?"已根据人物统一补全音色。是否立即保存修正后的 CSV？":"Voices were filled by character. Save the resolved CSV now?", _lang==="zh"?"保存":"Save", _lang==="zh"?"稍后":"Later");
+    if (ok) await downloadTextFile("tts_base_dialog_resolved.csv", buildBaseDialogCsv(rows));
+  }
+  return rows;
 }
 function updateDialogRowTimeFromProgress(msg) {
   const ri = Number(msg.row_index);
@@ -2286,7 +3414,15 @@ function updateDialogRowTimeFromProgress(msg) {
   }
 }
 function resetDialogRowTimes() {
-  (_dialogRows || []).forEach(r => { r.start_ms = null; r.end_ms = null; r.start_time = ""; r.end_time = ""; r._active = false; });
+  (_dialogRows || []).forEach(r => { r.start_ms = null; r.end_ms = null; r.start_time = ""; r.end_time = ""; r._active = false; r._bad_audio = false; r._bad_audio_note = ""; });
+}
+function markDialogRowBadAudio(rowIndex, note) {
+  const ri = Number(rowIndex);
+  if (!Number.isInteger(ri) || !_dialogRows[ri]) return;
+  _dialogRows[ri]._bad_audio = true;
+  _dialogRows[ri]._bad_audio_note = note || (_lang === "zh" ? "该行多次生成异常，已替换为短静音" : "Repeated bad audio; replaced by short silence");
+  const tr = document.querySelector(`#DIALOG_TBODY tr[data-row-index="${ri}"]`);
+  if (tr) { tr.classList.add("dialog-row-bad"); tr.title = _dialogRows[ri]._bad_audio_note; }
 }
 function highlightDialogRow(rowIndex) {
   const ri = Number(rowIndex);
@@ -2327,7 +3463,7 @@ function parseCsvText(csv) {
   return rows.filter(r => r.some(x => String(x||"").trim() !== ""));
 }
 function chooseDialogCsv() {
-  if (!isCustomVoiceRepo(currentRepoValue())) { showToast(_lang==="zh"?"CSV 对话模式仅适用于 CustomVoice 模型":"CSV dialog mode requires a CustomVoice model", "err"); return; }
+  if (!isDialogCapableRepo(currentRepoValue())) { showToast(_lang==="zh"?"CSV 对话模式仅适用于 CustomVoice 或 Base 模型":"CSV dialog mode requires a CustomVoice or Base model", "err"); return; }
   const inp = document.getElementById("DIALOG_CSV_INPUT");
   if (inp) { inp.value = ""; inp.click(); }
 }
@@ -2339,14 +3475,33 @@ async function onDialogCsvSelected(input) {
   let rows = parseCsvText(csv);
   if (!rows.length) { showToast(_lang==="zh"?"CSV 内容为空":"CSV is empty", "err"); return; }
   const first = rows[0].map(x => String(x||"").trim().toLowerCase());
-  if (first[0] === "speaker" || first[0] === "发言人") rows = rows.slice(1);
-  _dialogRows = rows.map(r => ({
-    speaker: String(r[0] || "").trim() || "serena",
-    instruction: String(r[1] || "").trim(),
-    text: String(r[2] || "").trim(),
-    start_ms: null, end_ms: null, start_time: "", end_time: "",
-  })).filter(r => r.text);
-  if (!_dialogRows.length) _dialogRows = [{speaker:"serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
+  const isHeader = ["speaker","发言人","人物","character","person"].includes(first[0]);
+  if (isHeader) rows = rows.slice(1);
+
+  if (isBaseRepo(currentRepoValue())) {
+    _dialogRows = rows.map(r => ({
+      person: String(r[0] || "").trim() || "旁白",
+      voice: String(r[1] || "").trim(),
+      emotion: normalizeDialogEmotion(r[2] || "neutral"),
+      text: String(r[3] || r[2] || "").trim(),
+      speaker: "",
+      instruction: "",
+      start_ms: null, end_ms: null, start_time: "", end_time: "",
+    })).filter(r => r.text);
+    await ensureBaseCsvVoiceMapping(_dialogRows);
+  } else {
+    _dialogRows = rows.map(r => ({
+      speaker: String(r[0] || "").trim() || "serena",
+      instruction: String(r[1] || "").trim(),
+      text: String(r[2] || "").trim(),
+      start_ms: null, end_ms: null, start_time: "", end_time: "",
+    })).filter(r => r.text);
+  }
+  if (!_dialogRows.length) {
+    _dialogRows = isBaseRepo(currentRepoValue())
+      ? [{person:"旁白", voice:baseVoiceChoices()[0] || "", emotion:"neutral", text:"", speaker:"", instruction:"", start_ms:null, end_ms:null, start_time:"", end_time:""}]
+      : [{speaker:"serena", instruction:"", text:"", start_ms:null, end_ms:null, start_time:"", end_time:""}];
+  }
   setInputMode("dialog");
   showToast(`${_lang==="zh"?"已加载":"Loaded"} ${_dialogRows.length} ${t("unit_rows")}`, "ok");
 }
@@ -2359,7 +3514,7 @@ async function startSynthesis() {
   const dialogRows = _inputMode === "dialog" ? getDialogRowsForSubmit() : [];
   const text = _inputMode === "dialog" ? dialogPlainText() : document.getElementById("TEXT_EDITOR").value.trim();
   if (!text && !dialogRows.length) {
-    showToast(_inputMode === "dialog" ? (_lang==="zh"?"三列表格中没有可合成文本":"No text to synthesize in dialog table") : (_lang==="zh"?"请先输入文本":"Please enter some text"), "err");
+    showToast(_inputMode === "dialog" ? (_lang==="zh"?"CSV 表格中没有可合成文本":"No text to synthesize in dialog table") : (_lang==="zh"?"请先输入文本":"Please enter some text"), "err");
     updateSynthBtn();
     return;
   }
@@ -2377,8 +3532,8 @@ async function startSynthesis() {
   if (!_workerReady) {
     await syncStatusFromServer();
   }
-  if (_inputMode === "dialog" && !isCustomVoiceRepo(currentRepoValue())) {
-    showToast(_lang==="zh"?"三列表格合成仅适用于 CustomVoice 模型":"Dialog synthesis requires a CustomVoice model", "err");
+  if (_inputMode === "dialog" && !isDialogCapableRepo(currentRepoValue())) {
+    showToast(_lang==="zh"?"CSV 表格合成仅适用于 CustomVoice 或 Base 模型":"Dialog synthesis requires a CustomVoice or Base model", "err");
     return;
   }
 
@@ -2433,10 +3588,13 @@ async function startSynthesis() {
     let pollCount = 0;
     const pollTimer = setInterval(async () => {
       pollCount++;
-      if (_synthDone || pollCount > 120) { clearInterval(pollTimer); return; }
+      // Long books may take far more than four minutes. Keep polling as a
+      // fallback in case WebSocket progress messages are delayed or dropped.
+      if (_synthDone || pollCount > 14400) { clearInterval(pollTimer); return; }
       try {
         const sr = await fetch("/api/status");
         const sj = await sr.json();
+        if (sj.progress) applyPolledTtsProgress(sj.progress);
         if (sj.status === "done" && sj.output_path && !_synthDone) {
           clearInterval(pollTimer);
           _synthDone = true;
@@ -2444,7 +3602,7 @@ async function startSynthesis() {
           showDoneUI(_currentOutputPath, 0);
         }
       } catch(e) {}
-    }, 2000);
+    }, 1000);
   } catch(e) {
     showToast((_lang==="zh"?"请求失败: ":"Request failed: ") + e, "err");
     setSynthesizing(false);
@@ -3034,16 +4192,21 @@ function fmtTime(s) {
 
 function highlightCurrentPlaybackChunk(ms) {
   if (!_timestamps || !_timestamps.length) return;
-  let hit = _timestamps.find(t => ms >= (Number(t.audio_start_ms)||0) && ms < (Number(t.audio_end_ms)||0));
+  const now = Math.max(0, Number(ms) || 0);
+  // 轻微容差用于抵消浏览器 currentTime 取样与 WAV 帧边界的误差；
+  // 时间戳本身来自后端最终裁剪/合并后的 done.timestamps。
+  const eps = 35;
+  let hit = _timestamps.find(t => now + eps >= (Number(t.audio_start_ms)||0) && now < (Number(t.audio_end_ms)||0) + eps);
   if (!hit) {
     let best = null, bestDist = Infinity;
     for (const t of _timestamps) {
       const s = Number(t.audio_start_ms) || 0;
       const e = Number(t.audio_end_ms) || s;
-      const d = ms < s ? s - ms : (ms > e ? ms - e : 0);
+      const d = now < s ? s - now : (now > e ? now - e : 0);
       if (d < bestDist) { bestDist = d; best = t; }
     }
-    hit = bestDist <= 500 ? best : null;
+    // 段间人工静音较短时，继续显示最近一段；较长空隙则不强行跳到无关行。
+    hit = bestDist <= 700 ? best : null;
   }
   if (hit) {
     if (_inputMode === "dialog" && hit.row_index !== undefined && hit.row_index !== null) {
@@ -3071,6 +4234,7 @@ const _MODEL_DESC_KEYS = {
 function updateModelDesc(repo) {
   const el = document.getElementById("MODEL_DESC");
   if (el) el.textContent = _MODEL_DESC_KEYS[repo] ? t(_MODEL_DESC_KEYS[repo]) : "";
+  if (typeof refreshClonePaneMode === "function") refreshClonePaneMode();
 }
 // ── Custom model dropdown ─────────────────────────────────────
 // baseLabel: 固定的英文型号部分；tagKey: i18n key for the parenthetical tag (or null)
@@ -3213,6 +4377,7 @@ function onModelSelectChange(val) {
     updateModelDesc(val);
   }
   refreshDialogAvailability();
+  if (typeof refreshClonePaneMode === "function") refreshClonePaneMode();
 }
 function loadModel() {
   const sel = document.getElementById("MODEL_REPO_SELECT");
@@ -3257,8 +4422,6 @@ function onCloneAudioSelected(inp) {
 async function submitClone() {
   if (!_cloneAudioFile && !_cloneAudioData) { showToast(_lang==="zh"?"请先选择参考音频":"Please select a reference audio file", "err"); return; }
   const name    = document.getElementById("CLONE_NAME").value.trim() || t("ph_clone_name");
-  const base    = document.getElementById("CLONE_BASE_VOICE").value;
-  const refText = document.getElementById("CLONE_REF_TEXT").value.trim();
 
   showToast(_lang==="zh"?"正在读取音频…":"Reading audio…");
   try {
@@ -3277,8 +4440,7 @@ async function submitClone() {
     }
 
     showToast(_lang==="zh"?"正在提交克隆…":"Submitting clone…");
-    const body = { name, base_voice: base, audio_b64: b64, ext };
-    if (refText) body.ref_text = refText;
+    const body = { name, audio_b64: b64, ext };
 
     const r = await fetch("/api/clone_voice", {
       method: "POST",
@@ -3289,6 +4451,118 @@ async function submitClone() {
     if (!j.ok) showToast(t("toast_clone_err") + (j.error||""), "err");
   } catch(e) {
     showToast((_lang==="zh"?"克隆请求失败: ":"Clone request failed: ") + e, "err");
+  }
+}
+
+async function submitRoleAnchor() {
+  const name = (document.getElementById("ANCHOR_NAME")?.value || "").trim() || t("ph_anchor_name");
+  const speaker = (document.getElementById("ANCHOR_SPEAKER")?.value || _selectedVoice || "serena").trim();
+  const emotion = (document.getElementById("ANCHOR_EMOTION")?.value || "neutral").trim();
+  const preset = anchorPresetById(emotion);
+  const instruction = (document.getElementById("ANCHOR_INSTRUCTION")?.value || "").trim() || preset.instruction || t("ph_anchor_instruction");
+  const sampleText = (document.getElementById("ANCHOR_SAMPLE_TEXT")?.value || "").trim() || t("ph_anchor_sample_text");
+  if (!isCustomVoiceRepo(currentRepoValue()) && !String(currentRepoValue() || "").toLowerCase().includes("voicedesign")) {
+    showToast(_lang==="zh" ? "请先加载 CustomVoice 或 VoiceDesign 模型来生成锚点样本" : "Load a CustomVoice or VoiceDesign model first to create an anchor sample", "err");
+    return;
+  }
+  showToast(t("toast_anchor_creating"), "warn");
+  try {
+    const body = {name, speaker, emotion, emotion_label: (_lang==="zh" ? preset.zh : preset.en), instruction, sample_text: sampleText, speed: _speed, advanced: collectAdvParams()};
+    const r = await fetch("/api/create_role_anchor", {
+      method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || r.statusText || "failed");
+    if (!_settings.cloned_voices) _settings.cloned_voices = {};
+    _settings.cloned_voices[name] = {...(_settings.cloned_voices[name] || {}), ...(j.meta || {}), anchor:true, source_speaker:speaker, emotion, emotion_label: (_lang==="zh" ? preset.zh : preset.en), instruction};
+    renderClonedList();
+    showToast(t("toast_anchor_done") + name, "ok");
+  } catch(e) {
+    showToast(t("toast_anchor_err") + (e && e.message ? e.message : e), "err");
+  }
+}
+
+
+async function createRoleAnchorRequest({name, speaker, preset}){
+  const instruction = preset.instruction || t("ph_anchor_instruction");
+  const sampleText = preset.sample || t("ph_anchor_sample_text");
+  const emotionLabel = (_lang === "zh" ? preset.zh : preset.en);
+  const body = {name, speaker, emotion:preset.id, emotion_label: emotionLabel, instruction, sample_text: sampleText, speed: _speed, advanced: collectAdvParams()};
+  const r = await fetch("/api/create_role_anchor", {
+    method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.ok) throw new Error(j.error || r.statusText || "failed");
+  if (!_settings.cloned_voices) _settings.cloned_voices = {};
+  _settings.cloned_voices[name] = {...(_settings.cloned_voices[name] || {}), ...(j.meta || {}), anchor:true, source_speaker:speaker, emotion:preset.id, emotion_label: emotionLabel, instruction};
+  renderClonedList();
+  return j;
+}
+
+async function submitAllBuiltInAnchors(){
+  if (!isCustomVoiceRepo(currentRepoValue()) && !String(currentRepoValue() || "").toLowerCase().includes("voicedesign")) {
+    showToast(_lang==="zh" ? "请先加载 CustomVoice 或 VoiceDesign 模型来批量生成锚点" : "Load a CustomVoice or VoiceDesign model first to batch-create anchors", "err");
+    return;
+  }
+  await syncClonedVoicesFromServer(false);
+  renderClonedList();
+  const speakers = getAnchorSpeakerItems();
+  const presets = ANCHOR_EMOTION_PRESETS;
+  if (!speakers.length || !presets.length) return;
+  const total = speakers.length * presets.length;
+  const ok = await htmlConfirm(t("anchor_bulk_confirm"), _lang==="zh"?"开始":"Start", _lang==="zh"?"取消":"Cancel");
+  if (!ok) return;
+  let created = 0, skipped = 0, failed = 0, done = 0;
+  for (const sp of speakers) {
+    for (const preset of presets) {
+      const name = `${sp.name || sp.id}-${anchorEmotionLabel(preset)}`;
+      if ((_settings.cloned_voices || {})[name]) {
+        skipped++; done++;
+        continue;
+      }
+      showToast(`${t("anchor_bulk_progress")} ${done+1}/${total}: ${name}`, "warn");
+      try {
+        await createRoleAnchorRequest({name, speaker:sp.id, preset});
+        created++;
+      } catch(e) {
+        failed++;
+        console.warn("batch anchor failed", name, e);
+        showToast(`${t("toast_anchor_err")}${name}: ${e && e.message ? e.message : e}`, "err");
+      }
+      done++;
+      renderClonedList();
+      // Let UI breathe between long synthesis calls.
+      await new Promise(r => setTimeout(r, 80));
+    }
+  }
+  renderClonedList();
+  showToast(`${t("anchor_bulk_done")}：${created} / ${total}，${t("anchor_bulk_skipped")} ${skipped}${failed ? `，failed ${failed}` : ""}`, failed ? "warn" : "ok");
+}
+
+async function clearAllAnchorVoices(){
+  const anchors = Object.entries((_settings && _settings.cloned_voices) || {}).filter(([name, meta]) => meta && meta.anchor);
+  if (!anchors.length) {
+    showToast(t("anchor_clear_none"), "warn");
+    return;
+  }
+  const ok = await htmlConfirm(t("anchor_clear_confirm"), _lang==="zh"?"清空":"Clear", _lang==="zh"?"取消":"Cancel");
+  if (!ok) return;
+  try {
+    const r = await fetch("/api/clear_anchor_voices", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({})});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || r.statusText || "failed");
+    const names = j.names || anchors.map(([name]) => name);
+    if (_settings && _settings.cloned_voices) names.forEach(name => delete _settings.cloned_voices[name]);
+    const gone = new Set(names.map(name => `__clone__${name}`));
+    _voices = _voices.filter(v => !gone.has(v.id));
+    if (gone.has(_selectedVoice)) _selectedVoice = _voices.find(v => v.gender !== "clone")?.id || "";
+    renderVoiceGrid();
+    renderClonedList();
+    refreshDialogAvailability();
+    if (_inputMode === "dialog") renderDialogTable();
+    showToast(`${t("anchor_clear_done")}：${j.count ?? names.length}`, "ok");
+  } catch(e) {
+    showToast((_lang==="zh"?"清空失败：":"Clear failed: ") + (e && e.message ? e.message : e), "err");
   }
 }
 
@@ -3304,11 +4578,13 @@ async function exportClone(name) {
     if (!data.audio_b64) throw new Error(_lang==="zh"?"克隆音色音频数据为空，可能需要重新克隆或重新导入":"Clone audio data is empty — please re-clone or re-import");
     const payload = {
       file_type: "ttsc",
-      version: "0.2",
+      version: "0.4x",
       saved_at: new Date().toISOString(),
       name: data.name || name,
       base_voice: data.base_voice || "",
-      ref_text: data.ref_text || "",
+      anchor: !!data.anchor,
+      source_speaker: data.source_speaker || "",
+      instruction: data.instruction || "",
       audio_b64: data.audio_b64,
       ext: data.ext || ".wav"
     };
@@ -3322,8 +4598,8 @@ async function importClone(file) {
   if (!file) return;
   try {
     const cloneName = (file && file.name ? file.name : "clone.ttsc");
-    if (!/\.(ttsc|json)$/i.test(cloneName)) {
-      showToast(_lang==="zh"?"请选择 .ttsc 或 .json 克隆音色文件":"Please select a .ttsc or .json clone voice file", "err");
+    if (!/\.(ttsc|ttscx)$/i.test(cloneName)) {
+      showToast(_lang==="zh"?"请选择 .ttsc 克隆音色文件":"Please select a .ttsc clone voice file", "err");
       return;
     }
     const text = await file.text();
@@ -3346,6 +4622,85 @@ async function importClone(file) {
   }
 }
 
+// ── Anchor Pack (.ttscx) export / import ─────────────────
+
+async function exportAnchorPack() {
+  showToast(t("toast_pack_exporting"), "warn");
+  try {
+    const r = await fetch("/api/export_anchor_pack", {method:"GET", cache:"no-store"});
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      throw new Error(j.error || r.statusText || "export failed");
+    }
+    // 取服务端建议的文件名
+    const cd = r.headers.get("Content-Disposition") || "";
+    const fnMatch = cd.match(/filename="([^"]+)"/);
+    const filename = fnMatch ? fnMatch[1] : ("anchor_pack.ttscx");
+    const text = await r.text();
+    await saveTextToOutputDir(filename, text, t("toast_pack_exported"));
+  } catch(e) {
+    showToast(t("toast_pack_err") + " " + (e && e.message ? e.message : e), "err");
+  }
+}
+
+async function importAnchorPack(file) {
+  if (!file) return;
+  try {
+    const fname = file.name || file.path || "pack.ttscx";
+    if (!/\.(ttscx)$/i.test(fname)) {
+      showToast(_lang==="zh"?"请选择 .ttscx 锚定包文件":"Please select a .ttscx anchor pack file", "err");
+      return;
+    }
+    showToast(t("toast_pack_importing"), "warn");
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if (data.file_type !== "ttscx") {
+      showToast(_lang==="zh"?"不是有效的 .ttscx 文件":"Not a valid .ttscx file", "err");
+      return;
+    }
+    const r = await fetch("/api/import_anchor_pack", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(data),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || r.status);
+    const msg = _lang==="zh"
+      ? `导入完成：新增 ${j.imported}，跳过 ${j.skipped}，失败 ${j.failed.length}`
+      : `Import done: +${j.imported} new, ${j.skipped} skipped, ${j.failed.length} failed`;
+    showToast(msg, j.failed.length ? "warn" : "ok");
+    // 同步设置并刷新列表
+    await syncClonedVoicesFromServer(false);
+    mergeSavedClonesIntoVoiceList();
+    renderVoiceGrid();
+    renderClonedList();
+    if (_inputMode === "dialog") renderDialogTable();
+    wsSend({type:"get_voices"});
+  } catch(e) {
+    showToast(t("toast_pack_err") + " " + (e && e.message ? e.message : e), "err");
+  }
+}
+
+async function chooseAnchorPackFile() {
+  // pywebview 桌面端：走 path-only 路径，服务端直接读磁盘，避免大文件 bridge 传输卡死
+  if (hasPywebviewApi("open_anchor_pack_path")) {
+    try {
+      const result = await window.pywebview.api.open_anchor_pack_path();
+      if (!result || !result.ok) {
+        if (!result || !result.cancelled)
+          showToast((_lang==="zh"?"打开失败: ":"Open failed: ") + ((result && result.error) || "unknown error"), "err");
+        return;
+      }
+      await _importAnchorPackFromPath(result.path || "");
+      return;
+    } catch(e) {
+      showToast((_lang==="zh"?"打开失败: ":"Open failed: ") + e, "err");
+      return;
+    }
+  }
+  openBrowserFileInput("ANCHOR_PACK_INPUT");
+}
+
 // ── Tabs ─────────────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll(".sb-tab").forEach((t,i) => {
@@ -3354,6 +4709,11 @@ function switchTab(name) {
   });
   document.querySelectorAll(".sb-pane").forEach(p => p.classList.remove("active"));
   document.getElementById("PANE_" + name.toUpperCase()).classList.add("active");
+  if (name === "clone") {
+    if (typeof renderClonedList === "function") renderClonedList();
+    if (typeof syncClonedVoicesFromServer === "function") syncClonedVoicesFromServer(true);
+    if (typeof refreshClonePaneMode === "function") refreshClonePaneMode();
+  }
 }
 
 // ── Theme ─────────────────────────────────────────────────

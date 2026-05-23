@@ -21,7 +21,7 @@ from pathlib import Path
 from setuptools import setup
 
 APP_NAME = "Lancer1911 TTS Offline"
-VERSION = "0.2q"
+VERSION = "0.5a"
 BUNDLE_ID = "com.lancer1911.ttsoffline"
 
 ROOT = Path(__file__).resolve().parent

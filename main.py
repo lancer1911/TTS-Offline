@@ -1,5 +1,5 @@
 """
-Lancer1911 TTS Offline v0.2vu — 主入口
+Lancer1911 TTS Offline v0.5a — 主入口
 基于 MLX Qwen3-TTS，支持 docx/txt/md/srt/pdf/epub 等文本格式转语音
 """
 import sys, threading, time, urllib.request, queue, os
@@ -40,7 +40,7 @@ def _start_server(dialog_q):
     from server import create_app
     import server as _srv
     _srv._DIALOG_Q = dialog_q
-    uvicorn.run(create_app(), host="127.0.0.1", port=PORT, log_level="warning")
+    uvicorn.run(create_app(), host="127.0.0.1", port=PORT, log_level="warning", ws_ping_interval=None)
 
 
 class FileDialogAPI:
@@ -110,13 +110,8 @@ class FileDialogAPI:
             result = win.create_file_dialog(
                 _dialog_kind(webview, "OPEN"),
                 file_types=(
-                    "支持的文本/文档 (*.txt;*.md;*.srt;*.docx;*.pdf;*.epub)",
-                    "TXT 文本 (*.txt)",
-                    "Markdown (*.md)",
-                    "SRT 字幕 (*.srt)",
-                    "Word 文档 (*.docx)",
-                    "PDF 文档 (*.pdf)",
-                    "EPUB 电子书 (*.epub)",
+                    "TTS clone files (*.ttsc;*.ttscx)",
+                    "All files (*)",
                 ),
                 allow_multiple=False,
             )
@@ -142,10 +137,8 @@ class FileDialogAPI:
             result = win.create_file_dialog(
                 _dialog_kind(webview, "OPEN"),
                 file_types=(
-                    "TTS 会话文件 (*.ttso;*.json)",
-                    "TTSO 文件 (*.ttso)",
-                    "JSON 文件 (*.json)",
-                    "所有文件 (*.*)",
+                    "TTS clone files (*.ttsc;*.ttscx)",
+                    "All files (*)",
                 ),
                 allow_multiple=False,
             )
@@ -162,7 +155,7 @@ class FileDialogAPI:
             return {"ok": False, "error": str(e)}
 
     def open_clone_file(self) -> dict:
-        """打开 .ttsc 克隆音色文件；兼容旧 JSON 克隆包。"""
+        """打开 .ttsc / .ttscx 克隆音色文件。"""
         try:
             import webview
             win = self._win
@@ -171,10 +164,8 @@ class FileDialogAPI:
             result = win.create_file_dialog(
                 _dialog_kind(webview, "OPEN"),
                 file_types=(
-                    "TTS 克隆音色文件 (*.ttsc;*.json)",
-                    "TTSC 文件 (*.ttsc)",
-                    "JSON 文件 (*.json)",
-                    "所有文件 (*.*)",
+                    "TTS clone files (*.ttsc;*.ttscx)",
+                    "All files (*)",
                 ),
                 allow_multiple=False,
             )
@@ -184,9 +175,66 @@ class FileDialogAPI:
             if not path:
                 return {"ok": False, "cancelled": True}
             ext = os.path.splitext(str(path))[1].lower()
-            if ext not in {".ttsc", ".json"}:
-                return {"ok": False, "error": "请选择 .ttsc 或 .json 克隆音色文件"}
+            if ext not in {".ttsc", ".ttscx"}:
+                return {"ok": False, "error": "请选择 .ttsc 或 .ttscx 文件"}
             return self._read_file_text(path)
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def open_anchor_pack_file(self) -> dict:
+        """打开 .ttscx 锚定音色包文件；兼容 JSON 格式。"""
+        try:
+            import webview
+            win = self._win
+            if win is None:
+                return {"ok": False, "error": "no window"}
+            result = win.create_file_dialog(
+                _dialog_kind(webview, "OPEN"),
+                file_types=(
+                    "TTS clone files (*.ttsc;*.ttscx)",
+                    "All files (*)",
+                ),
+                allow_multiple=False,
+            )
+            if not result:
+                return {"ok": False, "cancelled": True}
+            path = result[0] if isinstance(result, (list, tuple)) else result
+            if not path:
+                return {"ok": False, "cancelled": True}
+            ext = os.path.splitext(str(path))[1].lower()
+            if ext not in {".ttscx", ".json"}:
+                return {"ok": False, "error": "请选择 .ttscx 锚定包文件"}
+            return self._read_file_text(path)
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+
+    def open_anchor_pack_path(self) -> dict:
+        """打开 .ttscx 锚定包，只返回路径（不读内容）；供桌面端大文件导入使用。
+        前端拿到路径后调 /api/import_anchor_pack_from_path，由服务端直接从磁盘读取，
+        避免通过 pywebview JS bridge 传输数百 MB 数据导致卡死。
+        """
+        try:
+            import webview
+            win = self._win
+            if win is None:
+                return {"ok": False, "error": "no window"}
+            result = win.create_file_dialog(
+                _dialog_kind(webview, "OPEN"),
+                file_types=(
+                    "TTS clone files (*.ttsc;*.ttscx)",
+                    "All files (*)",
+                ),
+                allow_multiple=False,
+            )
+            if not result:
+                return {"ok": False, "cancelled": True}
+            path = result[0] if isinstance(result, (list, tuple)) else result
+            if not path:
+                return {"ok": False, "cancelled": True}
+            ext = os.path.splitext(str(path))[1].lower()
+            if ext not in {".ttscx", ".json"}:
+                return {"ok": False, "error": "请选择 .ttscx 锚定包文件"}
+            return {"ok": True, "path": str(path), "filename": os.path.basename(str(path))}
         except Exception as e:
             return {"ok": False, "error": str(e)}
 
@@ -204,7 +252,6 @@ class FileDialogAPI:
             result = win.create_file_dialog(
                 _dialog_kind(webview, "OPEN"),
                 file_types=(
-                    "音频文件 (*.wav;*.mp3;*.m4a;*.flac;*.ogg)",
                     "WAV 音频 (*.wav)",
                     "MP3 音频 (*.mp3)",
                     "M4A 音频 (*.m4a)",

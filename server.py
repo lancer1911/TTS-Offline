@@ -1,5 +1,5 @@
 """
-Lancer1911 TTS Offline v0.2q — FastAPI 后端
+Lancer1911 TTS Offline v0.5a — FastAPI 后端
 支持: docx / txt / md / srt / pdf / epub 文本提取 → 分段 TTS → WAV/MP3 输出
 """
 import asyncio, json, os, re, time, threading, tempfile, queue as _queue, uuid, hashlib, shutil, base64, mimetypes
@@ -59,20 +59,22 @@ DEFAULT_SETTINGS = {
     "cloned_voices":    {},
     # 高级
     "advanced_params": {
-        "temperature":   0.9,
-        "top_p":         0.9,
-        "top_k":         50,
+        "temperature":   0.20,   # 默认：稳定自然（与 preset_stable_bal 一致）
+        "top_p":         0.85,
+        "top_k":         20,
         "max_tokens":    4096,
         "pitch":         0,
-        "silence_gap_ms": 300,   # 段落间静音 ms
+        "silence_gap_ms": 400,   # 段落间静音 ms（有声书默认值）
         "fade_ms":        10,    # 淡入淡出 ms
+        "chunk_size":    100,    # 中文分段上限（字）
     },
     "advanced_presets": [],
     "debug_output":     False,
 }
 
 SETTINGS_FILE = Path.home() / ".tts_offline_settings.json"
-CLONE_DIR = Path.home() / ".tts_offline_clone_voices"
+CLONE_DIR     = Path.home() / ".tts_offline_clone_voices"
+CLONE_INIT_FILE = CLONE_DIR / "init.json"
 
 def _safe_clone_filename(name: str, ext: str = ".wav") -> str:
     base = re.sub(r'[\\/:*?"<>|\s]+', "_", str(name or "clone")).strip("._") or "clone"
@@ -80,12 +82,39 @@ def _safe_clone_filename(name: str, ext: str = ".wav") -> str:
     return f"{base}_{uuid.uuid4().hex[:8]}{ext}"
 
 def _persist_clone_audio(src_path: str, name: str, ext: str = ".wav") -> str:
+    """将克隆参考音频持久化到 CLONE_DIR。
+
+    如果同名音色在 settings 中已有有效的 audio_path（文件存在且位于
+    CLONE_DIR 内），则原地覆盖该文件，避免每次加载 .ttsc/.ttscx 都生成
+    带随机 UUID 的新文件、造成磁盘堆积。
+    只有首次保存或文件丢失时才创建新文件名。
+    """
     CLONE_DIR.mkdir(parents=True, exist_ok=True)
     src = Path(src_path)
     suffix = src.suffix or ext or ".wav"
+
+    # 尝试复用 settings 中已记录的路径
+    existing_meta = (G.settings.get("cloned_voices") or {}).get(name)
+    if isinstance(existing_meta, dict):
+        existing_path = existing_meta.get("audio_path", "")
+        if existing_path:
+            ep = Path(existing_path)
+            try:
+                # 只复用位于 CLONE_DIR 内的文件（防止复用用户自定义路径）
+                if CLONE_DIR in ep.resolve().parents or ep.resolve().parent == CLONE_DIR.resolve():
+                    ep.write_bytes(src.read_bytes())
+                    print(f"[clone] reused existing audio file for '{name}': {ep}", flush=True)
+                    return str(ep)
+            except Exception as e:
+                print(f"[clone] could not reuse {existing_path}: {e}, creating new file", flush=True)
+
+    # 首次保存或文件丢失：创建新文件名
     dst = CLONE_DIR / _safe_clone_filename(name, suffix)
     dst.write_bytes(src.read_bytes())
     return str(dst)
+
+
+
 
 # 旧版本中可能保存的错误 repo 名，自动修正
 _LEGACY_WRONG_REPOS = {
@@ -111,12 +140,7 @@ def load_settings() -> dict:
 
 
 def save_settings(settings: dict) -> None:
-    """Persist user settings to ~/.tts_offline_settings.json.
-
-    v0.2p still called save_settings() from WebSocket/API handlers,
-    but the helper itself was accidentally missing, causing NameError and
-    closing the WebSocket when model voices were returned.
-    """
+    """Persist user settings to ~/.tts_offline_settings.json."""
     try:
         SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
         tmp = SETTINGS_FILE.with_suffix(SETTINGS_FILE.suffix + ".tmp")
@@ -124,6 +148,83 @@ def save_settings(settings: dict) -> None:
         tmp.replace(SETTINGS_FILE)
     except Exception as e:
         print(f"[settings] save failed: {e}", flush=True)
+
+def _sync_clone_init(settings: dict) -> None:
+    """把 settings['cloned_voices'] 同步写入 CLONE_DIR/init.json。
+
+    以 settings 为准直接写入，删除操作会正确反映到 init.json。
+    启动时由 _restore_from_clone_init() 负责从 init.json 补全 settings，
+    两者分工明确，不在写入时做合并。
+    """
+    try:
+        CLONE_DIR.mkdir(parents=True, exist_ok=True)
+        all_cv = settings.get("cloned_voices") or {}
+        cloned  = {k: v for k, v in all_cv.items()
+                   if isinstance(v, dict) and v.get("audio_path") and not v.get("anchor")}
+        anchors = {k: v for k, v in all_cv.items()
+                   if isinstance(v, dict) and v.get("audio_path") and v.get("anchor")}
+        payload = {"cloned_voices": cloned, "anchor_voices": anchors}
+        tmp = CLONE_INIT_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(CLONE_INIT_FILE)
+    except Exception as e:
+        print(f"[clone_init] sync failed: {e}", flush=True)
+
+
+def load_clone_init() -> dict:
+    """从 CLONE_DIR/init.json 读取克隆/锚定音色记录。
+
+    返回格式与 _sync_clone_init 写入的一致：
+    {"cloned_voices": {...}, "anchor_voices": {...}}
+    文件不存在或损坏时返回空字典，不影响启动。
+    """
+    try:
+        if CLONE_INIT_FILE.exists():
+            data = json.loads(CLONE_INIT_FILE.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data
+    except Exception as e:
+        print(f"[clone_init] load failed: {e}", flush=True)
+    return {"cloned_voices": {}, "anchor_voices": {}}
+
+
+def _restore_from_clone_init() -> None:
+    """启动时把 init.json 中的克隆/锚定音色合并回 G.settings['cloned_voices']。
+
+    init.json 采用只增不减策略，即使 settings.json 中的 cloned_voices 因意外
+    被清空，也能从 init.json 恢复。只补全缺失的条目，不覆盖 settings 中已有的值。
+    合并完成后把 settings 持久化，保证两份文件同步。
+    """
+    ci = load_clone_init()
+    all_from_init = {}
+    all_from_init.update(ci.get("cloned_voices") or {})
+    all_from_init.update(ci.get("anchor_voices") or {})
+    if not all_from_init:
+        return
+    cv = G.settings.setdefault("cloned_voices", {})
+    restored = 0
+    for name, meta in all_from_init.items():
+        if not isinstance(meta, dict) or not meta.get("audio_path"):
+            continue
+        if not Path(meta["audio_path"]).exists():
+            print(f"[clone_init] restore skip '{name}': audio file missing", flush=True)
+            continue
+        if name not in cv:
+            cv[name] = meta
+            restored += 1
+        elif not cv[name].get("audio_path") and meta.get("audio_path"):
+            cv[name]["audio_path"] = meta["audio_path"]
+            restored += 1
+    if restored:
+        print(f"[clone_init] restored {restored} entries from init.json into settings", flush=True)
+        try:
+            SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+            tmp = SETTINGS_FILE.with_suffix(SETTINGS_FILE.suffix + ".tmp")
+            tmp.write_text(json.dumps(G.settings, ensure_ascii=False, indent=2), encoding="utf-8")
+            tmp.replace(SETTINGS_FILE)
+        except Exception as e:
+            print(f"[clone_init] failed to persist restored settings: {e}", flush=True)
+
 
 def _get_output_dir() -> Path:
     """返回用户指定输出目录；为空或不可用时退回 Downloads。"""
@@ -220,22 +321,53 @@ class ModelWorker:
             if t == "ready":
                 G.worker_ready = msg.get("ok", False)
                 broadcast_sync({"type": "model_ready", "ok": G.worker_ready,
-                                 "error": msg.get("error", "")})
+                                 "error": msg.get("error", ""),
+                                 "clone_init": load_clone_init()})
                 if G.worker_ready:
                     _register_saved_clones_to_worker()
             elif t == "progress":
+                G.job_progress = {**msg, "type": "tts_progress"}
                 broadcast_sync({**msg, "type": "tts_progress"})
-                G.job_progress = msg
             elif t == "done":
-                G.job_status = "done" if msg.get("ok") else "error"
-                broadcast_sync({**msg, "type": "tts_done"})
+                if msg.get("ok") and msg.get("output_path"):
+                    op = str(msg.get("output_path") or "")
+                    try:
+                        exists = bool(op) and Path(op).expanduser().exists() and Path(op).expanduser().is_file() and Path(op).expanduser().stat().st_size > 44
+                    except Exception:
+                        exists = False
+                    if exists:
+                        G.job_status = "done"
+                        G.job_output_path = op
+                        broadcast_sync({**msg, "type": "tts_done", "output_path": op})
+                    else:
+                        G.job_status = "error"
+                        G.job_output_path = ""
+                        err = f"Output audio was reported as done but file is missing or empty: {op}"
+                        print(f"[listener] {err}", flush=True)
+                        broadcast_sync({**msg, "type": "tts_done", "ok": False, "error": err, "output_path": ""})
+                else:
+                    G.job_status = "error"
+                    G.job_output_path = ""
+                    broadcast_sync({**msg, "type": "tts_done", "ok": False})
             elif t == "voices":
                 with self._cb_lock:
                     cb = self._callbacks.pop(tid, None)
                 if cb:
                     cb(msg)
             elif t == "clone_done":
-                broadcast_sync({"type": "clone_done", **msg})
+                with self._cb_lock:
+                    cb = self._callbacks.pop(tid, None)
+                if cb:
+                    cb(msg)
+                else:
+                    broadcast_sync({"type": "clone_done", **msg})
+            elif t == "anchor_done":
+                with self._cb_lock:
+                    cb = self._callbacks.pop(tid, None)
+                if cb:
+                    cb(msg)
+                else:
+                    broadcast_sync({"type": "anchor_done", **msg})
             else:
                 with self._cb_lock:
                     cb = self._callbacks.pop(tid, None)
@@ -275,18 +407,36 @@ def _register_saved_clones_to_worker():
     """
     if not (G.worker and G.worker_ready):
         return
-    for name, clone in (G.settings.get("cloned_voices") or {}).items():
+    # Re-registering saved clone/anchor voices may involve dozens or hundreds of
+    # entries (for example 9 speakers × 12 emotions).  These are internal restore
+    # operations, not user-facing clone completions.  Consume their worker replies
+    # with callbacks so they do NOT broadcast clone_done messages, otherwise the
+    # browser receives a storm of clone_done/get_voices/voices messages and the
+    # synthesis progress UI can be starved at 2/142 even though the worker keeps
+    # generating audio normally.
+    entries = list((G.settings.get("cloned_voices") or {}).items())
+    print(f"[clone] restoring {len(entries)} saved clone/anchor voices to worker", flush=True)
+    for name, clone in entries:
         audio_path = clone.get("audio_path", "")
-        if not audio_path or not Path(audio_path).exists():
+        if not audio_path:
+            print(f"[clone] skip '{name}': no audio_path in settings", flush=True)
+            continue
+        if not Path(audio_path).exists():
+            # 音频文件丢失（可能被系统清理或路径变化）；打印警告但不崩溃。
+            # 前端仍可看到卡片，但合成时会报错提示用户重新生成。
+            print(f"[clone] skip '{name}': audio file missing at {audio_path}", flush=True)
             continue
         try:
+            def _silent_cb(msg, _name=name):
+                if not msg.get("ok"):
+                    print(f"[clone] silent restore skipped: {_name}: {msg.get('error','')}", flush=True)
+                else:
+                    print(f"[clone] restored: {_name}", flush=True)
             G.worker.send({
                 "type": "clone_voice",
                 "name": name,
                 "audio_path": audio_path,
-                "base_voice": clone.get("base_voice", ""),
-                "ref_text": clone.get("ref_text", ""),
-            })
+            }, callback=_silent_cb)
         except Exception as e:
             print(f"[clone] register saved clone failed: {name}: {e}", flush=True)
 
@@ -455,6 +605,12 @@ async def lifespan(app: FastAPI):
     _main_loop = asyncio.get_event_loop()
     _cleanup_ttso_files()
     G.settings = load_settings()
+    # 启动时将 init.json 里的克隆/锚定音色合并回 settings，
+    # 防止 settings.json 中的 cloned_voices 因意外丢失而造成数据丢失。
+    # init.json 是独立的、只增不减的持久化文件，以它为准来补全 settings。
+    _restore_from_clone_init()
+    # 启动时立即从 settings 生成/更新 init.json
+    _sync_clone_init(G.settings)
     # 启动时自动加载上次使用的模型
     threading.Thread(target=_ensure_worker, daemon=True).start()
     yield
@@ -494,13 +650,15 @@ def create_app() -> FastAPI:
         await ws.accept()
         G.ws_clients.append(ws)
         try:
-            # 发送初始状态
+            # 发送初始状态，包含独立的克隆/锚定音色记录（不依赖 worker 注册完成）
+            clone_init = load_clone_init()
             await ws.send_json({
                 "type": "init",
                 "status": G.job_status if G.worker_ready else "loading_model",
                 "worker_ready": G.worker_ready,
                 "settings": G.settings,
                 "model": G.settings.get("model_repo", ""),
+                "clone_init": clone_init,
             })
             while True:
                 try:
@@ -540,8 +698,21 @@ def create_app() -> FastAPI:
                 await asyncio.get_event_loop().run_in_executor(
                     None, lambda: evt.wait(5)
                 )
-                await ws.send_json({"type": "voices",
-                                    "voices": voices_result.get("voices", [])})
+                voices = voices_result.get("voices", [])
+                # 补全：把 settings 里已持久化的克隆/锚定音色合并进列表。
+                # worker 的 _cloned_voices 可能因为 register 尚未完成（竞态窗口）而缺少部分条目；
+                # 直接从 settings 读取可保证切换模型后克隆/锚定音色立即显示，不随模型切换消失。
+                existing_ids = {v["id"] for v in voices}
+                for clone_name, clone_meta in (G.settings.get("cloned_voices") or {}).items():
+                    cid = f"__clone__{clone_name}"
+                    if cid not in existing_ids and clone_meta.get("audio_path"):
+                        voices.append({
+                            "id": cid, "name": clone_name,
+                            "lang": "any", "gender": "clone",
+                            "desc": "声音克隆（Base 模型）",
+                        })
+                        existing_ids.add(cid)
+                await ws.send_json({"type": "voices", "voices": voices})
             else:
                 # worker 未就绪时返回静态列表（CustomVoice 官方 9 个音色）
                 static_voices = [
@@ -617,6 +788,26 @@ def create_app() -> FastAPI:
     @app.post("/api/settings")
     async def post_settings(req: Request):
         body = await req.json()
+        # 前端的 cloned_voices 只用于 UI 展示，可能不包含 audio_path。
+        # 直接覆盖会导致已批量锚定的内部音频路径丢失，下一次启动无法默认调入。
+        # 因此这里做保护性合并：保留服务端已有的持久化字段，只更新前端传来的显示 metadata。
+        if isinstance(body.get("cloned_voices"), dict):
+            merged = dict(G.settings.get("cloned_voices") or {})
+            for name, incoming in (body.get("cloned_voices") or {}).items():
+                if isinstance(incoming, dict):
+                    old_meta = dict(merged.get(name) or {})
+                    # 保护服务端持久化字段：前端传来的空值不得覆盖服务端已存的路径。
+                    # audio_path 是锚定音色持久化的唯一依据，前端 cloned_voices 通常
+                    # 不携带该字段（只含 UI 元数据），如果直接 update 会把路径清空，
+                    # 导致重启后 _register_saved_clones_to_worker 跳过这些条目。
+                    for _server_only_key in ("audio_path",):
+                        if not incoming.get(_server_only_key) and old_meta.get(_server_only_key):
+                            incoming = {k: v for k, v in incoming.items() if k != _server_only_key}
+                    old_meta.update(incoming)
+                    merged[name] = old_meta
+                else:
+                    merged[name] = incoming
+            body["cloned_voices"] = merged
         G.settings.update(body)
         save_settings(G.settings)
         # 如果模型 repo 变了，重启 worker
@@ -680,6 +871,10 @@ def create_app() -> FastAPI:
                 if not r_text:
                     continue
                 cleaned.append({
+                    "person": str(row.get("person") or "").strip(),
+                    "voice": str(row.get("voice") or "").strip(),
+                    "emotion": str(row.get("emotion") or "").strip(),
+                    "emotion_label": str(row.get("emotion_label") or "").strip(),
                     "speaker": str(row.get("speaker") or "").strip(),
                     "instruction": str(row.get("instruction") or "").strip(),
                     "text": r_text,
@@ -699,6 +894,29 @@ def create_app() -> FastAPI:
             return JSONResponse({"ok": False, "error": "模型正在加载中，请稍候"},
                                 status_code=503)
 
+        # 合成前确保所有已保存的克隆音色已注册到 worker（防止模型刚加载完的竞态窗口）
+        _register_saved_clones_to_worker()
+
+        # Base 模型 dialog 模式：将不认识的 speaker 名自动替换为第一个可用克隆音色
+        model_repo = G.settings.get("model_repo", "")
+        is_base = ("base" in model_repo.lower() and "customvoice" not in model_repo.lower())
+        if is_base and dialog_rows:
+            known_clones = list(G.settings.get("cloned_voices", {}).keys())
+            if known_clones:
+                fallback = known_clones[0]
+                for r in dialog_rows:
+                    if r["speaker"] not in known_clones:
+                        print(f"[synthesize] Base dialog: unknown speaker '{r['speaker']}' → fallback to '{fallback}'", flush=True)
+                        r["speaker"] = fallback
+            else:
+                return JSONResponse({
+                    "ok": False,
+                    "error": (
+                        "No cloned voices available. Please clone a voice in the Clone tab first.\n"
+                        "（没有可用的克隆音色，请先在「克隆」标签页完成克隆。）"
+                    )
+                }, status_code=400)
+
         # 输出路径
         out_dir = G.settings.get("output_dir", str(Path.home() / "Downloads"))
         Path(out_dir).mkdir(parents=True, exist_ok=True)
@@ -707,7 +925,8 @@ def create_app() -> FastAPI:
 
         G.job_status = "synthesizing"
         G.job_text   = text
-        G.job_output_path = out_path
+        G.job_output_path = ""
+        G.job_progress = {}   # 留空直到 worker 确认文件已写出
 
         task = {
             "type":       "tts",
@@ -725,10 +944,21 @@ def create_app() -> FastAPI:
 
     @app.get("/api/download")
     async def download_audio(path: str):
-        """下载/播放生成的音频文件。"""
+        """下载/播放生成的音频文件。
+
+        若文件尚不存在（合并写入未完成的竞态窗口），最多等待 4 秒再判定 404，
+        避免轮询/WS 消息略早于文件落盘时出现的误报 404。
+        """
+        import asyncio
         p = Path(path).expanduser()
         if not p.exists() or not p.is_file():
-            return JSONResponse({"error": "文件不存在"}, status_code=404)
+            # 短暂轮询等待文件落盘（最多 4 秒，每 200ms 检查一次）
+            for _ in range(20):
+                await asyncio.sleep(0.2)
+                if p.exists() and p.is_file() and p.stat().st_size > 44:
+                    break
+            else:
+                return JSONResponse({"error": "文件不存在"}, status_code=404)
         media_type = mimetypes.guess_type(str(p))[0] or "application/octet-stream"
         return FileResponse(str(p), media_type=media_type, filename=p.name)
 
@@ -825,6 +1055,102 @@ def create_app() -> FastAPI:
         except Exception as e:
             return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
 
+
+    @app.post("/api/create_role_anchor")
+    async def create_role_anchor(req: Request):
+        """Create a role anchor from the currently loaded CustomVoice/VoiceDesign model.
+
+        The worker synthesizes a short reference WAV from the selected built-in voice
+        and instruction. The server then persists that WAV as a cloned voice entry.
+        Use the saved anchor after switching to a Base model for more stable multi-line
+        synthesis.
+        """
+        body = await req.json()
+        name = str(body.get("name") or "角色锚点").strip() or "角色锚点"
+        speaker = str(body.get("speaker") or G.settings.get("voice_id") or "serena").strip()
+        instruction = str(body.get("instruction") or "平静自然，语速适中，发音清晰，保持同一角色音色，不夸张表演。").strip()
+        emotion = str(body.get("emotion") or "neutral").strip()
+        emotion_label = str(body.get("emotion_label") or emotion).strip()
+        sample_text = str(body.get("sample_text") or "你好，这是用于固定角色音色的参考样本。请保持平稳、自然、清晰的表达。").strip()
+        speed = float(body.get("speed", G.settings.get("speed", 1.0)) or 1.0)
+        advanced = dict(body.get("advanced") or G.settings.get("advanced_params", {}) or {})
+        # Anchor defaults: conservative unless user explicitly overrides.
+        advanced.setdefault("temperature", 0.2)
+        advanced.setdefault("top_p", 0.85)
+        advanced.setdefault("top_k", 20)
+
+        _ensure_worker()
+        if not G.worker_ready:
+            return JSONResponse({"ok": False, "error": "模型正在加载中，请稍候"}, status_code=503)
+
+        evt = threading.Event()
+        worker_result = {}
+        def cb(r):
+            worker_result.update(r or {})
+            evt.set()
+        try:
+            G.worker.send({
+                "type": "create_anchor",
+                "name": name,
+                "speaker": speaker,
+                "instruction": instruction,
+                "sample_text": sample_text,
+                "speed": speed,
+                "advanced": advanced,
+                "emotion": emotion,
+                "emotion_label": emotion_label,
+            }, callback=cb)
+            await asyncio.get_event_loop().run_in_executor(None, lambda: evt.wait(120))
+        except Exception as e:
+            return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
+        if not worker_result:
+            return JSONResponse({"ok": False, "error": "创建角色锚点超时"}, status_code=504)
+        if not worker_result.get("ok"):
+            return JSONResponse({"ok": False, "error": worker_result.get("error", "创建角色锚点失败")}, status_code=400)
+
+        anchor_audio = worker_result.get("audio_path", "")
+        if not anchor_audio or not Path(anchor_audio).exists():
+            return JSONResponse({"ok": False, "error": "未生成角色锚点音频"}, status_code=500)
+        saved_audio = ""
+        try:
+            saved_audio = _persist_clone_audio(anchor_audio, name, ".wav")
+        finally:
+            # worker 生成的临时音频已持久化（或失败），无论如何清理原始临时文件
+            if anchor_audio != saved_audio:  # 持久化成功时两者不同，失败时 saved_audio=""
+                try:
+                    os.unlink(anchor_audio)
+                except Exception:
+                    pass
+        if not saved_audio:
+            return JSONResponse({"ok": False, "error": "角色锚点音频持久化失败"}, status_code=500)
+
+        anchor_meta = {
+            "audio_path": saved_audio,
+            "anchor": True,
+            "source_speaker": speaker,
+            "instruction": instruction,
+            "emotion": emotion,
+            "emotion_label": emotion_label,
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        }
+        G.settings.setdefault("cloned_voices", {})[name] = anchor_meta
+        save_settings(G.settings)
+        _sync_clone_init(G.settings)
+        result = {
+            "ok": True, "type": "clone_done", "anchor": True,
+            "name": name, "voice_id": f"__clone__{name}",
+            "audio_path": saved_audio,   # 让前端 _settings.cloned_voices 能存住路径，防止 saveBasicSettings 时丢失
+            "source_speaker": speaker,
+            "emotion": emotion,
+            "emotion_label": emotion_label,
+            "instruction": instruction,
+            "meta": anchor_meta,
+            "warning": "角色锚点已保存；在 CustomVoice 模式下会立即显示锚定卡片，切换到 Base 模型后可用于合成长文本。"
+        }
+        broadcast_sync(result)
+        return JSONResponse(result)
+
     @app.post("/api/clone_voice")
     async def clone_voice(req: Request):
         """注册/保存声音克隆（接收 JSON base64 音频）。
@@ -838,8 +1164,6 @@ def create_app() -> FastAPI:
         import base64
         body = await req.json()
         name = str(body.get("name", "我的声音") or "我的声音").strip() or "我的声音"
-        base_voice = body.get("base_voice", "Chelsie")
-        ref_text = body.get("ref_text", "")
         audio_b64 = body.get("audio_b64", "")
         ext = body.get("ext", ".wav") or ".wav"
         if not str(ext).startswith("."):
@@ -857,14 +1181,22 @@ def create_app() -> FastAPI:
             saved_audio = _persist_clone_audio(tmp, name, ext)
         except Exception:
             saved_audio = tmp
+        finally:
+            # 持久化成功后清理上传临时文件，避免内存/磁盘泄漏。
+            # 若 _persist_clone_audio 将 tmp 直接作为 saved_audio 返回（异常路径），则不删除。
+            if saved_audio != tmp:
+                try:
+                    os.unlink(tmp)
+                except Exception:
+                    pass
         G.settings.setdefault("cloned_voices", {})[name] = {
             "audio_path": saved_audio,
-            "base_voice": base_voice,
-            "ref_text": ref_text,
         }
         save_settings(G.settings)
+        _sync_clone_init(G.settings)
 
-        result = {"ok": True, "type": "clone_done", "name": name, "voice_id": f"__clone__{name}"}
+        result = {"ok": True, "type": "clone_done", "name": name, "voice_id": f"__clone__{name}",
+                  "audio_path": saved_audio}   # 让前端能存住路径，避免 saveBasicSettings 时被清空
 
         # worker 已就绪时，尝试立即注册；未就绪时不报 503。
         if G.worker and G.worker_ready:
@@ -878,8 +1210,6 @@ def create_app() -> FastAPI:
                     "type": "clone_voice",
                     "name": name,
                     "audio_path": saved_audio,
-                    "base_voice": base_voice,
-                    "ref_text": ref_text,
                 }, callback=cb)
                 await asyncio.get_event_loop().run_in_executor(None, lambda: evt.wait(10))
                 if worker_result and not worker_result.get("ok"):
@@ -899,6 +1229,7 @@ def create_app() -> FastAPI:
         # 从设置文件移除
         removed = G.settings.get("cloned_voices", {}).pop(name, None)
         save_settings(G.settings)
+        _sync_clone_init(G.settings)
         # 通知 worker 进程清除
         if G.worker and G.worker_ready:
             G.worker.send({"type": "delete_clone", "name": name})
@@ -914,10 +1245,43 @@ def create_app() -> FastAPI:
             return JSONResponse({"ok": False, "error": "缺少克隆音色名称"}, status_code=400)
         removed = G.settings.get("cloned_voices", {}).pop(name, None)
         save_settings(G.settings)
+        _sync_clone_init(G.settings)
         if G.worker and G.worker_ready:
             G.worker.send({"type": "delete_clone", "name": name})
         broadcast_sync({"type": "clone_deleted", "name": name})
         return JSONResponse({"ok": True, "removed": removed is not None})
+
+    @app.post("/api/clear_anchor_voices")
+    async def clear_anchor_voices(req: Request):
+        """一键清空所有角色锚定音色。
+
+        只删除 metadata 中 anchor=True 的条目；普通 Base 克隆音色保留。
+        同时删除内部保存的参考音频文件，并通知 worker 移除已注册的 clone prompt。
+        """
+        cloned = G.settings.setdefault("cloned_voices", {})
+        names = [name for name, meta in list(cloned.items()) if isinstance(meta, dict) and bool(meta.get("anchor"))]
+        removed = []
+        for name in names:
+            meta = cloned.pop(name, None) or {}
+            audio_path = meta.get("audio_path", "") if isinstance(meta, dict) else ""
+            if audio_path:
+                try:
+                    ap = Path(audio_path)
+                    # 只清理由本程序内部 clone 目录保存的文件，避免误删用户原始音频。
+                    if ap.exists() and CLONE_DIR in ap.resolve().parents:
+                        ap.unlink()
+                except Exception as e:
+                    print(f"[anchor] failed to remove audio {audio_path}: {e}", flush=True)
+            removed.append(name)
+            if G.worker and G.worker_ready:
+                try:
+                    G.worker.send({"type": "delete_clone", "name": name})
+                except Exception:
+                    pass
+        save_settings(G.settings)
+        _sync_clone_init(G.settings)
+        broadcast_sync({"type": "anchors_cleared", "names": removed, "count": len(removed)})
+        return JSONResponse({"ok": True, "names": removed, "count": len(removed)})
 
     @app.get("/api/export_clone")
     async def export_clone(name: str):
@@ -934,11 +1298,24 @@ def create_app() -> FastAPI:
             audio_b64 = base64.b64encode(Path(audio_path).read_bytes()).decode()
         return JSONResponse({
             "ok": True, "name": name,
-            "base_voice": clone.get("base_voice", ""),
-            "ref_text":   clone.get("ref_text", ""),
             "audio_b64":  audio_b64,
             "ext":        ext,
+            "anchor":     bool(clone.get("anchor")),
+            "source_speaker": clone.get("source_speaker", ""),
+            "instruction": clone.get("instruction", ""),
         })
+
+    @app.get("/api/clone_audio")
+    async def clone_audio(name: str):
+        """在线试听已保存的克隆/锚定参考音频。"""
+        clone = G.settings.get("cloned_voices", {}).get(name)
+        if not clone:
+            return JSONResponse({"ok": False, "error": "未找到该克隆音色"}, status_code=404)
+        audio_path = clone.get("audio_path", "")
+        if not audio_path or not Path(audio_path).exists():
+            return JSONResponse({"ok": False, "error": "音色音频文件不存在，可能已被系统清理，请重新导入或重新生成"}, status_code=404)
+        media_type = mimetypes.guess_type(str(audio_path))[0] or "audio/wav"
+        return FileResponse(str(audio_path), media_type=media_type, filename=Path(audio_path).name)
 
     @app.get("/api/export_clone_file")
     async def export_clone_file(name: str):
@@ -956,8 +1333,9 @@ def create_app() -> FastAPI:
             "version": "0.2",
             "saved_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
             "name": name,
-            "base_voice": clone.get("base_voice", ""),
-            "ref_text": clone.get("ref_text", ""),
+            "anchor": bool(clone.get("anchor")),
+            "source_speaker": clone.get("source_speaker", ""),
+            "instruction": clone.get("instruction", ""),
             "audio_b64": base64.b64encode(Path(audio_path).read_bytes()).decode(),
             "ext": ext,
         }
@@ -977,8 +1355,9 @@ def create_app() -> FastAPI:
         name      = body.get("name", "导入音色")
         audio_b64 = body.get("audio_b64", "")
         ext       = body.get("ext", ".wav")
-        base_voice = body.get("base_voice", "")
-        ref_text  = body.get("ref_text", "")
+        is_anchor = bool(body.get("anchor"))
+        source_speaker = body.get("source_speaker", "")
+        instruction = body.get("instruction", "")
         if not audio_b64:
             return JSONResponse({"ok": False, "error": "无音频数据"}, status_code=400)
         fd, tmp = tempfile.mkstemp(suffix=ext)
@@ -988,24 +1367,186 @@ def create_app() -> FastAPI:
             saved_audio = _persist_clone_audio(tmp, name, ext)
         except Exception:
             saved_audio = tmp
+        finally:
+            # 持久化成功后清理导入临时文件，避免磁盘泄漏。
+            if saved_audio != tmp:
+                try:
+                    os.unlink(tmp)
+                except Exception:
+                    pass
         G.settings.setdefault("cloned_voices", {})[name] = {
-            "audio_path": saved_audio, "base_voice": base_voice, "ref_text": ref_text
+            "audio_path": saved_audio,
+            "anchor": is_anchor,
+            "source_speaker": source_speaker,
+            "instruction": instruction,
         }
         save_settings(G.settings)
+        _sync_clone_init(G.settings)
         if G.worker and G.worker_ready:
             G.worker.send({"type": "clone_voice", "name": name,
-                           "audio_path": tmp, "base_voice": base_voice,
-                           "ref_text": ref_text})
+                           "audio_path": saved_audio})
         broadcast_sync({"type": "clone_done", "ok": True, "name": name,
+                        "anchor": is_anchor, "source_speaker": source_speaker,
+                        "audio_path": saved_audio,   # 让前端能存住路径
                         "voice_id": f"__clone__{name}"})
         return JSONResponse({"ok": True, "voice_id": f"__clone__{name}"})
 
+    @app.get("/api/export_anchor_pack")
+    async def export_anchor_pack():
+        """把所有 anchor=True 的克隆音色打包为 .ttscx（JSON，包含每个锚点的音频 base64）。
+        用于一次性保存 108 个锚点组合，下次在 Base 模型下一键导入恢复。
+        """
+        import base64, zipfile, io
+        cloned = G.settings.get("cloned_voices") or {}
+        anchors = {name: meta for name, meta in cloned.items()
+                   if isinstance(meta, dict) and meta.get("anchor")}
+        if not anchors:
+            return JSONResponse({"ok": False, "error": "没有已锚定的音色可导出"}, status_code=404)
+
+        entries = []
+        missing = []
+        for name, meta in anchors.items():
+            audio_path = meta.get("audio_path", "")
+            if not audio_path or not Path(audio_path).exists():
+                missing.append(name)
+                continue
+            ext = Path(audio_path).suffix or ".wav"
+            audio_b64 = base64.b64encode(Path(audio_path).read_bytes()).decode()
+            entries.append({
+                "name": name,
+                "anchor": True,
+                "source_speaker": meta.get("source_speaker", ""),
+                "emotion": meta.get("emotion", ""),
+                "emotion_label": meta.get("emotion_label", ""),
+                "instruction": meta.get("instruction", ""),
+                "created_at": meta.get("created_at", ""),
+                "audio_b64": audio_b64,
+                "ext": ext,
+            })
+
+        pack = {
+            "file_type": "ttscx",
+            "version": "1.0",
+            "saved_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "count": len(entries),
+            "missing": missing,
+            "entries": entries,
+        }
+        body = json.dumps(pack, ensure_ascii=False, separators=(",", ":"))
+        ts = time.strftime("%Y%m%d_%H%M%S")
+        return Response(
+            content=body,
+            media_type="application/json; charset=utf-8",
+            headers={"Content-Disposition": f"attachment; filename=\"anchor_pack_{ts}.ttscx\""},
+        )
+
+    @app.post("/api/import_anchor_pack_from_path")
+    async def import_anchor_pack_from_path(req: Request):
+        """从本地磁盘路径直接读取 .ttscx 并导入，供 pywebview 桌面端使用。
+        避免通过 JS bridge 传输大文件内容（可达数百 MB）导致 bridge 卡死或超时。
+        """
+        body = await req.json()
+        file_path = str(body.get("path", "")).strip()
+        if not file_path:
+            return JSONResponse({"ok": False, "error": "未提供路径"}, status_code=400)
+        p = Path(file_path).expanduser()
+        if not p.exists() or not p.is_file():
+            return JSONResponse({"ok": False, "error": f"文件不存在: {file_path}"}, status_code=404)
+        try:
+            pack = json.loads(p.read_text(encoding="utf-8"))
+        except Exception as e:
+            return JSONResponse({"ok": False, "error": f"读取失败: {e}"}, status_code=400)
+        return await _do_import_anchor_pack(pack)
+
+    @app.post("/api/import_anchor_pack")
+    async def import_anchor_pack(req: Request):
+        body = await req.json()
+        return await _do_import_anchor_pack(body)
+
+    async def _do_import_anchor_pack(body: dict):
+        """从 .ttscx 批量导入锚定音色包。已存在同名条目时跳过（不覆盖）。"""
+        import base64 as _b64
+        if body.get("file_type") != "ttscx":
+            return JSONResponse({"ok": False, "error": "不是有效的 .ttscx 文件"}, status_code=400)
+        entries = body.get("entries") or []
+        if not entries:
+            return JSONResponse({"ok": False, "error": ".ttscx 中没有锚点数据"}, status_code=400)
+
+        existing = G.settings.setdefault("cloned_voices", {})
+        imported, skipped, failed = 0, 0, []
+        for entry in entries:
+            name = str(entry.get("name") or "").strip()
+            if not name:
+                continue
+            if name in existing:
+                skipped += 1
+                continue
+            audio_b64 = entry.get("audio_b64", "")
+            ext = entry.get("ext", ".wav") or ".wav"
+            if not str(ext).startswith("."):
+                ext = "." + ext
+            if not audio_b64:
+                failed.append(name)
+                continue
+            try:
+                fd, tmp = tempfile.mkstemp(suffix=ext)
+                with os.fdopen(fd, "wb") as f:
+                    f.write(_b64.b64decode(audio_b64))
+                try:
+                    saved_audio = _persist_clone_audio(tmp, name, ext)
+                except Exception:
+                    saved_audio = tmp
+                finally:
+                    if saved_audio != tmp:
+                        try:
+                            os.unlink(tmp)
+                        except Exception:
+                            pass
+                existing[name] = {
+                    "audio_path": saved_audio,
+                    "anchor": True,
+                    "source_speaker": entry.get("source_speaker", ""),
+                    "emotion": entry.get("emotion", ""),
+                    "emotion_label": entry.get("emotion_label", ""),
+                    "instruction": entry.get("instruction", ""),
+                    "created_at": entry.get("created_at", ""),
+                }
+                if G.worker and G.worker_ready:
+                    G.worker.send({"type": "clone_voice", "name": name,
+                                   "audio_path": saved_audio})
+                imported += 1
+            except Exception as e:
+                failed.append(f"{name}: {e}")
+
+        save_settings(G.settings)
+        _sync_clone_init(G.settings)
+        if imported:
+            broadcast_sync({"type": "anchor_pack_imported",
+                             "imported": imported, "skipped": skipped,
+                             "failed": len(failed)})
+        return JSONResponse({
+            "ok": True,
+            "imported": imported,
+            "skipped": skipped,
+            "failed": failed,
+            "total": len(entries),
+        })
+
+    @app.get("/api/clone_init")
+    async def get_clone_init():
+        """返回 init.json 中记录的克隆/锚定音色列表，供前端随时刷新。"""
+        return JSONResponse(load_clone_init())
+
     @app.get("/api/status")
     async def status():
+        # 只有文件真正落盘后才把 output_path 暴露给轮询方，
+        # 避免前端在合并写入未完成时就发起 /api/download 请求。
+        op = G.job_output_path
+        safe_op = op if (op and Path(op).exists() and Path(op).stat().st_size > 44) else ""
         return JSONResponse({
             "status": G.job_status,
             "worker_ready": G.worker_ready,
-            "output_path": G.job_output_path,
+            "output_path": safe_op,
             "progress": G.job_progress,
         })
 
