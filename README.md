@@ -40,6 +40,25 @@ Lancer1911 TTS Offline runs Qwen3-TTS entirely on your Mac via the MLX framework
   <br><em>Dialog Table mode — per-line voice, emotion instruction, and text for audiobook production</em>
 </p>
 <p align="center">
+  <img src="images/screenshot_base_csv.png" alt="Base model CSV dialog mode — multi-character audiobook with cloned voices" width="800">
+  <br><em>Base model CSV dialog mode — four-column script (character / voice / emotion / text) with cloned and anchored voices for multi-character audiobook production</em>
+</p>
+
+### 🎧 Sample: *The Murder on the Links* Chapter 1 (Base model, multi-character)
+
+The following sample was produced entirely with the Base model using a four-column CSV script. Each character is voiced by a different cloned or anchored voice; emotion instructions are applied per line.
+
+<p align="center">
+  <audio controls style="width:680px">
+    <source src="samples/sample-Murder_on_the_Links_Ch1.m4a" type="audio/mp4">
+    Your browser does not support the audio element.
+    <a href="samples/sample-Murder_on_the_Links_Ch1.m4a">⬇ Download sample audio</a>
+  </audio>
+  <br>
+  <a href="samples/sample-Murder_on_the_Links_Ch1.csv">📄 View CSV script</a>
+</p>
+
+<p align="center">
   <img src="images/screenshot_playback.png" alt="Playback bar with follow and reverse-follow" width="800">
   <br><em>Playback bar — follow mode highlights the current sentence; click any line to seek</em>
 </p>

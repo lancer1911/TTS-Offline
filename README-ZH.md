@@ -40,6 +40,25 @@ Lancer1911 TTS Offline 通过 MLX 框架在本机运行 Qwen3-TTS。合成过程
   <br><em>对话表格模式</em>
 </p>
 <p align="center">
+  <img src="images/screenshot_base_csv.png" alt="Base 模式 CSV 对话录制 — 多角色有声书生产" width="800">
+  <br><em>Base 模式 CSV 对话录制 — 四列脚本（人物 / 音色 / 情绪 / 文字内容），使用克隆与锚定音色进行多角色有声书制作</em>
+</p>
+
+### 🎧 样本：《高尔夫球场谋杀案》第一章（Base 模式，多角色）
+
+以下样本完全使用 Base 模式，通过四列 CSV 剧本生成。每个角色由独立的克隆或锚定音色演绎，逐行指定情绪指令。
+
+<p align="center">
+  <audio controls style="width:680px">
+    <source src="samples/sample-Murder_on_the_Links_Ch1.m4a" type="audio/mp4">
+    您的浏览器不支持 audio 标签。
+    <a href="samples/sample-Murder_on_the_Links_Ch1.m4a">⬇ 下载样本音频</a>
+  </audio>
+  <br>
+  <a href="samples/sample-Murder_on_the_Links_Ch1.csv">📄 查看 CSV 剧本</a>
+</p>
+
+<p align="center">
   <img src="images/screenshot_playback.png" alt="Playback bar with follow and reverse-follow" width="800">
   <br><em>回放模式</em>
 </p>
