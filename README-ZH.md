@@ -18,14 +18,16 @@
 
 <p align="center">
   <video controls width="800">
-    <source src="videos/lancer1911-tts-offline.mp4" type="video/mp4">
+    <source src="https://lancer1911.github.io/videos/lancer1911-tts-offline.mp4" type="video/mp4">
     您的浏览器不支持 video 标签。
-    <a href="videos/lancer1911-tts-offline.mp4">⬇ 下载或打开演示视频</a>
   </video>
-  <br><em>TTS-Offline 演示：本地文本转语音、多角色对话与有声书制作流程</em>
+  <br>
+  <em>TTS-Offline 演示 — 本地文本转语音、多角色对话与有声书制作流程</em>
+  <br>
+  <a href="https://lancer1911.github.io/videos/lancer1911-tts-offline.mp4">
+    ▶ 打开演示视频
+  </a>
 </p>
-
-> 建议将演示视频放在仓库的 `videos/lancer1911-tts-offline.mp4`。如果你使用其他文件名或目录，请相应修改上面的 `src` 路径。
 
 ---
 
