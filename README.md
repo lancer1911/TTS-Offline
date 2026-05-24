@@ -18,14 +18,16 @@
 
 <p align="center">
   <video controls width="800">
-    <source src="videos/lancer1911-tts-offline.mp4" type="video/mp4">
+    <source src="https://lancer1911.github.io/videos/lancer1911-tts-offline.mp4" type="video/mp4">
     Your browser does not support the video tag.
-    <a href="videos/lancer1911-tts-offline.mp4">⬇ Download or open the demo video</a>
   </video>
-  <br><em>TTS-Offline demo — local text-to-speech, multi-character dialog, and audiobook production workflow</em>
+  <br>
+  <em>TTS-Offline demo — local text-to-speech, multi-character dialog, and audiobook production workflow</em>
+  <br>
+  <a href="https://lancer1911.github.io/videos/lancer1911-tts-offline.mp4">
+    ▶ Open demo video
+  </a>
 </p>
-
-> Recommended video path: `videos/lancer1911-tts-offline.mp4`. If you use a different filename or folder, update the `src` path above accordingly.
 
 ---
 
