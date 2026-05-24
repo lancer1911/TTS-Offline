@@ -17,10 +17,11 @@
 ## 🎬 演示视频
 
 <p align="center">
-  <video controls width="800">
-    <source src="https://lancer1911.github.io/videos/lancer1911-tts-offline.mp4" type="video/mp4">
-    您的浏览器不支持 video 标签。
-  </video>
+  <a href="https://lancer1911.github.io/videos/lancer1911-tts-offline.mp4" target="_blank">
+    <img src="https://lancer1911.github.io/images/tts-offline-demo-cover.png"
+         alt="TTS-Offline 演示视频"
+         width="800">
+  </a>
   <br>
   <em>TTS-Offline 演示 — 本地文本转语音、多角色对话与有声书制作流程</em>
   <br>
