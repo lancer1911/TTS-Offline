@@ -1,5 +1,5 @@
 """
-Lancer1911 TTS Offline v0.5a — 主入口
+Lancer1911 TTS Offline v0.5k — 主入口
 基于 MLX Qwen3-TTS，支持 docx/txt/md/srt/pdf/epub 等文本格式转语音
 """
 import sys, threading, time, urllib.request, queue, os
@@ -110,8 +110,15 @@ class FileDialogAPI:
             result = win.create_file_dialog(
                 _dialog_kind(webview, "OPEN"),
                 file_types=(
-                    "TTS clone files (*.ttsc;*.ttscx)",
-                    "All files (*)",
+                    # pywebview/macOS 对 filter 描述部分较严格，避免使用 “/” 等符号；
+                    # 否则会报 “is not a valid file filter”。
+                    "Supported files (*.txt;*.md;*.docx;*.srt;*.pdf;*.epub)",
+                    "TXT files (*.txt)",
+                    "Markdown files (*.md)",
+                    "DOCX files (*.docx)",
+                    "SRT files (*.srt)",
+                    "PDF files (*.pdf)",
+                    "EPUB files (*.epub)",
                 ),
                 allow_multiple=False,
             )

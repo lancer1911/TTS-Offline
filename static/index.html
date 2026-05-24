@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lancer1911 TTS Offline v0.5d</title>
+<title>Lancer1911 TTS Offline v0.5l</title>
 <style>
 /* ── CSS Variables ─────────────────────────────────────────── */
 :root{
@@ -177,7 +177,9 @@ body.dialog-mode #UPLOAD_LABEL strong::after{content:""}
 @keyframes pbflow{0%{background-position:100% 0}100%{background-position:-100% 0}}
 .progress-log{font-size:12px;color:var(--su);
   font-family:ui-monospace,'SF Mono',Menlo,monospace;
-  max-height:100px;overflow-y:auto;line-height:1.6}
+  max-height:180px;overflow-y:auto;line-height:1.6}
+.term-log{display:block;padding:1px 0;color:var(--hi);white-space:pre-wrap;word-break:break-word}
+.term-log.stderr{color:var(--warn)}
 audio{width:100%;accent-color:var(--ac)}
 
 /* ── Playback — same compact mode as ASR Offline ─────────────── */
@@ -313,6 +315,19 @@ audio{width:100%;accent-color:var(--ac)}
   background:var(--bg3)}
 .clone-audio-zone:hover{border-color:var(--ac)}
 .clone-audio-zone.has-file{border-style:solid;border-color:var(--grn)}
+.clone-audio-clear{display:none;margin-top:6px;font-size:11px;color:var(--hi);text-decoration:underline;text-underline-offset:2px;cursor:pointer;user-select:none}
+.clone-audio-clear:hover{color:var(--ac)}
+.clone-audio-zone.has-file .clone-audio-clear{display:block}
+.clone-audio-wrap{display:flex;gap:8px;align-items:stretch}
+.clone-audio-wrap .clone-audio-zone{flex:1;min-width:0}
+.clone-audio-actions{display:flex;flex-direction:column;gap:6px;width:40px}
+.clone-mini-btn{flex:1;min-height:36px;border:.5px solid var(--b1);border-radius:12px;background:var(--bg3);color:var(--tx);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.clone-mini-btn:hover{border-color:var(--ac);color:var(--ac)}
+.clone-mini-btn.recording{border-color:var(--warn);color:var(--warn);box-shadow:0 0 0 2px rgba(255,80,80,.12) inset}
+.clone-mic-settings{display:none;margin-top:8px;padding:8px;border:.5px solid var(--b1);border-radius:12px;background:var(--bg3)}
+.clone-mic-settings.show{display:block}
+.clone-mic-status{font-size:11px;color:var(--hi);margin-top:6px;line-height:1.5}
+
 .clone-hint{font-size:11px;color:var(--hi);margin-top:10px;line-height:1.6}#CLONE_MODE_BASE,#CLONE_MODE_ANCHOR,#CLONE_MODE_UNSUPPORTED{flex:1;flex-direction:column;min-height:0}.anchor-box{margin-top:16px;padding:12px;border:0.5px solid var(--b1);border-radius:var(--r2);background:var(--bg3)}.anchor-title{font-size:13px;font-weight:650;color:var(--tx-strong);margin-bottom:6px}.anchor-help,.anchor-note{display:none}.anchor-row{margin-bottom:10px}.anchor-row textarea{min-height:76px;resize:vertical}.anchor-row textarea#ANCHOR_INSTRUCTION,.anchor-row textarea#ANCHOR_SAMPLE_TEXT{box-sizing:border-box;height:54px!important;min-height:54px!important;max-height:54px!important;line-height:16px;resize:none;overflow:auto;}.anchor-emotion-select{appearance:auto}.anchor-bulk-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}.anchor-tip{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;margin-left:6px;border:.5px solid var(--b1);border-radius:50%;font-size:10px;font-weight:700;line-height:1;color:var(--hi);background:var(--bg3);cursor:help;vertical-align:1px;user-select:none}.anchor-tip:hover,.anchor-tip:focus{color:var(--tx-strong);border-color:var(--hi);outline:none}.app-tooltip{position:fixed;left:-9999px;top:-9999px;z-index:99999;display:block;max-width:min(320px,calc(100vw - 24px));padding:9px 10px;border:.5px solid var(--b1);border-radius:10px;background:var(--bg2);box-shadow:0 8px 24px rgba(0,0,0,.22);color:var(--tx);font-size:11px;font-weight:400;line-height:1.55;white-space:normal;text-align:left;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease}.app-tooltip.show{opacity:1;visibility:visible}.anchor-group-card{border:.5px solid var(--b1);border-radius:var(--r2);background:var(--bg3);overflow:hidden}.anchor-group-head{display:flex;align-items:center;gap:8px;padding:9px 10px;cursor:pointer}.anchor-group-head:hover{background:var(--acd)}.anchor-group-title{flex:1;font-weight:650;font-size:13px;color:var(--tx-strong)}.anchor-group-meta{font-size:11px;color:var(--hi)}.anchor-group-body{display:none;padding:0 8px 8px 8px}.anchor-group-card.open .anchor-group-body{display:flex;flex-direction:column;gap:5px}.anchor-emotion-row{margin-left:8px}.anchor-chevron{font-size:11px;color:var(--hi);transition:transform .15s}.anchor-group-card.open .anchor-chevron{transform:rotate(90deg)}
 
 /* Tabs in sidebar */
@@ -401,7 +416,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
       <span>TTS OFFLINE</span>
     </div>
     <div class="brand-sub">
-      <span class="brand-ver">v0.5d</span>
+      <span class="brand-ver">v0.5l</span>
       <span id="author-badge" title="">
         <svg width="11" height="13" viewBox="0 0 11 13" fill="none" aria-hidden="true">
           <path d="M5.5 0.5L1 2.5V6C1 9 3 11.5 5.5 12.5C8 11.5 10 9 10 6V2.5L5.5 0.5Z"
@@ -529,7 +544,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
         <div class="sb-section">
           <div class="sb-title" data-i18n="voice_clone">声音克隆</div>
           <div style="font-size:12px;color:var(--su);line-height:1.65;margin-bottom:10px">
-            <span data-i18n="clone_intro">上传 5~30 秒的参考音频（WAV/MP3），模型将学习该音色特征用于合成。</span>
+            <span data-i18n="clone_intro">上传或录制 5~30 秒参考音频；程序会自动生成短样本并二次克隆，以减小 .ttsc 文件体积。</span>
           </div>
           <div class="clone-row">
             <div class="clone-label" data-i18n="clone_name">克隆名称</div>
@@ -537,12 +552,26 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
           </div>
           <div class="clone-row">
             <div class="clone-label" data-i18n="ref_audio">参考音频</div>
-            <div class="clone-audio-zone" id="CLONE_AUDIO_ZONE" onclick="chooseCloneAudioFile()">
-              <div id="CLONE_AUDIO_LABEL" data-i18n="clone_audio_label">点击选择音频文件</div>
-              <div style="font-size:11px;color:var(--hi);margin-top:4px">WAV · MP3 · M4A · FLAC</div>
+            <div class="clone-audio-wrap">
+              <div class="clone-audio-zone" id="CLONE_AUDIO_ZONE" onclick="chooseCloneAudioFile()">
+                <div id="CLONE_AUDIO_LABEL" data-i18n="clone_audio_label">点击选择音频文件</div>
+                <div id="CLONE_AUDIO_CLEAR" class="clone-audio-clear" onclick="clearCloneAudioSelection(event)" data-i18n="clear">清空</div>
+                <div style="font-size:11px;color:var(--hi);margin-top:4px">WAV · MP3 · M4A · FLAC · Mic</div>
+              </div>
+              <div class="clone-audio-actions">
+                <button type="button" class="clone-mini-btn" id="BTN_CLONE_REC" onclick="toggleCloneRecording(event)" title="Record microphone" aria-label="Record microphone"></button>
+                <button type="button" class="clone-mini-btn" id="BTN_CLONE_MIC_SETTINGS" onclick="toggleCloneMicSettings(event)" title="Microphone settings">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8.92 4.6 1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.31.22.65.22 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="clone-mic-settings" id="CLONE_MIC_SETTINGS">
+              <div class="clone-label" data-i18n="mic_device">麦克风</div>
+              <select class="clone-input" id="CLONE_MIC_SELECT" onchange="onCloneMicDeviceChange(this.value)"></select>
+              <div class="clone-mic-status" id="CLONE_MIC_STATUS" data-i18n="mic_hint">点击麦克风按钮可录制最长 30 秒参考音频。</div>
             </div>
             <input type="file" id="CLONE_AUDIO_INPUT"
-              accept=".wav,.mp3,.m4a,.flac,.ogg,audio/wav,audio/x-wav,audio/mpeg,audio/mp4,audio/flac,audio/ogg"
+              accept=".wav,.mp3,.m4a,.flac,.ogg,.webm,audio/wav,audio/x-wav,audio/mpeg,audio/mp4,audio/flac,audio/ogg,audio/webm"
               style="display:none"
               onchange="onCloneAudioSelected(this)">
           </div>
@@ -626,7 +655,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
       <div class="upload-exts" data-i18n="upload_fmts">TXT · MD · DOCX · SRT · PDF · EPUB</div>
     </div>
     <input type="file" id="FILE_INPUT"
-      accept=".txt,.md,.srt,.docx,.pdf,.epub,text/plain,text/markdown,application/x-subrip,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf,application/epub+zip"
+      accept=".txt,.md,.docx,.srt,.pdf,.epub"
       style="display:none"
       onchange="onFileSelected(this)">
     <input type="file" id="DIALOG_CSV_INPUT"
@@ -1038,6 +1067,8 @@ let _wsReconnectTimer = null;
 let _speed = 1.0;
 let _inputMode = "text";
 let _dialogRows = [];
+let _srtTimelineSegments = null;
+let _srtTimelineText = "";
 
 const ADV_SAMPLING_PARAMS = [
   {key:"temperature", label:"Temperature", descKey:"adv_desc_temp",   default:0.9, min:0,   max:2,    step:0.05},
@@ -1084,7 +1115,7 @@ const _DICT = {
     tts_model:"TTS 模型", select_model:"选择模型", load_model:"加载模型",
     output_settings:"输出设置", format:"格式", output_dir:"输出目录", save_settings:"保存设置",
     voice_clone:"声音克隆", clone_name:"克隆名称", ref_audio:"参考音频",
-start_clone:"开始克隆",
+start_clone:"开始克隆", mic_device:"麦克风", mic_hint:"点击麦克风按钮可录制最长 30 秒参考音频。", mic_default:"系统默认麦克风", mic_recording:"正在录音…", mic_record_done:"录音完成", mic_settings_open:"已打开麦克风设置",
     import:"导入", cloned_voices:"已克隆音色", anchored_voices:"已锚定音色",
     start_synth:"开始合成", synth_progress:"合成进度",
     subtitles:"字幕", download_audio:"⬇ 下载音频",
@@ -1112,7 +1143,7 @@ start_clone:"开始克隆",
     ph_text_editor:"在此输入或粘贴文本，或上传文件…",
     ph_instruction:"例如：用平静但略带担忧的语气说",
     ph_dialog_text:"需要转换的文字内容",
-    clone_intro:"上传 5~30 秒的参考音频（WAV/MP3），模型将学习该音色特征用于合成。",
+    clone_intro:"上传或录制 5~30 秒参考音频；程序会自动生成短样本并二次克隆，以减小 .ttsc 文件体积。",
     clone_hint:"提示：参考音频越清晰、越纯净（无背景噪声），克隆效果越好。",
     clone_warn:"声音克隆仅支持 Base 模型（Qwen3-TTS-12Hz-1.7B/0.6B-Base-8bit）。",
     clone_warn2:"请在「模型」标签页切换到 Base 模型后再使用克隆功能。",
@@ -1196,7 +1227,7 @@ start_clone:"开始克隆",
     tts_model:"TTS Model", select_model:"Select Model", load_model:"Load Model",
     output_settings:"Output", format:"Format", output_dir:"Output Dir", save_settings:"Save Settings",
     voice_clone:"Voice Clone", clone_name:"Clone Name", ref_audio:"Reference Audio",
-    start_clone:"Start Clone",
+    start_clone:"Start Clone", mic_device:"Microphone", mic_hint:"Click the microphone button to record up to 30 seconds.", mic_default:"System default microphone", mic_recording:"Recording…", mic_record_done:"Recording complete", mic_settings_open:"Microphone settings opened",
     import:"Import", cloned_voices:"Cloned Voices", anchored_voices:"Anchored Voices",
     start_synth:"Synthesize", synth_progress:"Progress",
     subtitles:"Subtitles", download_audio:"⬇ Download",
@@ -1224,7 +1255,7 @@ start_clone:"开始克隆",
     ph_text_editor:"Type or paste text here, or upload a file…",
     ph_instruction:"e.g.: Speak in a calm but slightly worried tone",
     ph_dialog_text:"Text to synthesize",
-    clone_intro:"Upload 5–30 s of reference audio (WAV/MP3); the model will learn its voice characteristics.",
+    clone_intro:"Upload or record 5–30 s of reference audio; the app automatically creates a short normalized sample and re-clones it to keep .ttsc files small.",
     clone_hint:"Tip: cleaner reference audio (no background noise) yields better clones.",
     clone_warn:"Voice cloning only works with Base models (Qwen3-TTS-12Hz-1.7B/0.6B-Base-8bit).",
     clone_warn2:"Switch to a Base model in the Model tab before using clone.",
@@ -1614,6 +1645,19 @@ function wsSend(obj) {
     _ws.send(JSON.stringify(obj));
 }
 
+function appendProgressLogLine(line, cls="term-log") {
+  const log = document.getElementById("PROGRESS_LOG");
+  if (!log) return;
+  const item = document.createElement("div");
+  item.className = cls;
+  // Strip ANSI color codes before showing terminal logs in the browser.
+  item.textContent = String(line || "").replace(/\x1b\[[0-9;]*m/g, "");
+  log.appendChild(item);
+  const maxItems = 800;
+  while (log.childNodes.length > maxItems) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+
 function handleWS(msg) {
   const msgType = msg.type;
   if (msgType === "ping") { wsSend({type:"pong"}); return; }
@@ -1715,6 +1759,12 @@ function handleWS(msg) {
     return;
   }
 
+  if (msgType === "tts_log") {
+    const m = String(msg.message || "").trimEnd();
+    if (m) appendProgressLogLine(m, "term-log" + (msg.stream === "stderr" ? " stderr" : ""));
+    return;
+  }
+
   if (msgType === "tts_progress") {
     document.getElementById("OUTPUT_PANEL").classList.add("visible");
     document.getElementById("PROGRESS_AREA").style.display = "";
@@ -1739,6 +1789,11 @@ function handleWS(msg) {
     document.getElementById("PROGRESS_PCT").textContent = pct + "%";
     document.getElementById("OUTPUT_TITLE").textContent =
       `${_lang==="zh"?"合成中":"Synthesizing"}  ${idx} / ${total}`;
+
+    if (msg.stage === "timeline_gap") {
+      appendProgressLogLine(`[srt-timeline] insert silence ${Number(msg.gap_ms||0)}ms before chunk ${Number(msg.chunk_idx||0)+1}`);
+      return;
+    }
 
     if (msg.stage === "chunk") {
       // 收集时间戳
@@ -1792,6 +1847,11 @@ function handleWS(msg) {
       _synthDone = true;
       _currentOutputPath = msg.output_path || "";
       applyFinalTimestamps(msg.timestamps || []);
+      if (msg.timeline_warning) {
+        const zhWarn = `SRT 时间轴部分片段已超过原时间戳，最大延迟约 ${(Number(msg.timeline_max_lag_ms||0)/1000).toFixed(2)} 秒。建议适当提高语速或缩短文本后重新生成。`;
+        appendProgressLogLine(_lang==="zh" ? zhWarn : msg.timeline_warning, "term-log stderr");
+        showToast(_lang==="zh" ? "SRT 时间轴有超时片段，建议调节语速。" : "SRT timeline overrun. Consider increasing speed.", "warn");
+      }
       buildTsIndex();
       // 完成时按当前播放位置/0点刷新一次高亮，避免合成结束后停在旧进度行。
       if (_followMode) highlightCurrentPlaybackChunk((ensureAudioEl()?.currentTime || 0) * 1000);
@@ -1909,6 +1969,12 @@ function normalizeTimestampEntry(src) {
     speaker: src.speaker || "",
     instruction: src.instruction || "",
     row_index: src.row_index,
+    srt_timeline: !!src.srt_timeline,
+    srt_index: src.srt_index,
+    target_start_ms: src.target_start_ms,
+    target_end_ms: src.target_end_ms,
+    source_start_time: src.source_start_time || "",
+    source_end_time: src.source_end_time || "",
     pause_ms: Number(src.pause_ms || 0) || 0,
     bad_audio_status: src.bad_audio_status || "ok",
     bad_audio_attempts: Number(src.bad_audio_attempts || 0) || 0,
@@ -2680,8 +2746,9 @@ async function importCloneOrPack(file) {
 }
 
 async function chooseTextFile() {
-  // 文本/文档导入继续使用隐藏 input + accept，效果更接近 ASR Offline 的音频导入。
-  if (openBrowserFileInput("FILE_INPUT")) return;
+  // 主上传入口只允许 TXT / MD / DOCX / SRT / PDF / EPUB。
+  // 桌面端优先使用 pywebview 原生文件对话框；隐藏 input 的 accept 在部分 macOS/WebKit 环境下会放行 pptx/json/csv 等文件，
+  // 因此仅作为浏览器环境 fallback。CSV 只允许通过 Dialog Table 的 Load CSV 导入。
   if (hasPywebviewApi("open_text_file")) {
     try {
       const result = await window.pywebview.api.open_text_file();
@@ -2690,10 +2757,13 @@ async function chooseTextFile() {
         return;
       }
       await uploadFileData(result.filename || result.path || "input.txt", result.ext || "", result.b64 || "");
+      return;
     } catch(e) {
       showToast((_lang==="zh"?"打开文件失败: ":"Failed to open file: ") + e, "err");
+      return;
     }
   }
+  openBrowserFileInput("FILE_INPUT");
 }
 
 async function chooseCloneAudioFile() {
@@ -2717,6 +2787,24 @@ async function chooseCloneAudioFile() {
       showToast((_lang==="zh"?"打开参考音频失败: ":"Failed to open reference audio: ") + e, "err");
     }
   }
+}
+
+function clearCloneAudioSelection(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  _cloneAudioFile = null;
+  _cloneAudioData = null;
+  const inp = document.getElementById("CLONE_AUDIO_INPUT");
+  if (inp) inp.value = "";
+  const zone = document.getElementById("CLONE_AUDIO_ZONE");
+  if (zone) zone.classList.remove("has-file");
+  const lab = document.getElementById("CLONE_AUDIO_LABEL");
+  if (lab) {
+    lab.textContent = t("clone_audio_label");
+    lab.setAttribute("data-i18n", "clone_audio_label");
+  }
+  const st = document.getElementById("CLONE_MIC_STATUS");
+  if (st) st.textContent = t("mic_hint");
+  showToast(_lang==="zh" ? "已清空参考音频" : "Reference audio cleared", "ok");
 }
 
 // ── File Upload ──────────────────────────────────────────
@@ -2774,12 +2862,22 @@ async function uploadFileData(filename, ext, b64) {
     if (j.ok) {
       document.getElementById("TEXT_EDITOR").value = j.text;
       onTextInput();
+      if (ext === "srt" && Array.isArray(j.srt_segments) && j.srt_segments.length) {
+        _srtTimelineSegments = j.srt_segments;
+        _srtTimelineText = String(j.text || "").trim();
+      } else {
+        _srtTimelineSegments = null;
+        _srtTimelineText = "";
+      }
       zone.classList.add("has-file");
       document.getElementById("UPLOAD_LABEL").innerHTML =
         `<strong class="upload-filename">${esc(filename)}</strong>`;
       const meta = document.createElement("div");
       meta.className = "upload-meta";
-      meta.textContent = `${j.char_count.toLocaleString()} ${t("unit_char")}`;
+      const srtInfo = (_srtTimelineSegments && _srtTimelineSegments.length)
+        ? ` · ${_srtTimelineSegments.length.toLocaleString()} ${_lang==="zh"?"条时间轴":"timed lines"}`
+        : "";
+      meta.textContent = `${j.char_count.toLocaleString()} ${t("unit_char")}${srtInfo}`;
       document.getElementById("UPLOAD_LABEL").appendChild(meta);
       document.getElementById("UPLOAD_ICON") && (document.getElementById("UPLOAD_ICON").textContent = "✓");
       showToast(`${_lang==="zh"?"已加载":"Loaded"} ${j.char_count.toLocaleString()} ${t("unit_char")}`, "ok");
@@ -2808,6 +2906,8 @@ function clearText() {
     document.getElementById("TEXT_EDITOR").value = "";
     clearHighlight();
   }
+  _srtTimelineSegments = null;
+  _srtTimelineText = "";
   onTextInput();
   const zone = document.getElementById("UPLOAD_ZONE");
   if (zone) zone.classList.remove("has-file");
@@ -3561,9 +3661,22 @@ async function startSynthesis() {
 
   const adv = collectAdvParams();
 
+  const useSrtTimeline = (
+    _inputMode === "text" &&
+    Array.isArray(_srtTimelineSegments) &&
+    _srtTimelineSegments.length &&
+    String(text || "").trim() === String(_srtTimelineText || "").trim()
+  );
+  if (_inputMode === "text" && Array.isArray(_srtTimelineSegments) && _srtTimelineSegments.length && !useSrtTimeline) {
+    appendProgressLogLine(_lang==="zh"
+      ? "[srt-timeline] 文本已被手工修改，本次按普通文本合成，不使用原 SRT 时间轴。"
+      : "[srt-timeline] Text was edited; synthesizing as plain text without the original SRT timeline.");
+  }
+
   const body = {
     text,
     dialog_rows: dialogRows,
+    srt_segments: useSrtTimeline ? _srtTimelineSegments : [],
     input_mode: _inputMode,
     voice_id: _selectedVoice,
     speed:    _speed,
@@ -4409,6 +4522,139 @@ function saveBasicSettings() {
 // ── Clone ────────────────────────────────────────────────
 let _cloneAudioFile = null;
 let _cloneAudioData = null;
+let _cloneMicDeviceId = "";
+let _cloneMediaRecorder = null;
+let _cloneRecordChunks = [];
+let _cloneRecordTimer = null;
+let _cloneRecordStartedAt = 0;
+
+function cloneAudioMime() {
+  if (window.MediaRecorder && MediaRecorder.isTypeSupported("audio/mp4")) return "audio/mp4";
+  if (window.MediaRecorder && MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) return "audio/webm;codecs=opus";
+  if (window.MediaRecorder && MediaRecorder.isTypeSupported("audio/webm")) return "audio/webm";
+  return "";
+}
+function extFromMime(mime) {
+  mime = String(mime || "").toLowerCase();
+  if (mime.includes("mp4") || mime.includes("m4a")) return ".m4a";
+  if (mime.includes("webm")) return ".webm";
+  if (mime.includes("ogg")) return ".ogg";
+  return ".wav";
+}
+async function ensureCloneMicDevices() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+    showToast(_lang==="zh"?"当前环境不支持麦克风录音":"Microphone recording is not supported in this environment", "err");
+    return [];
+  }
+  try {
+    // Request permission once so device labels become visible.
+    const tmpStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    tmpStream.getTracks().forEach(t => t.stop());
+  } catch(e) {
+    showToast((_lang==="zh"?"无法访问麦克风: ":"Cannot access microphone: ") + (e && e.message ? e.message : e), "err");
+  }
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput");
+  const sel = document.getElementById("CLONE_MIC_SELECT");
+  if (sel) {
+    const cur = _cloneMicDeviceId;
+    sel.innerHTML = `<option value="">${t("mic_default")}</option>` + devices.map((d, i) => `<option value="${esc(d.deviceId)}">${esc(d.label || (t("mic_device") + " " + (i+1)))}</option>`).join("");
+    sel.value = cur || "";
+  }
+  return devices;
+}
+async function toggleCloneMicSettings(evt) {
+  if (evt) evt.stopPropagation();
+  const box = document.getElementById("CLONE_MIC_SETTINGS");
+  if (!box) return;
+  box.classList.toggle("show");
+  if (box.classList.contains("show")) {
+    await ensureCloneMicDevices();
+    showToast(t("mic_settings_open"), "ok");
+  }
+}
+function onCloneMicDeviceChange(val) {
+  _cloneMicDeviceId = val || "";
+}
+function cloneRecMicSvg(){
+  return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/><path d="M8 22h8"/></svg>`;
+}
+function cloneRecStopSvg(){
+  return `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.8" ry="1.8"></rect></svg>`;
+}
+function setCloneRecButtonState(recording){
+  const recBtn = document.getElementById("BTN_CLONE_REC");
+  if (!recBtn) return;
+  if (recording) {
+    recBtn.classList.add("recording");
+    recBtn.innerHTML = cloneRecStopSvg();
+    recBtn.title = _lang === "zh" ? "停止录音" : "Stop recording";
+    recBtn.setAttribute("aria-label", _lang === "zh" ? "停止录音" : "Stop recording");
+  } else {
+    recBtn.classList.remove("recording");
+    recBtn.innerHTML = cloneRecMicSvg();
+    recBtn.title = _lang === "zh" ? "开始录音" : "Record microphone";
+    recBtn.setAttribute("aria-label", _lang === "zh" ? "开始录音" : "Record microphone");
+  }
+}
+setCloneRecButtonState(false);
+async function toggleCloneRecording(evt) {
+  if (evt) evt.stopPropagation();
+  if (_cloneMediaRecorder && _cloneMediaRecorder.state === "recording") {
+    _cloneMediaRecorder.stop();
+    return;
+  }
+  await startCloneRecording();
+}
+async function startCloneRecording() {
+  if (!navigator.mediaDevices || !window.MediaRecorder) {
+    showToast(_lang==="zh"?"当前环境不支持麦克风录音":"Microphone recording is not supported in this environment", "err");
+    return;
+  }
+  try {
+    const constraints = {audio: _cloneMicDeviceId ? {deviceId:{exact:_cloneMicDeviceId}} : true};
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const mime = cloneAudioMime();
+    _cloneRecordChunks = [];
+    _cloneMediaRecorder = mime ? new MediaRecorder(stream, {mimeType:mime}) : new MediaRecorder(stream);
+    _cloneMediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) _cloneRecordChunks.push(e.data); };
+    _cloneMediaRecorder.onstop = async () => {
+      clearTimeout(_cloneRecordTimer); _cloneRecordTimer = null;
+      stream.getTracks().forEach(t => t.stop());
+      setCloneRecButtonState(false);
+      const usedMime = _cloneMediaRecorder.mimeType || mime || "audio/webm";
+      const blob = new Blob(_cloneRecordChunks, {type: usedMime});
+      const sec = Math.max(0.1, (Date.now() - _cloneRecordStartedAt) / 1000);
+      const b64 = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result || "").split(",")[1] || "");
+        r.onerror = () => rej(new Error(_lang==="zh"?"录音读取失败":"Failed to read recording"));
+        r.readAsDataURL(blob);
+      });
+      const ext = extFromMime(usedMime);
+      _cloneAudioFile = null;
+      _cloneAudioData = {name:`mic_recording_${Math.round(sec)}s${ext}`, ext, b64};
+      document.getElementById("CLONE_AUDIO_ZONE")?.classList.add("has-file");
+      const lab = document.getElementById("CLONE_AUDIO_LABEL");
+      if (lab) lab.textContent = _cloneAudioData.name;
+      const st = document.getElementById("CLONE_MIC_STATUS");
+      if (st) st.textContent = `${t("mic_record_done")} · ${sec.toFixed(1)}s`;
+      showToast(`${t("mic_record_done")} · ${sec.toFixed(1)}s`, "ok");
+      _cloneMediaRecorder = null;
+    };
+    _cloneRecordStartedAt = Date.now();
+    _cloneMediaRecorder.start();
+    setCloneRecButtonState(true);
+    const st = document.getElementById("CLONE_MIC_STATUS");
+    if (st) st.textContent = t("mic_recording");
+    showToast(t("mic_recording"), "warn");
+    _cloneRecordTimer = setTimeout(() => {
+      try { if (_cloneMediaRecorder && _cloneMediaRecorder.state === "recording") _cloneMediaRecorder.stop(); } catch(e) {}
+    }, 30000);
+  } catch(e) {
+    setCloneRecButtonState(false);
+    showToast((_lang==="zh"?"录音失败: ":"Recording failed: ") + (e && e.message ? e.message : e), "err");
+  }
+}
 
 function onCloneAudioSelected(inp) {
   _cloneAudioFile = inp.files[0];
@@ -4439,7 +4685,7 @@ async function submitClone() {
       });
     }
 
-    showToast(_lang==="zh"?"正在提交克隆…":"Submitting clone…");
+    showToast(_lang==="zh"?"正在执行两阶段克隆…":"Running two-stage clone…");
     const body = { name, audio_b64: b64, ext };
 
     const r = await fetch("/api/clone_voice", {

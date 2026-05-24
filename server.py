@@ -1,5 +1,5 @@
 """
-Lancer1911 TTS Offline v0.5a — FastAPI 后端
+Lancer1911 TTS Offline v0.5i — FastAPI 后端
 支持: docx / txt / md / srt / pdf / epub 文本提取 → 分段 TTS → WAV/MP3 输出
 """
 import asyncio, json, os, re, time, threading, tempfile, queue as _queue, uuid, hashlib, shutil, base64, mimetypes
@@ -112,6 +112,111 @@ def _persist_clone_audio(src_path: str, name: str, ext: str = ".wav") -> str:
     dst = CLONE_DIR / _safe_clone_filename(name, suffix)
     dst.write_bytes(src.read_bytes())
     return str(dst)
+
+
+def _convert_ref_audio_to_wav(src_path: str) -> str:
+    """Normalize uploaded/recorded reference audio to a short-lived mono WAV.
+
+    The browser microphone usually records webm/opus, while user uploads may be
+    m4a/mp3/flac.  Qwen3-TTS Base reference loading is most reliable with WAV, so
+    we try ffmpeg conversion before the first-stage clone.  If ffmpeg is missing
+    or conversion fails, fall back to the original file and let the worker report
+    the real error.
+    """
+    src = Path(src_path)
+    if src.suffix.lower() == ".wav":
+        return str(src)
+    fd, wav_path = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    try:
+        import subprocess
+        cmd = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", str(src),
+               "-ac", "1", "-ar", "24000", str(wav_path)]
+        subprocess.run(cmd, check=True)
+        if Path(wav_path).exists() and Path(wav_path).stat().st_size > 44:
+            print(f"[clone] converted reference audio to wav: {src} -> {wav_path}", flush=True)
+            return wav_path
+    except Exception as e:
+        print(f"[clone] reference audio wav conversion failed, using original: {e}", flush=True)
+    try:
+        os.unlink(wav_path)
+    except Exception:
+        pass
+    return str(src)
+
+async def _send_worker_and_wait(task: dict, timeout: float = 120.0) -> dict:
+    """Send one worker task and await its callback result from the listener thread."""
+    if not (G.worker and G.worker_ready):
+        return {"ok": False, "error": "模型正在加载中，请稍候"}
+    evt = threading.Event()
+    holder = {}
+    def cb(msg):
+        holder.update(msg or {})
+        evt.set()
+    try:
+        G.worker.send(task, callback=cb)
+        await asyncio.get_event_loop().run_in_executor(None, lambda: evt.wait(timeout))
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    if not holder:
+        return {"ok": False, "error": f"worker timeout after {timeout:.0f}s"}
+    return holder
+
+async def _build_normalized_clone_audio(raw_audio_path: str, final_name: str) -> tuple[str, dict]:
+    """Two-stage clone normalization.
+
+    1) register a temporary clone from the user's raw reference audio;
+    2) synthesize a fixed clean sample using that temporary clone;
+    3) return the generated short WAV path for final persistence.
+    """
+    sample_text = "窗外的光线逐渐变亮，房间里安静而清晰。"
+    temp_name = f"__tmp_clone_seed_{uuid.uuid4().hex[:10]}"
+    converted_path = _convert_ref_audio_to_wav(raw_audio_path)
+    cleanup_paths = []
+    if converted_path != raw_audio_path:
+        cleanup_paths.append(converted_path)
+    fd, sample_wav = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    try:
+        print(f"[clone-normalize] Stage 1 clone register: final={final_name!r} temp={temp_name}", flush=True)
+        reg = await _send_worker_and_wait({
+            "type": "clone_voice",
+            "name": temp_name,
+            "audio_path": converted_path,
+        }, timeout=30)
+        if not reg.get("ok"):
+            raise RuntimeError(reg.get("error") or "Stage 1 clone registration failed")
+
+        print(f"[clone-normalize] Stage 2 synth normalized sample for {final_name!r}: {sample_text}", flush=True)
+        synth = await _send_worker_and_wait({
+            "type": "tts",
+            "text": sample_text,
+            "dialog_rows": [],
+            "voice_id": f"__clone__{temp_name}",
+            "speed": 1.0,
+            "output_path": sample_wav,
+            "chunk_size": 9999,
+            "advanced": {"temperature": 0.2, "top_p": 0.85, "top_k": 20, "max_tokens": 512,
+                         "silence_gap_ms": 0, "fade_ms": 10},
+        }, timeout=180)
+        if not synth.get("ok"):
+            raise RuntimeError(synth.get("error") or "Normalized sample synthesis failed")
+        out = synth.get("output_path") or sample_wav
+        if not Path(out).exists() or Path(out).stat().st_size <= 44:
+            raise RuntimeError("Normalized sample was not created or is empty")
+        print(f"[clone-normalize] Stage 3 final clone reference ready: {out}", flush=True)
+        return str(out), {"normalized": True, "sample_text": sample_text, "stage1": reg, "stage2": synth}
+    finally:
+        try:
+            if G.worker and G.worker_ready:
+                G.worker.send({"type": "delete_clone", "name": temp_name})
+        except Exception:
+            pass
+        for cp in cleanup_paths:
+            try:
+                os.unlink(cp)
+            except Exception:
+                pass
 
 
 
@@ -318,7 +423,14 @@ class ModelWorker:
             tid = msg.get("id", "")
             print(f"[listener] got msg type={t} stage={msg.get('stage','')} chunk={msg.get('chunk_idx','')}", flush=True)
 
-            if t == "ready":
+            if t == "terminal_log":
+                # Worker stdout/stderr is mirrored to the frontend log panel so the user
+                # can inspect the same detailed diagnostics that appear in Terminal.
+                broadcast_sync({"type": "tts_log",
+                                "message": msg.get("message", ""),
+                                "stream": msg.get("stream", "stdout"),
+                                "ts": msg.get("ts", time.time())})
+            elif t == "ready":
                 G.worker_ready = msg.get("ok", False)
                 broadcast_sync({"type": "model_ready", "ok": G.worker_ready,
                                  "error": msg.get("error", ""),
@@ -329,6 +441,11 @@ class ModelWorker:
                 G.job_progress = {**msg, "type": "tts_progress"}
                 broadcast_sync({**msg, "type": "tts_progress"})
             elif t == "done":
+                with self._cb_lock:
+                    cb = self._callbacks.pop(tid, None)
+                if cb:
+                    cb(msg)
+                    continue
                 if msg.get("ok") and msg.get("output_path"):
                     op = str(msg.get("output_path") or "")
                     try:
@@ -459,7 +576,7 @@ def extract_text_from_file(path: str, ext: str) -> str:
         text = re.sub(r'^\d+\.\s+', '', text, flags=re.MULTILINE)
         return text
     elif ext == "srt":
-        return _parse_srt(Path(path).read_text(encoding="utf-8", errors="replace"))
+        return "\n".join(seg["text"] for seg in _parse_srt_segments(Path(path).read_text(encoding="utf-8", errors="replace")) if seg.get("text"))
     elif ext == "docx":
         return _parse_docx(path)
     elif ext == "pdf":
@@ -470,19 +587,71 @@ def extract_text_from_file(path: str, ext: str) -> str:
         raise RuntimeError("不支持的文件类型。请使用 TXT / MD / SRT / DOCX / PDF / EPUB 文件。")
 
 
+def _srt_time_to_ms(value: str) -> int:
+    """Convert SRT/VTT timecode to milliseconds."""
+    v = str(value or "").strip().replace(",", ".")
+    m = re.match(r"(?:(\d{1,2}):)?(\d{2}):(\d{2})(?:\.(\d{1,3}))?$", v)
+    if not m:
+        return 0
+    h = int(m.group(1) or 0)
+    mm = int(m.group(2) or 0)
+    ss = int(m.group(3) or 0)
+    frac = (m.group(4) or "0")[:3].ljust(3, "0")
+    return ((h * 60 + mm) * 60 + ss) * 1000 + int(frac)
+
+
+def _parse_srt_segments(content: str) -> list[dict]:
+    """Parse SRT/VTT-style timestamped text and preserve the original timeline.
+
+    Returned items:
+      {start_ms, end_ms, start_time, end_time, text}
+    """
+    content = (content or "").replace("\ufeff", "").replace("\r\n", "\n").replace("\r", "\n")
+    blocks = re.split(r"\n\s*\n+", content.strip())
+    out = []
+    time_re = re.compile(
+        r"(?P<start>\d{1,2}:\d{2}:\d{2}[,.]\d{1,3}|\d{2}:\d{2}[,.]\d{1,3})\s*-->\s*"
+        r"(?P<end>\d{1,2}:\d{2}:\d{2}[,.]\d{1,3}|\d{2}:\d{2}[,.]\d{1,3})"
+    )
+    for block in blocks:
+        lines = [ln.strip() for ln in block.split("\n") if ln.strip()]
+        if not lines:
+            continue
+        time_idx = -1
+        mt = None
+        for i, ln in enumerate(lines):
+            mt = time_re.search(ln)
+            if mt:
+                time_idx = i
+                break
+        if time_idx < 0 or not mt:
+            continue
+        text_lines = []
+        for ln in lines[time_idx + 1:]:
+            if re.match(r"^\d+$", ln):
+                continue
+            if time_re.search(ln):
+                continue
+            text_lines.append(ln)
+        seg_text = " ".join(text_lines).strip()
+        if not seg_text:
+            continue
+        start_time = mt.group("start")
+        end_time = mt.group("end")
+        out.append({
+            "start_ms": _srt_time_to_ms(start_time),
+            "end_ms": _srt_time_to_ms(end_time),
+            "start_time": start_time,
+            "end_time": end_time,
+            "text": seg_text,
+        })
+    out.sort(key=lambda x: int(x.get("start_ms") or 0))
+    return out
+
+
 def _parse_srt(content: str) -> str:
     """提取 SRT 字幕文本（去掉时间戳和序号）"""
-    lines = []
-    for line in content.split("\n"):
-        line = line.strip()
-        if not line:
-            continue
-        if line.isdigit():
-            continue
-        if re.match(r'\d{2}:\d{2}:\d{2}', line):
-            continue
-        lines.append(line)
-    return "\n".join(lines)
+    return "\n".join(seg["text"] for seg in _parse_srt_segments(content) if seg.get("text"))
 
 
 def _parse_docx(path: str) -> str:
@@ -834,14 +1003,24 @@ def create_app() -> FastAPI:
         try:
             with os.fdopen(fd, "wb") as f:
                 f.write(base64.b64decode(b64))
-            text = extract_text_from_file(tmp, ext)
+            srt_segments = []
+            if ext == "srt":
+                raw_srt = Path(tmp).read_text(encoding="utf-8", errors="replace")
+                srt_segments = _parse_srt_segments(raw_srt)
+                text = "\n".join(seg["text"] for seg in srt_segments if seg.get("text"))
+            else:
+                text = extract_text_from_file(tmp, ext)
             char_count = len(text)
             preview = text[:200]
-            return JSONResponse({
+            resp = {
                 "ok": True, "text": text,
                 "char_count": char_count, "preview": preview,
                 "filename": filename,
-            })
+            }
+            if srt_segments:
+                resp["srt_segments"] = srt_segments
+                resp["srt_segment_count"] = len(srt_segments)
+            return JSONResponse(resp)
         except Exception as e:
             return JSONResponse({"ok": False, "error": str(e)}, status_code=400)
         finally:
@@ -861,6 +1040,33 @@ def create_app() -> FastAPI:
         speed    = float(body.get("speed", G.settings.get("speed", 1.0)))
         advanced = body.get("advanced", G.settings.get("advanced_params", {}))
         chunk_size = 9999  # 由 model_worker 根据语言自动限制，此处传大值不干预
+        srt_segments = body.get("srt_segments") or []
+        if isinstance(srt_segments, list):
+            cleaned_srt_segments = []
+            for seg in srt_segments:
+                if not isinstance(seg, dict):
+                    continue
+                seg_text = str(seg.get("text") or "").strip()
+                if not seg_text:
+                    continue
+                try:
+                    start_ms = int(float(seg.get("start_ms") or 0))
+                except Exception:
+                    start_ms = 0
+                try:
+                    end_ms = int(float(seg.get("end_ms") or start_ms))
+                except Exception:
+                    end_ms = start_ms
+                cleaned_srt_segments.append({
+                    "start_ms": max(0, start_ms),
+                    "end_ms": max(max(0, start_ms), end_ms),
+                    "start_time": str(seg.get("start_time") or ""),
+                    "end_time": str(seg.get("end_time") or ""),
+                    "text": seg_text,
+                })
+            srt_segments = cleaned_srt_segments
+        else:
+            srt_segments = []
 
         if isinstance(dialog_rows, list) and dialog_rows:
             cleaned = []
@@ -932,6 +1138,7 @@ def create_app() -> FastAPI:
             "type":       "tts",
             "text":       text,
             "dialog_rows": dialog_rows,
+            "srt_segments": srt_segments if not dialog_rows else [],
             "input_mode": body.get("input_mode", "text"),
             "voice_id":   voice_id,
             "speed":      speed,
@@ -1153,13 +1360,12 @@ def create_app() -> FastAPI:
 
     @app.post("/api/clone_voice")
     async def clone_voice(req: Request):
-        """注册/保存声音克隆（接收 JSON base64 音频）。
+        """两阶段声音克隆（接收 JSON base64 音频）。
 
-        注意：保存 .ttsc 所需的信息不应依赖模型是否已经加载成功。
-        旧版本在 G.worker_ready=False 时直接 503，导致前端已经显示卡片但后端没有保存，
-        后续导出 /api/export_clone 自然 404。这里改为：先把参考音频持久化并写入 settings；
-        如果 worker 已就绪，则再尝试注册给 worker；如果 worker 未就绪，仍返回 ok，待模型加载
-        完成后由 _register_saved_clones_to_worker() 自动注册。
+        为避免 .ttsc 保存用户原始长音频导致文件过大，流程改为：
+        1. 用用户上传/录制的参考音频临时注册第一阶段克隆；
+        2. 用该临时克隆合成固定短句；
+        3. 将该短句 WAV 再作为最终克隆参考音频保存、注册和导出。
         """
         import base64
         body = await req.json()
@@ -1172,53 +1378,60 @@ def create_app() -> FastAPI:
         if not audio_b64:
             return JSONResponse({"ok": False, "error": "未收到音频数据"}, status_code=400)
 
+        _ensure_worker()
+        if not (G.worker and G.worker_ready):
+            return JSONResponse({"ok": False, "error": "请先加载 Base 模型后再克隆音色。"}, status_code=503)
+
         fd, tmp = tempfile.mkstemp(suffix=ext)
         with os.fdopen(fd, "wb") as f:
             f.write(base64.b64decode(audio_b64))
 
-        # 先持久化，保证 .ttsc 导出与删除不依赖 worker/model 状态。
+        normalized_audio = ""
+        saved_audio = ""
+        normalize_meta = {}
         try:
-            saved_audio = _persist_clone_audio(tmp, name, ext)
-        except Exception:
-            saved_audio = tmp
-        finally:
-            # 持久化成功后清理上传临时文件，避免内存/磁盘泄漏。
-            # 若 _persist_clone_audio 将 tmp 直接作为 saved_audio 返回（异常路径），则不删除。
-            if saved_audio != tmp:
+            broadcast_sync({"type": "tts_log", "message": f"[clone-normalize] start two-stage clone for {name}", "stream": "stdout", "ts": time.time()})
+            normalized_audio, normalize_meta = await _build_normalized_clone_audio(tmp, name)
+            saved_audio = _persist_clone_audio(normalized_audio, name, ".wav")
+        except Exception as e:
+            try:
+                os.unlink(tmp)
+            except Exception:
+                pass
+            if normalized_audio:
                 try:
-                    os.unlink(tmp)
+                    os.unlink(normalized_audio)
                 except Exception:
                     pass
-        G.settings.setdefault("cloned_voices", {})[name] = {
+            return JSONResponse({"ok": False, "error": f"两阶段克隆失败：{e}"}, status_code=400)
+        finally:
+            try:
+                os.unlink(tmp)
+            except Exception:
+                pass
+            if normalized_audio and normalized_audio != saved_audio:
+                try:
+                    os.unlink(normalized_audio)
+                except Exception:
+                    pass
+
+        meta = {
             "audio_path": saved_audio,
+            "normalized_clone": True,
+            "sample_text": normalize_meta.get("sample_text", "窗外的光线逐渐变亮，房间里安静而清晰。"),
+            "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }
+        G.settings.setdefault("cloned_voices", {})[name] = meta
         save_settings(G.settings)
         _sync_clone_init(G.settings)
 
         result = {"ok": True, "type": "clone_done", "name": name, "voice_id": f"__clone__{name}",
-                  "audio_path": saved_audio}   # 让前端能存住路径，避免 saveBasicSettings 时被清空
+                  "audio_path": saved_audio, "normalized_clone": True, "sample_text": meta["sample_text"], "meta": meta}
 
-        # worker 已就绪时，尝试立即注册；未就绪时不报 503。
-        if G.worker and G.worker_ready:
-            evt = threading.Event()
-            worker_result = {}
-            def cb(r):
-                worker_result.update(r)
-                evt.set()
-            try:
-                G.worker.send({
-                    "type": "clone_voice",
-                    "name": name,
-                    "audio_path": saved_audio,
-                }, callback=cb)
-                await asyncio.get_event_loop().run_in_executor(None, lambda: evt.wait(10))
-                if worker_result and not worker_result.get("ok"):
-                    # CustomVoice 模型等可能不支持 clone。保存仍成功，只提示切换 Base 模型后可用。
-                    result["warning"] = worker_result.get("error", "克隆音色已保存，但当前模型未完成注册")
-            except Exception as e:
-                result["warning"] = f"克隆音色已保存，但当前模型未完成注册：{e}"
-        else:
-            result["warning"] = "克隆音色已保存；当前模型未就绪，加载 Base 模型后会自动注册。"
+        # 将最终短样本注册为用户可见的克隆音色。
+        reg = await _send_worker_and_wait({"type": "clone_voice", "name": name, "audio_path": saved_audio}, timeout=30)
+        if reg and not reg.get("ok"):
+            result["warning"] = reg.get("error", "最终克隆音色已保存，但当前模型未完成注册")
 
         broadcast_sync(result)
         return JSONResponse(result)

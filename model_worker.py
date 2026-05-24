@@ -21,7 +21,56 @@ def _cleanup_temp_files():
             pass
 
 
+class _QueueTee:
+    """Mirror worker stdout/stderr to terminal and to the UI log via result_q."""
+    def __init__(self, stream, result_q, name: str):
+        self.stream = stream
+        self.result_q = result_q
+        self.name = name
+        self._buf = ""
+
+    def write(self, data):
+        try:
+            self.stream.write(data)
+            self.stream.flush()
+        except Exception:
+            pass
+        if not data:
+            return 0
+        self._buf += str(data)
+        while "\n" in self._buf:
+            line, self._buf = self._buf.split("\n", 1)
+            line = line.rstrip("\r")
+            if line.strip():
+                try:
+                    self.result_q.put({
+                        "type": "terminal_log",
+                        "stream": self.name,
+                        "message": line,
+                        "ts": time.time(),
+                    })
+                except Exception:
+                    pass
+        return len(data)
+
+    def flush(self):
+        try:
+            self.stream.flush()
+        except Exception:
+            pass
+
+    def isatty(self):
+        try:
+            return self.stream.isatty()
+        except Exception:
+            return False
+
+
 def worker_main(task_q, result_q, model_repo: str, device: str = "mlx"):
+    import sys
+    # Keep terminal output unchanged, but also forward every worker print() line to the UI log.
+    sys.stdout = _QueueTee(sys.stdout, result_q, "stdout")
+    sys.stderr = _QueueTee(sys.stderr, result_q, "stderr")
     _cleanup_temp_files()
     try:
         _init_model(model_repo)
@@ -338,6 +387,17 @@ def _make_silence_wav(duration_s: float, idx: int, tag: str = "silence") -> str:
     dur = min(max(float(duration_s or 0.8), 0.6), 2.0)
     return _write_wav_array(np.zeros(int(sr * dur), dtype=np.float32), idx, tag=tag)
 
+
+def _make_timeline_silence_wav(duration_s: float, idx: int, tag: str = "timeline_gap") -> str:
+    """Create arbitrary-length silence for SRT timeline alignment.
+
+    Unlike _make_silence_wav(), this must not cap at 2 seconds because
+    timestamped files may start late or contain long blank intervals.
+    """
+    sr = _get_sample_rate()
+    dur = max(0.001, float(duration_s or 0))
+    return _write_wav_array(np.zeros(int(sr * dur), dtype=np.float32), idx, tag=tag)
+
 def _detect_type(repo: str) -> str:
     r = repo.lower().replace("-", "").replace("_", "")
     for k, v in _TYPE_MAP.items():
@@ -541,6 +601,7 @@ def _handle_tts(task: dict, result_q):
     out_path   = task.get("output_path", "")
     advanced   = task.get("advanced", {})
     dialog_rows = task.get("dialog_rows") or []
+    srt_segments = task.get("srt_segments") or []
     chunk_size = int(task.get("chunk_size", 250))
 
     if not out_path:
@@ -560,8 +621,10 @@ def _handle_tts(task: dict, result_q):
         lang_limit = min(lang_limit, 100 if is_mainly_chinese else 500)
     chunk_size = min(chunk_size, lang_limit)
 
-    # 普通文本：整体分段；多人对话 CSV：按每行 speaker/instruction/text 分段。
+    # 普通文本：整体分段；多人对话 CSV：按每行 speaker/instruction/text 分段；
+    # SRT：按字幕时间轴处理，第一次文字前的空白也用静音补齐。
     chunk_items = []
+    is_srt_timeline = False
     if isinstance(dialog_rows, list) and dialog_rows:
         if _model_type not in ("custom_voice", "base"):
             result_q.put({"id": tid, "type": "done", "ok": False,
@@ -595,6 +658,45 @@ def _handle_tts(task: dict, result_q):
                     "row_index": row_idx,
                     "dialog_row": True,
                 })
+    elif isinstance(srt_segments, list) and srt_segments:
+        is_srt_timeline = True
+        for seg_idx, seg in enumerate(srt_segments):
+            if not isinstance(seg, dict):
+                continue
+            seg_text = str(seg.get("text") or "").strip()
+            if not seg_text:
+                continue
+            try:
+                target_start_ms = max(0, int(float(seg.get("start_ms") or 0)))
+            except Exception:
+                target_start_ms = 0
+            try:
+                target_end_ms = max(target_start_ms, int(float(seg.get("end_ms") or target_start_ms)))
+            except Exception:
+                target_end_ms = target_start_ms
+            if len(seg_text) > chunk_size:
+                sub_chunks = _split_text(seg_text, chunk_size)
+            else:
+                sub_chunks = [(seg_text, True)]
+            for sub_i, (sub_text, _) in enumerate(sub_chunks):
+                if not sub_text.strip():
+                    continue
+                chunk_items.append({
+                    "text": sub_text,
+                    "is_para_end": False,
+                    "speaker": "",
+                    "instruction": "",
+                    "row_index": None,
+                    "dialog_row": False,
+                    "srt_timeline": True,
+                    "srt_index": seg_idx,
+                    # 只把原始字幕开始时间绑定到该字幕的第一个子段；
+                    # 同一字幕拆出的后续子段顺序紧接，不再强制二次对齐。
+                    "target_start_ms": target_start_ms if sub_i == 0 else None,
+                    "target_end_ms": target_end_ms if sub_i == len(sub_chunks) - 1 else None,
+                    "source_start_time": str(seg.get("start_time") or ""),
+                    "source_end_time": str(seg.get("end_time") or ""),
+                })
     else:
         for chunk_text, is_para_end in _split_text(text, chunk_size):
             if chunk_text.strip():
@@ -615,6 +717,9 @@ def _handle_tts(task: dict, result_q):
     chunk_wavs = []  # list of (wav_path, pause_ms)
     timestamp_entries = []  # final concat timestamps; also sent in done for reliable follow
     _audio_cursor_ms = 0  # 用于时间戳累计，必须与最终合并后的音频一致
+    timeline_overrun_count = 0
+    timeline_max_lag_ms = 0
+    timeline_gap_count = 0
 
     for i, item in enumerate(chunk_items):
         chunk = item["text"]
@@ -630,7 +735,33 @@ def _handle_tts(task: dict, result_q):
             if row_instruction:
                 row_adv["style_instruct"] = row_instruction
             wav_path, repair_info = _synth_chunk_with_repair(chunk, row_speaker, speed, row_adv, i)
-            pause_ms = _pause_for_ending(chunk, base_gap, is_paragraph_end=is_para_end)
+            # SRT 时间轴模式由原始时间戳控制空白，不再叠加标点停顿。
+            pause_ms = 0 if item.get("srt_timeline") else _pause_for_ending(chunk, base_gap, is_paragraph_end=is_para_end)
+
+            target_start = item.get("target_start_ms")
+            if item.get("srt_timeline") and target_start is not None:
+                try:
+                    target_start = int(target_start)
+                except Exception:
+                    target_start = None
+                if target_start is not None:
+                    if _audio_cursor_ms < target_start:
+                        gap_ms = target_start - _audio_cursor_ms
+                        timeline_gap_count += 1
+                        gap_wav = _make_timeline_silence_wav(gap_ms / 1000.0, i, tag="srt_gap")
+                        chunk_wavs.append((gap_wav, 0))
+                        print(f"[srt-timeline] insert silence before chunk={i}: {gap_ms}ms target={target_start}ms cursor={_audio_cursor_ms}ms", flush=True)
+                        result_q.put({"id": tid, "type": "progress", "stage": "timeline_gap",
+                                      "chunk_idx": i, "gap_ms": gap_ms,
+                                      "target_start_ms": target_start,
+                                      "audio_cursor_ms": _audio_cursor_ms})
+                        _audio_cursor_ms = target_start
+                    elif _audio_cursor_ms > target_start:
+                        lag_ms = _audio_cursor_ms - target_start
+                        timeline_overrun_count += 1
+                        timeline_max_lag_ms = max(timeline_max_lag_ms, lag_ms)
+                        print(f"[srt-timeline] overrun before chunk={i}: lag={lag_ms}ms target={target_start}ms cursor={_audio_cursor_ms}ms", flush=True)
+
             chunk_wavs.append((wav_path, pause_ms))
         except Exception as e:
             tb = traceback.format_exc()
@@ -658,6 +789,12 @@ def _handle_tts(task: dict, result_q):
             "pause_ms": effective_pause_ms,
             "audio_start_ms": audio_start_ms,
             "audio_end_ms": audio_end_ms,
+            "srt_timeline": bool(item.get("srt_timeline")),
+            "srt_index": item.get("srt_index"),
+            "target_start_ms": item.get("target_start_ms"),
+            "target_end_ms": item.get("target_end_ms"),
+            "source_start_time": item.get("source_start_time", ""),
+            "source_end_time": item.get("source_end_time", ""),
             "bad_audio_status": repair_info.get("bad_audio_status", "ok") if isinstance(repair_info, dict) else "ok",
             "bad_audio_attempts": repair_info.get("bad_audio_attempts", 0) if isinstance(repair_info, dict) else 0,
             "bad_audio_reason": repair_info.get("bad_audio_reason", "") if isinstance(repair_info, dict) else "",
@@ -707,11 +844,24 @@ def _handle_tts(task: dict, result_q):
 
     sr       = _get_sample_rate()
     duration = _wav_duration(out_path, sr)
+    timeline_warning = ""
+    if is_srt_timeline and timeline_overrun_count:
+        timeline_warning = (
+            f"SRT timeline overrun: {timeline_overrun_count} segment(s) started later than their original timestamps; "
+            f"maximum lag {timeline_max_lag_ms/1000:.2f}s. Consider increasing speed or shortening text."
+        )
+        print(f"[srt-timeline] warning: {timeline_warning}", flush=True)
+
     result_q.put({
         "id": tid, "type": "done", "ok": True,
         "output_path": out_path,
         "duration": round(duration, 2),
         "sample_rate": sr,
+        "srt_timeline": bool(is_srt_timeline),
+        "timeline_gap_count": timeline_gap_count,
+        "timeline_overrun_count": timeline_overrun_count,
+        "timeline_max_lag_ms": timeline_max_lag_ms,
+        "timeline_warning": timeline_warning,
         # 关键：WebSocket 或轮询可能丢掉中间 progress。done 中携带完整时间戳，
         # 确保播放器跟随/字幕导出与最终裁剪后的音频一致。
         "timestamps": timestamp_entries,
