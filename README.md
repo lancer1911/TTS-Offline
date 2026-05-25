@@ -9,8 +9,23 @@
 ![RAM](https://img.shields.io/badge/RAM-16%20GB%20minimum-red)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue?logo=python)
 ![MLX](https://img.shields.io/badge/MLX-local%20inference-orange)
-![Version](https://img.shields.io/badge/version-0.3a-informational)
+![Version](https://img.shields.io/badge/version-0.5w-informational)
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)
+
+---
+
+## 🎬 Demo Video
+
+<p align="center">
+  <video controls width="800">
+    <source src="videos/lancer1911-tts-offline.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+    <a href="videos/lancer1911-tts-offline.mp4">⬇ Download or open the demo video</a>
+  </video>
+  <br><em>TTS-Offline demo — local text-to-speech, multi-character dialog, and audiobook production workflow</em>
+</p>
+
+> Recommended video path: `videos/lancer1911-tts-offline.mp4`. If you use a different filename or folder, update the `src` path above accordingly.
 
 ---
 
@@ -96,20 +111,42 @@ This makes the app well suited for:
 
 ---
 
+## Recent Updates (v0.5w)
+
+Compared with the older README, the current version adds major stability and workflow improvements for long-form, multi-character, and English Base-model synthesis:
+
+- **Bad-audio detection and repair** — Detects low-frequency whine, drone tails, suspicious duration, peak and ZCR patterns. Failed chunks are retried and progressively re-split by sentence, phrase, word group, or smaller emergency units before final merge.
+- **Improved English Base-mode reliability** — English synthesis now uses word/duration-based estimation, shorter English chunks, tighter sampling parameters, guarded tail-cropping for cloned voices, and faster failure handling.
+- **Persistent cloned and anchored voices** — Clone and anchor metadata is saved to `~/.tts_offline_clone_voices/init.json`, so voices are restored immediately after restart without repeated imports or waiting for worker registration.
+- **Python-side microphone recording** — The Clone tab can record reference audio through the system microphone using Python `sounddevice`, avoiding WKWebView restrictions on `navigator.mediaDevices`. Device selection and up to 30 seconds of recording are supported.
+- **Four-column CSV dialog scripts** — Base mode supports Character / Voice / Emotion / Text scripts, making multi-character audiobook and drama production more stable and explicit.
+- **Role Anchor voices** — Generate reusable anchors from CustomVoice / VoiceDesign voices; create Chinese anchors by default and optional English anchors; import/export `.ttscx` anchor packages.
+- **Direct English anchor generation** — English anchors are generated from the selected original speaker and emotion instead of one shared neutral reference, preserving speaker and emotion differences.
+- **Automatic language-aware anchor selection in Base CSV mode** — English lines prefer matching `- English` anchors for the same character/emotion; otherwise the app falls back to `- Chinese` or another related source voice.
+- **SRT timeline synthesis** — Imported SRT files are aligned to their original timestamps by inserting silence. If generated audio overruns the next subtitle, content is not truncated; the app continues and warns the user to adjust speed if needed.
+- **Stricter file-entry filtering** — The main text upload accepts only TXT / MD / DOCX / SRT / PDF / EPUB; CSV is loaded only from Dialog Table; clone/anchor package importers accept only their intended formats.
+
 ## Features
 
 - **Fully offline** — Synthesis runs locally on MLX. Your text and audio never leave your Mac.
 - **9 built-in voices** — Serena, Vivian, Uncle Fu, Ryan, Alden, Ono Anna, Sohee, Eric, Dylan — covering multiple genders, accents, and styles.
-- **Voice cloning** — Upload 5–30 s of reference audio (WAV/MP3); the Base model learns the speaker's characteristics and synthesizes in that voice.
-- **Emotion and style instructions** — Each synthesis request accepts a free-form instruction field, giving you per-sentence control over tone, pace, affect, and character.
-- **Dialog table mode** — A three-column table (Speaker / Instruction / Text) lets you script multi-character productions. Import from CSV, add rows inline, or type directly.
+- **CustomVoice / Base / VoiceDesign model families** — Supports built-in voices, reference-audio cloning, role anchors, and experimental voice-design workflows.
+- **Voice cloning** — Upload or record 5–30 seconds of reference audio. Base models synthesize with the cloned speaker. New clones are saved as `- Chinese` by default and can derive a matching `- English` voice.
+- **Python-side microphone recording** — The Clone tab can select an input device and record reference audio directly, including in packaged macOS apps.
+- **Role Anchor voices** — Generate a stable sample from the current CustomVoice / VoiceDesign speaker and save it as a reusable Base-mode anchor. Batch anchoring, Chinese anchors, optional English anchors, and `.ttscx` import/export are supported.
+- **Differentiated English anchor generation** — English anchors are generated per speaker and per one of 12 emotions, avoiding the “all English anchors sound the same” problem.
+- **Four-column dialog table mode** — Supports Character / Voice / Emotion / Text CSV scripts. Character binds the role, Voice controls the actual synthesis voice, and Emotion gives per-line direction.
+- **Language-aware Base CSV voice selection** — English lines prefer a matching `- English` anchor for the same character/emotion; Chinese and Japanese lines prefer `- Chinese` anchors.
 - **Plain text mode** — Paste or upload text for single-voice synthesis with automatic chunking and paragraph handling.
-- **Wide input format support** — TXT, Markdown, DOCX, SRT, PDF, EPUB — all parsed and fed into the synthesis queue.
+- **Wide input format support** — TXT, Markdown, DOCX, SRT, PDF, EPUB. The main upload entry rejects CSV, JSON, PPTX, TTSCX, and other non-text workflow files.
+- **SRT timeline synthesis** — Imported SRT files can preserve their original timing by inserting silence. If generated audio exceeds the next subtitle timestamp, content is not truncated.
+- **Bad-audio detection and automatic repair** — Detects low-frequency whine, drone tails, truncation, and failed chunks; retries, progressively re-splits, and only falls back to silence when repair fails.
 - **WAV and MP3 output** — Choose the output format; MP3 requires `ffmpeg`.
 - **Per-segment timestamps** — Every synthesized chunk is tagged with its start and end time in the final audio. Exportable as SRT, TXT, Markdown, JSON, or CSV.
 - **Playback with dual follow modes** — During or after synthesis, play back the result. Follow mode highlights the current sentence; reverse follow mode lets you click any sentence or dialog row to seek the player.
-- **Session files (.ttso)** — Save and restore the full state: script, voice selection, settings, timestamps, and dialog rows.
+- **Session files (.ttso)** — Save and restore the full state: script, voice selection, settings, timestamps, and playback state.
 - **Advanced TTS parameters** — Temperature, Top-P, Top-K, max tokens, chunk size, silence gap, fade duration, and pitch shift — all accessible from the Advanced Settings panel with built-in and custom presets.
+- **Live log panel** — Expand logs to inspect chunk progress, bad-audio detection, retry/repair events, and model-worker output.
 - **Model selector** — Switch between CustomVoice, Base, and VoiceDesign model families; the UI detects which models are installed locally.
 - **Subtitle export** — Export SRT, TXT, Markdown, JSON, or Excel-compatible CSV.
 - **Bilingual UI** — Switch between Chinese and English with the top-bar language button.
@@ -196,37 +233,55 @@ First launch may take 10–30 seconds while the model loads into memory. The sta
 4. Click **▶ Synthesize**.
 5. When synthesis completes, the playback bar appears. Click **⬇ Download** to save the audio.
 
-### Multi-character audiobook (Dialog Table)
+### Multi-character audiobook (four-column Dialog Table)
 
-1. Click **Dialog Table** to switch to the three-column table view.
-2. Each row represents one line of speech:
-   - **Speaker** — select a voice from the dropdown (built-in or cloned)
-   - **Control Instruction** — optional free-form direction (e.g. "sad and slow", "whispering", "cheerful")
-   - **Text** — the line to synthesize
+1. Click **Dialog Table** to switch to the table view.
+2. Each row represents one speech segment. The recommended format is now four columns:
+   - **Character** — binds the role identity, such as `Narrator`, `Ye Wenjie`, or `Poirot`.
+   - **Voice** — the actual synthesis voice: built-in, cloned, or anchored.
+   - **Emotion** — optional emotion or direction instruction, such as `sad and slow`, `whispering`, `happy`, or `angry`.
+   - **Text** — the line to synthesize.
+
 3. Add rows with **+ Row**, or import a CSV with **Load CSV**.
 
-   CSV format (header optional):
-   ```
-   Speaker,Instruction,Text
-   Serena,,Once upon a time in a quiet village…
-   Ryan,whispering urgently,We need to leave. Now.
-   Vivian,warm and reassuring,Everything will be fine.
+   Recommended CSV format (header optional):
+   ```csv
+   Character,Voice,Emotion,Text
+   Narrator,Uncle Fu,calm,Once upon a time in a quiet village…
+   Ryan,Ryan,whispering,We need to leave. Now.
+   Vivian,Vivian,warm,Everything will be fine.
    ```
 
 4. Click **▶ Synthesize**. Each row is synthesized in order and concatenated into a single audio file with per-segment timestamps.
-5. After synthesis, click any row to jump to that segment in playback (**reverse follow**). Enable **Follow** to scroll the table as audio plays.
+5. After synthesis, click any row to jump to that segment in playback (**reverse follow**). Enable **Follow** to scroll and highlight the current row while audio plays.
+6. In Base mode, if the same character has both `- English` and `- Chinese` anchors, the app automatically prefers the anchor that better matches the current line language.
 
-### Voice cloning
+### SRT timeline synthesis
+
+1. Upload an `.srt` file from the main text upload entry.
+2. The app reads each subtitle start time and inserts silence where needed to preserve the original timeline.
+3. If a generated segment is longer than the original subtitle interval, the audio is not truncated; synthesis continues in order. If the timeline catches up later, silence insertion resumes.
+4. If the final audio significantly overruns the original timeline, the app warns the user to increase speed, shorten text, or adjust the subtitles.
+
+### Voice cloning and Role Anchors
+
+#### Voice cloning
 
 1. Go to the **Clone** tab.
-2. Enter a **Clone Name** and optionally a **Reference Text** (what is said in the audio).
-3. Choose a **Base Voice** (style reference).
-4. Upload a WAV or MP3 reference file (5–30 s, clean audio recommended).
-5. Click **Start Clone**. The cloned voice appears in the voice list and can be used in dialog rows.
+2. Enter a **Clone Name**. Reference text can usually be left blank, especially when the reference audio itself is clear.
+3. Upload a WAV / MP3 reference file, or use the microphone button to record 5–30 seconds of reference audio.
+4. Click **Start Clone**. The app saves a Chinese clone card, named `Name - Chinese` by default, and may derive a matching `Name - English` card.
+5. Cloned voices are persisted locally and restored automatically after restart.
 
 > Voice cloning requires a **Base model** (e.g. `Qwen3-TTS-12Hz-1.7B-Base-8bit`). Switch to a Base model in the **Model** tab first.
 
----
+#### Role Anchors
+
+1. Switch to a CustomVoice or VoiceDesign model, then select an original speaker and emotion.
+2. Use **Role Anchor** to generate a stable sample and save it as a reusable Base-mode voice.
+3. A `- Chinese` anchor is created by default. If **also create English anchor** is checked, a separate `- English` anchor is generated.
+4. Batch anchoring also respects this checkbox, making it useful for preparing multiple characters and emotions for audiobook work.
+5. Use **Export Anchors / Import Anchors** to move `.ttscx` anchor packages between machines or projects.
 
 ## Voice Reference
 
@@ -447,7 +502,7 @@ Voice cloning requires a Base model. Switch to `Qwen3-TTS-12Hz-1.7B-Base-8bit` o
 Install ffmpeg: `brew install ffmpeg`. WAV output works without any additional dependencies.
 
 **Dialog table CSV import fails.**  
-Ensure the CSV uses UTF-8 encoding and has at most three columns: Speaker, Instruction (optional), Text. The header row is optional.
+Ensure the CSV uses UTF-8 encoding. The recommended format is four columns: Character / Voice / Emotion / Text. Older three-column scripts (Speaker / Instruction / Text) can still be used for simple dialog, but Base-mode multi-character production should use the four-column format.
 
 **Session loads but audio is missing.**  
 Keep the `.ttso` file and the `.wav` / `.mp3` output in the same folder with the original filename. The app attempts to auto-pair them on load.
@@ -467,6 +522,8 @@ Keep the `.ttso` file and the `.wav` / `.mp3` output in the same folder with the
 | [python-docx](https://python-docx.readthedocs.io) | DOCX text extraction |
 | [pdfminer.six](https://pdfminer.six.readthedocs.io) | PDF text extraction |
 | [numpy](https://numpy.org) | Audio array processing |
+| [sounddevice](https://python-sounddevice.readthedocs.io) | Python-side microphone recording |
+| [PyObjC AVFoundation](https://pyobjc.readthedocs.io) | macOS microphone permission trigger for packaged apps |
 
 ---
 
