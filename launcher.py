@@ -76,7 +76,56 @@ def find_main() -> str | None:
     return None
 
 
+def request_microphone_permission_at_launch() -> None:
+    """Trigger macOS microphone TCC permission dialog for the bundled .app.
+
+    This must run inside the py2app bundle process (launcher.py) — NOT in
+    the external python subprocess — because TCC grants permissions per
+    bundle identity.  We pump a short NSRunLoop so the AVFoundation callback
+    (dispatched on the main-thread run-loop) actually fires and the dialog
+    appears.
+    """
+    if sys.platform != "darwin":
+        return
+    if os.environ.get("TTS_OFFLINE_SKIP_MIC_PERMISSION") == "1":
+        return
+    try:
+        from AVFoundation import (
+            AVCaptureDevice,
+            AVMediaTypeAudio,
+            AVAuthorizationStatusNotDetermined,
+        )
+        from AppKit import NSApplication
+        from Foundation import NSRunLoop, NSDate
+
+        NSApplication.sharedApplication()  # ensure we're recognised as a GUI app
+
+        status = AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio)
+        if status != AVAuthorizationStatusNotDetermined:
+            return  # already authorised or denied
+
+        _granted_box = [None]
+
+        def _handler(granted):
+            _granted_box[0] = granted
+
+        AVCaptureDevice.requestAccessForMediaType_completionHandler_(
+            AVMediaTypeAudio, _handler
+        )
+
+        # Pump the run-loop so the system dialog fires and the callback is delivered.
+        run_loop = NSRunLoop.mainRunLoop()
+        elapsed, deadline, tick = 0.0, 10.0, 0.1
+        while _granted_box[0] is None and elapsed < deadline:
+            run_loop.runUntilDate_(NSDate.dateWithTimeIntervalSinceNow_(tick))
+            elapsed += tick
+    except Exception:
+        pass
+
+
 def main() -> None:
+    request_microphone_permission_at_launch()
+
     python = find_python()
     if not python:
         alert(
@@ -97,10 +146,13 @@ def main() -> None:
 
     work_dir = str(Path(main_py).parent)
     env = os.environ.copy()
-    # Force HuggingFace hub into offline mode — all models must be pre-downloaded
     env["HF_HUB_OFFLINE"] = "1"
     env["TRANSFORMERS_OFFLINE"] = "1"
     env["HF_DATASETS_OFFLINE"] = "1"
+    # Permission was already requested by the bundle process above.
+    # The subprocess has no bundle identity and its AVFoundation request
+    # would be silently refused by TCC — skip it entirely.
+    env["TTS_OFFLINE_SKIP_MIC_PERMISSION"] = "1"
     for key in [
         "PYTHONPATH", "PYTHONHOME", "PYTHONEXECUTABLE",
         "RESOURCEPATH", "EXECUTABLEPATH", "ARGVZERO",

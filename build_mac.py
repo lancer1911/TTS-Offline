@@ -21,7 +21,7 @@ from pathlib import Path
 from setuptools import setup
 
 APP_NAME = "Lancer1911 TTS Offline"
-VERSION = "0.5a"
+VERSION = "0.5w"
 BUNDLE_ID = "com.lancer1911.ttsoffline"
 
 ROOT = Path(__file__).resolve().parent
@@ -52,14 +52,20 @@ py2app_options = {
         "CFBundleVersion": VERSION,
         "CFBundleShortVersionString": VERSION,
         "LSMinimumSystemVersion": "13.0",
+        # NSPrincipalClass tells macOS TCC this is a proper GUI app,
+        # so the microphone permission dialog is actually shown instead
+        # of being silently refused for a "background tool".
+        "NSPrincipalClass": "NSApplication",
         "NSLocalNetworkUsageDescription": "The app runs a local server for communication between the desktop window and the local TTS backend.",
         "NSDocumentsFolderUsageDescription": "The app lets you open text/audio files and save generated audio, subtitles, and clone voice packages selected by you.",
         "NSDownloadsFolderUsageDescription": "The app may save exported audio, subtitles, TTSC clone packages, or debug files to Downloads when requested.",
+        "NSMicrophoneUsageDescription": "The app needs microphone access to record reference audio for voice cloning.",
     },
     "packages": ["encodings"],
     "includes": [
         "encodings", "encodings.utf_8", "encodings.ascii", "encodings.latin_1",
         "os", "sys", "subprocess", "pathlib", "json", "time",
+        "objc", "Foundation", "AppKit", "AVFoundation",
     ],
     "excludes": [
         "tkinter", "matplotlib", "test", "unittest",

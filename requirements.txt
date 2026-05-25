@@ -6,4 +6,8 @@ mlx_audio
 numpy>=1.26.0
 python-docx>=1.1.0
 pdfminer.six>=20221105
+sounddevice>=0.4.6
 # MP3 输出需要系统安装 ffmpeg：brew install ffmpeg
+
+# macOS 麦克风权限触发（用于打包后的 .app 弹出系统授权窗口）
+pyobjc-framework-AVFoundation>=10.0; sys_platform == "darwin"

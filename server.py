@@ -1,5 +1,5 @@
 """
-Lancer1911 TTS Offline v0.5i — FastAPI 后端
+Lancer1911 TTS Offline v0.5w — FastAPI 后端
 支持: docx / txt / md / srt / pdf / epub 文本提取 → 分段 TTS → WAV/MP3 输出
 """
 import asyncio, json, os, re, time, threading, tempfile, queue as _queue, uuid, hashlib, shutil, base64, mimetypes
@@ -217,6 +217,222 @@ async def _build_normalized_clone_audio(raw_audio_path: str, final_name: str) ->
                 os.unlink(cp)
             except Exception:
                 pass
+
+
+def _unique_clone_name(base_name: str) -> str:
+    """Return a clone-card name that does not overwrite an existing saved voice."""
+    base = str(base_name or "我的声音").strip() or "我的声音"
+    existing = G.settings.get("cloned_voices") or {}
+    if base not in existing:
+        return base
+    for i in range(2, 1000):
+        cand = f"{base} {i}"
+        if cand not in existing:
+            return cand
+    return f"{base} {uuid.uuid4().hex[:6]}"
+
+
+def _base_clone_display_name(name: str) -> str:
+    """Strip language suffixes so paired clone cards share a clean base label."""
+    raw = str(name or "我的声音").strip() or "我的声音"
+    raw = re.sub(r"\s*-\s*(Chinese|English|中文|英文)\s*$", "", raw, flags=re.I).strip()
+    return raw or "我的声音"
+
+
+def _chinese_clone_card_name(base_name: str) -> str:
+    """Name the primary Chinese reference card without overwriting user cards."""
+    base = f"{_base_clone_display_name(base_name)} - Chinese"
+    return _unique_clone_name(base)
+
+
+def _english_clone_card_name(base_name: str) -> str:
+    """Name the derived English reference card without overwriting user cards."""
+    base = f"{_base_clone_display_name(base_name)} - English"
+    return _unique_clone_name(base)
+
+
+def _language_pair_clone_names(raw_name: str) -> tuple[str, str, str]:
+    """Return (base_display_name, chinese_card_name, english_card_name)."""
+    base_display = _base_clone_display_name(raw_name)
+    return base_display, _chinese_clone_card_name(base_display), _english_clone_card_name(base_display)
+
+
+_ENGLISH_ANCHOR_PRESETS = {
+    "neutral": (
+        "The morning light grew clearer, and the room stayed quiet and calm.",
+        "Speak in a calm, natural narration style with clear pronunciation, steady pacing, and the same speaker identity. Read only the sample text."
+    ),
+    "happy": (
+        "That's wonderful. Things are finally starting to change, and I am truly glad you stayed with me.",
+        "Speak in a bright, warm, genuinely happy tone with a slight smile, while keeping the same speaker identity. Do not over-act. Read only the sample text."
+    ),
+    "sad": (
+        "The night slowly settled around us, and the wind seemed to come from very far away.",
+        "Speak in a subdued, slower, restrained sad tone. Do not cry or shout; keep the same speaker identity and clear pronunciation. Read only the sample text."
+    ),
+    "excited": (
+        "This is the moment we have been waiting for, and everyone needs to move right now.",
+        "Speak with more energy and excitement, slightly faster but still clear, while preserving the same speaker identity. Read only the sample text."
+    ),
+    "angry": (
+        "I gave you more than one chance, but you crossed the line again and again.",
+        "Speak in a firm, controlled angry tone, serious and compressed. Do not scream or break the voice; keep the same speaker identity. Read only the sample text."
+    ),
+    "tense": (
+        "Don't make a sound. They are right outside the door, and we have to leave now.",
+        "Speak in a tense, pressured, alert tone with slightly quicker pacing, while keeping the voice stable and clear. Read only the sample text."
+    ),
+    "fear": (
+        "I don't know what that sound is, but it keeps getting closer.",
+        "Speak in an uneasy, fearful tone with slight trembling if natural, but do not scream or change the speaker identity. Read only the sample text."
+    ),
+    "surprised": (
+        "What? Are you saying this was planned from the very beginning?",
+        "Speak with clear surprise and a questioning rise, but keep the emotion within a natural range and preserve the same speaker identity. Read only the sample text."
+    ),
+    "serious": (
+        "This is not an ordinary decision. It will affect every choice we make from now on.",
+        "Speak in a serious, steady, firm tone with clear pauses. Avoid theatrical emotion and keep the same speaker identity. Read only the sample text."
+    ),
+    "gentle": (
+        "Don't be afraid. I am here with you, so take your time and tell me what happened.",
+        "Speak in a gentle, warm, comforting tone with slightly slower pacing, stable emotion, and the same speaker identity. Read only the sample text."
+    ),
+    "worried": (
+        "I am still worried. If we make the wrong choice, we may not get another chance.",
+        "Speak in a worried, hesitant tone with natural pauses, but do not over-tremble. Keep the same speaker identity. Read only the sample text."
+    ),
+    "tired": (
+        "I am really tired, but I cannot stop until this is finished.",
+        "Speak in a tired, weaker, lower-energy tone with slightly slower pacing, while keeping the words clear and the same speaker identity. Read only the sample text."
+    ),
+}
+
+
+def _english_anchor_preset(emotion: str, fallback_instruction: str = "") -> tuple[str, str]:
+    """Return an English sample/instruction that preserves the selected emotion.
+
+    English anchor cards must be generated directly from the selected CustomVoice
+    speaker and emotion.  If every English card is derived from the same neutral
+    clone sentence, different speakers/emotions can collapse into very similar
+    references.  These per-emotion samples keep the English card language-specific
+    without erasing the original role/emotion distinction.
+    """
+    key = str(emotion or "neutral").strip().lower() or "neutral"
+    sample, instr = _ENGLISH_ANCHOR_PRESETS.get(key, _ENGLISH_ANCHOR_PRESETS["neutral"])
+    extra = str(fallback_instruction or "").strip()
+    if extra:
+        instr = f"{instr} Original style note: {extra}"
+    return sample, instr
+
+
+async def _build_english_anchor_audio_direct(
+    english_name: str,
+    speaker: str,
+    emotion: str,
+    emotion_label: str,
+    speed: float,
+    advanced: dict,
+    original_instruction: str = "",
+) -> tuple[str, dict]:
+    """Create an English anchor directly from the selected CustomVoice speaker.
+
+    This is intentionally different from normal clone-card English derivation:
+    for role anchors, we know the source speaker and emotion.  Calling the
+    CustomVoice/VoiceDesign model directly keeps Ryan/Serena/etc. and
+    happy/sad/angry/etc. distinct instead of deriving all English cards from a
+    single neutral clone sentence.
+    """
+    sample_text, english_instruction = _english_anchor_preset(emotion, original_instruction)
+    adv = dict(advanced or {})
+    adv["style_instruct"] = english_instruction
+    adv.setdefault("temperature", 0.22)
+    adv.setdefault("top_p", 0.86)
+    adv.setdefault("top_k", 24)
+    evt = threading.Event()
+    worker_result = {}
+    def cb(r):
+        worker_result.update(r or {})
+        evt.set()
+    G.worker.send({
+        "type": "create_anchor",
+        "name": english_name,
+        "speaker": speaker,
+        "instruction": english_instruction,
+        "sample_text": sample_text,
+        "speed": speed,
+        "advanced": adv,
+        "emotion": emotion,
+        "emotion_label": emotion_label,
+    }, callback=cb)
+    await asyncio.get_event_loop().run_in_executor(None, lambda: evt.wait(120))
+    if not worker_result:
+        raise RuntimeError("创建英文角色锚点超时")
+    if not worker_result.get("ok"):
+        raise RuntimeError(worker_result.get("error") or "创建英文角色锚点失败")
+    audio_path = worker_result.get("audio_path", "")
+    if not audio_path or not Path(audio_path).exists():
+        raise RuntimeError("未生成英文角色锚点音频")
+    return str(audio_path), {
+        "english_reference": True,
+        "direct_customvoice_anchor": True,
+        "sample_text": sample_text,
+        "english_instruction": english_instruction,
+        "source_speaker": speaker,
+        "emotion": emotion,
+        "emotion_label": emotion_label,
+        "stage": worker_result,
+    }
+
+
+async def _build_english_clone_audio_from_clone(source_clone_name: str, english_name: str) -> tuple[str, dict]:
+    """Create an English reference sample from an already-registered Chinese clone.
+
+    The resulting short WAV is intended to be registered as a second clone card for
+    English synthesis.  This keeps the original Chinese clone untouched while giving
+    Base+clone English generation a reference that already contains English phones,
+    stress and rhythm.
+    """
+    sample_text = (
+        "This is a clean English reference sample. "
+        "I will speak in a calm, natural, and consistent voice. "
+        "The purpose is to preserve the same voice identity while improving English pronunciation and rhythm."
+    )
+    fd, sample_wav = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    try:
+        print(f"[clone-en] synth English reference: source={source_clone_name!r} -> {english_name!r}", flush=True)
+        synth = await _send_worker_and_wait({
+            "type": "tts",
+            "text": sample_text,
+            "dialog_rows": [],
+            "voice_id": f"__clone__{source_clone_name}",
+            "speed": 1.0,
+            "output_path": sample_wav,
+            "chunk_size": 9999,
+            "advanced": {
+                # Conservative English reference generation: stable > expressive.
+                "temperature": 0.18,
+                "top_p": 0.82,
+                "top_k": 18,
+                "max_tokens": 420,
+                "silence_gap_ms": 0,
+                "fade_ms": 10,
+            },
+        }, timeout=180)
+        if not synth.get("ok"):
+            raise RuntimeError(synth.get("error") or "English reference synthesis failed")
+        out = synth.get("output_path") or sample_wav
+        if not Path(out).exists() or Path(out).stat().st_size <= 44:
+            raise RuntimeError("English reference sample was not created or is empty")
+        return str(out), {"english_reference": True, "sample_text": sample_text, "source_clone": source_clone_name, "stage": synth}
+    except Exception:
+        try:
+            os.unlink(sample_wav)
+        except Exception:
+            pass
+        raise
+
 
 
 
@@ -790,6 +1006,42 @@ async def lifespan(app: FastAPI):
             pass
 
 
+# ── Python 侧麦克风录音 API（绕过 WKWebView 安全上下文限制）────────────────
+import struct as _struct, threading as _threading
+
+_mic_state = {
+    "recording": False,
+    "chunks": [],          # list[bytes]  float32 LE frames
+    "samplerate": 16000,
+    "channels": 1,
+    "stream": None,
+}
+_mic_lock = _threading.Lock()
+
+def _float32_to_pcm16(data: bytes) -> bytes:
+    n = len(data) // 4
+    floats = _struct.unpack(f"<{n}f", data)
+    return _struct.pack(f"<{n}h", *[int(max(-1.0, min(1.0, f)) * 32767) for f in floats])
+
+def _build_wav(pcm16: bytes, samplerate: int, channels: int) -> bytes:
+    data_size = len(pcm16)
+    hdr = _struct.pack(
+        "<4sI4s4sIHHIIHH4sI",
+        b"RIFF", 36 + data_size, b"WAVE",
+        b"fmt ", 16, 1, channels, samplerate,
+        samplerate * channels * 2, channels * 2, 16,
+        b"data", data_size,
+    )
+    return hdr + pcm16
+
+def _mic_sd_callback(indata, frames, time_info, status):
+    """sounddevice InputStream callback — C thread, must not block."""
+    raw = bytes(indata)
+    with _mic_lock:
+        if _mic_state["recording"]:
+            _mic_state["chunks"].append(raw)
+
+
 def create_app() -> FastAPI:
     app = FastAPI(lifespan=lifespan)
 
@@ -1273,7 +1525,9 @@ def create_app() -> FastAPI:
         synthesis.
         """
         body = await req.json()
-        name = str(body.get("name") or "角色锚点").strip() or "角色锚点"
+        raw_name = str(body.get("name") or "角色锚点").strip() or "角色锚点"
+        base_display_name, name, en_name_candidate = _language_pair_clone_names(raw_name)
+        make_english = bool(body.get("make_english"))
         speaker = str(body.get("speaker") or G.settings.get("voice_id") or "serena").strip()
         instruction = str(body.get("instruction") or "平静自然，语速适中，发音清晰，保持同一角色音色，不夸张表演。").strip()
         emotion = str(body.get("emotion") or "neutral").strip()
@@ -1339,6 +1593,8 @@ def create_app() -> FastAPI:
             "instruction": instruction,
             "emotion": emotion,
             "emotion_label": emotion_label,
+            "language_hint": "zh",
+            "base_display_name": base_display_name,
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }
         G.settings.setdefault("cloned_voices", {})[name] = anchor_meta
@@ -1352,10 +1608,80 @@ def create_app() -> FastAPI:
             "emotion": emotion,
             "emotion_label": emotion_label,
             "instruction": instruction,
+            "language_hint": "zh",
             "meta": anchor_meta,
             "warning": "角色锚点已保存；在 CustomVoice 模式下会立即显示锚定卡片，切换到 Base 模型后可用于合成长文本。"
         }
+
+        # Register the Chinese anchor as a Base clone reference before optionally
+        # deriving an English anchor from it.  Registration failure is non-fatal
+        # for persistence, but English derivation needs it.
+        reg = None
+        try:
+            reg = await _send_worker_and_wait({"type": "clone_voice", "name": name, "audio_path": saved_audio}, timeout=30)
+            if reg and not reg.get("ok"):
+                result["warning"] = reg.get("error", "中文锚点已保存，但当前模型未完成注册")
+        except Exception as e:
+            result["warning"] = f"中文锚点已保存，但当前模型未完成注册：{e}"
+
+        # 先广播中文锚点；英文派生失败不能影响默认中文锚点。
         broadcast_sync(result)
+
+        english_result = None
+        if make_english:
+            try:
+                en_name = en_name_candidate
+                broadcast_sync({"type": "tts_log", "message": f"[anchor-en] creating direct English anchor card with speaker/emotion: {en_name} ({speaker}/{emotion})", "stream": "stdout", "ts": time.time()})
+                en_audio_tmp, en_meta_extra = await _build_english_anchor_audio_direct(en_name, speaker, emotion, emotion_label, speed, advanced, instruction)
+                en_saved_audio = _persist_clone_audio(en_audio_tmp, en_name, ".wav")
+                try:
+                    if en_audio_tmp != en_saved_audio:
+                        os.unlink(en_audio_tmp)
+                except Exception:
+                    pass
+                en_meta = {
+                    "audio_path": en_saved_audio,
+                    "anchor": True,
+                    "source_speaker": speaker,
+                    "instruction": instruction,
+                    "emotion": emotion,
+                    "emotion_label": emotion_label,
+                    "normalized_clone": True,
+                    "derived_english_clone": True,
+                    "language_hint": "en",
+                    "derived_from": name,
+                    "paired_with": name,
+                    "base_display_name": base_display_name,
+                    "sample_text": en_meta_extra.get("sample_text", ""),
+                    "english_instruction": en_meta_extra.get("english_instruction", ""),
+                    "direct_customvoice_anchor": True,
+                    "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                }
+                anchor_meta["paired_english_clone"] = en_name
+                G.settings.setdefault("cloned_voices", {})[name] = anchor_meta
+                G.settings.setdefault("cloned_voices", {})[en_name] = en_meta
+                save_settings(G.settings)
+                _sync_clone_init(G.settings)
+
+                en_reg = await _send_worker_and_wait({"type": "clone_voice", "name": en_name, "audio_path": en_saved_audio}, timeout=30)
+                english_result = {
+                    "ok": True, "type": "clone_done", "anchor": True,
+                    "name": en_name, "voice_id": f"__clone__{en_name}",
+                    "audio_path": en_saved_audio, "normalized_clone": True,
+                    "derived_english_clone": True, "language_hint": "en",
+                    "derived_from": name, "source_speaker": speaker,
+                    "emotion": emotion, "emotion_label": emotion_label,
+                    "instruction": instruction, "sample_text": en_meta["sample_text"], "meta": en_meta,
+                }
+                if en_reg and not en_reg.get("ok"):
+                    english_result["warning"] = en_reg.get("error", "英文锚定音色已保存，但当前模型未完成注册")
+                broadcast_sync(english_result)
+            except Exception as e:
+                result["english_anchor_warning"] = str(e)
+                broadcast_sync({"type": "tts_log", "message": f"[anchor-en] skipped/failed for {name}: {e}", "stream": "stderr", "ts": time.time()})
+
+        if english_result:
+            result["english_anchor"] = {"name": english_result["name"], "voice_id": english_result["voice_id"], "audio_path": english_result["audio_path"], "meta": english_result.get("meta", {})}
         return JSONResponse(result)
 
     @app.post("/api/clone_voice")
@@ -1369,7 +1695,11 @@ def create_app() -> FastAPI:
         """
         import base64
         body = await req.json()
-        name = str(body.get("name", "我的声音") or "我的声音").strip() or "我的声音"
+        raw_name = str(body.get("name", "我的声音") or "我的声音").strip() or "我的声音"
+        # Visible clone cards are language-specific.  The original/primary card is
+        # now explicitly labelled "- Chinese"; the derived card is "- English".
+        name = _chinese_clone_card_name(raw_name)
+        base_display_name = _base_clone_display_name(raw_name)
         audio_b64 = body.get("audio_b64", "")
         ext = body.get("ext", ".wav") or ".wav"
         if not str(ext).startswith("."):
@@ -1418,6 +1748,8 @@ def create_app() -> FastAPI:
         meta = {
             "audio_path": saved_audio,
             "normalized_clone": True,
+            "language_hint": "zh",
+            "base_display_name": base_display_name,
             "sample_text": normalize_meta.get("sample_text", "窗外的光线逐渐变亮，房间里安静而清晰。"),
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }
@@ -1426,14 +1758,62 @@ def create_app() -> FastAPI:
         _sync_clone_init(G.settings)
 
         result = {"ok": True, "type": "clone_done", "name": name, "voice_id": f"__clone__{name}",
-                  "audio_path": saved_audio, "normalized_clone": True, "sample_text": meta["sample_text"], "meta": meta}
+                  "audio_path": saved_audio, "normalized_clone": True, "language_hint": "zh",
+                  "sample_text": meta["sample_text"], "meta": meta}
 
-        # 将最终短样本注册为用户可见的克隆音色。
+        # 将最终中文短样本注册为用户可见的克隆音色。
         reg = await _send_worker_and_wait({"type": "clone_voice", "name": name, "audio_path": saved_audio}, timeout=30)
         if reg and not reg.get("ok"):
             result["warning"] = reg.get("error", "最终克隆音色已保存，但当前模型未完成注册")
 
+        # 先广播中文卡片，避免英文派生失败时用户误以为整个克隆失败。
         broadcast_sync(result)
+
+        english_result = None
+        try:
+            en_name = _english_clone_card_name(base_display_name)
+            broadcast_sync({"type": "tts_log", "message": f"[clone-en] creating derived English clone card: {en_name}", "stream": "stdout", "ts": time.time()})
+            en_audio_tmp, en_meta_extra = await _build_english_clone_audio_from_clone(name, en_name)
+            en_saved_audio = _persist_clone_audio(en_audio_tmp, en_name, ".wav")
+            try:
+                if en_audio_tmp != en_saved_audio:
+                    os.unlink(en_audio_tmp)
+            except Exception:
+                pass
+            en_meta = {
+                "audio_path": en_saved_audio,
+                "normalized_clone": True,
+                "derived_english_clone": True,
+                "language_hint": "en",
+                "derived_from": name,
+                "paired_with": name,
+                "base_display_name": base_display_name,
+                "sample_text": en_meta_extra.get("sample_text", ""),
+                "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            }
+            # Link both directions for future UI/cleanup features.
+            meta["paired_english_clone"] = en_name
+            G.settings.setdefault("cloned_voices", {})[name] = meta
+            G.settings.setdefault("cloned_voices", {})[en_name] = en_meta
+            save_settings(G.settings)
+            _sync_clone_init(G.settings)
+
+            en_reg = await _send_worker_and_wait({"type": "clone_voice", "name": en_name, "audio_path": en_saved_audio}, timeout=30)
+            english_result = {
+                "ok": True, "type": "clone_done", "name": en_name, "voice_id": f"__clone__{en_name}",
+                "audio_path": en_saved_audio, "normalized_clone": True, "derived_english_clone": True,
+                "language_hint": "en", "derived_from": name, "sample_text": en_meta["sample_text"], "meta": en_meta,
+            }
+            if en_reg and not en_reg.get("ok"):
+                english_result["warning"] = en_reg.get("error", "英文克隆音色已保存，但当前模型未完成注册")
+            broadcast_sync(english_result)
+        except Exception as e:
+            # Non-fatal: the original Chinese card is already valid.
+            result["english_clone_warning"] = str(e)
+            broadcast_sync({"type": "tts_log", "message": f"[clone-en] skipped/failed for {name}: {e}", "stream": "stderr", "ts": time.time()})
+
+        if english_result:
+            result["english_clone"] = {"name": english_result["name"], "voice_id": english_result["voice_id"], "audio_path": english_result["audio_path"]}
         return JSONResponse(result)
 
     @app.delete("/api/clone_voice")
@@ -1516,6 +1896,10 @@ def create_app() -> FastAPI:
             "anchor":     bool(clone.get("anchor")),
             "source_speaker": clone.get("source_speaker", ""),
             "instruction": clone.get("instruction", ""),
+            "language_hint": clone.get("language_hint", ""),
+            "derived_english_clone": bool(clone.get("derived_english_clone")),
+            "derived_from": clone.get("derived_from", ""),
+            "paired_with": clone.get("paired_with", ""),
         })
 
     @app.get("/api/clone_audio")
@@ -1549,6 +1933,10 @@ def create_app() -> FastAPI:
             "anchor": bool(clone.get("anchor")),
             "source_speaker": clone.get("source_speaker", ""),
             "instruction": clone.get("instruction", ""),
+            "language_hint": clone.get("language_hint", ""),
+            "derived_english_clone": bool(clone.get("derived_english_clone")),
+            "derived_from": clone.get("derived_from", ""),
+            "paired_with": clone.get("paired_with", ""),
             "audio_b64": base64.b64encode(Path(audio_path).read_bytes()).decode(),
             "ext": ext,
         }
@@ -1571,6 +1959,10 @@ def create_app() -> FastAPI:
         is_anchor = bool(body.get("anchor"))
         source_speaker = body.get("source_speaker", "")
         instruction = body.get("instruction", "")
+        language_hint = body.get("language_hint", "")
+        derived_english_clone = bool(body.get("derived_english_clone"))
+        derived_from = body.get("derived_from", "")
+        paired_with = body.get("paired_with", "")
         if not audio_b64:
             return JSONResponse({"ok": False, "error": "无音频数据"}, status_code=400)
         fd, tmp = tempfile.mkstemp(suffix=ext)
@@ -1592,6 +1984,10 @@ def create_app() -> FastAPI:
             "anchor": is_anchor,
             "source_speaker": source_speaker,
             "instruction": instruction,
+            "language_hint": language_hint,
+            "derived_english_clone": derived_english_clone,
+            "derived_from": derived_from,
+            "paired_with": paired_with,
         }
         save_settings(G.settings)
         _sync_clone_init(G.settings)
@@ -1600,6 +1996,8 @@ def create_app() -> FastAPI:
                            "audio_path": saved_audio})
         broadcast_sync({"type": "clone_done", "ok": True, "name": name,
                         "anchor": is_anchor, "source_speaker": source_speaker,
+                        "language_hint": language_hint, "derived_english_clone": derived_english_clone,
+                        "derived_from": derived_from, "paired_with": paired_with,
                         "audio_path": saved_audio,   # 让前端能存住路径
                         "voice_id": f"__clone__{name}"})
         return JSONResponse({"ok": True, "voice_id": f"__clone__{name}"})
@@ -1777,5 +2175,91 @@ def create_app() -> FastAPI:
         G.job_status = "idle"
         broadcast_sync({"type": "status", "status": "idle"})
         return JSONResponse({"ok": True})
+
+    # ── 麦克风录音 API（Python 侧 sounddevice 录音，避开 WKWebView 限制）────
+    @app.get("/api/mic/devices")
+    async def mic_devices():
+        """列出所有可用麦克风设备。"""
+        try:
+            import sounddevice as sd
+            sd._terminate(); sd._initialize()
+        except Exception:
+            pass
+        devs = []
+        try:
+            import sounddevice as sd
+            for i, d in enumerate(sd.query_devices()):
+                if d["max_input_channels"] > 0:
+                    devs.append({"id": i, "name": d["name"]})
+        except ImportError:
+            return JSONResponse({"ok": False, "error": "sounddevice 未安装，请运行: pip install sounddevice"}, status_code=503)
+        except Exception as e:
+            return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+        return JSONResponse({"ok": True, "devices": devs})
+
+    @app.post("/api/mic/start")
+    async def mic_start(req: Request):
+        """开始录音（Python sounddevice InputStream）。"""
+        body = await req.json()
+        device_id = body.get("device_id")   # None = 系统默认
+        samplerate = int(body.get("samplerate", 16000))
+        try:
+            import sounddevice as sd
+        except ImportError:
+            return JSONResponse({"ok": False, "error": "sounddevice 未安装，请运行: pip install sounddevice"}, status_code=503)
+        with _mic_lock:
+            if _mic_state["recording"]:
+                return JSONResponse({"ok": False, "error": "已在录音中"}, status_code=409)
+            # 清理旧 stream
+            if _mic_state["stream"] is not None:
+                try: _mic_state["stream"].stop(); _mic_state["stream"].close()
+                except Exception: pass
+                _mic_state["stream"] = None
+            _mic_state["chunks"] = []
+            _mic_state["samplerate"] = samplerate
+            _mic_state["channels"] = 1
+        try:
+            stream = sd.InputStream(
+                samplerate=samplerate,
+                blocksize=512,
+                channels=1,
+                dtype="float32",
+                device=device_id if device_id is not None else None,
+                callback=_mic_sd_callback,
+            )
+            stream.start()
+            with _mic_lock:
+                _mic_state["stream"] = stream
+                _mic_state["recording"] = True
+            return JSONResponse({"ok": True})
+        except Exception as e:
+            return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
+    @app.post("/api/mic/stop")
+    async def mic_stop():
+        """停止录音，返回 WAV base64。"""
+        with _mic_lock:
+            if not _mic_state["recording"]:
+                return JSONResponse({"ok": False, "error": "未在录音"}, status_code=409)
+            _mic_state["recording"] = False
+            stream = _mic_state["stream"]
+            chunks = list(_mic_state["chunks"])
+            sr = _mic_state["samplerate"]
+            ch = _mic_state["channels"]
+            _mic_state["chunks"] = []
+            _mic_state["stream"] = None
+        if stream:
+            try: stream.stop(); stream.close()
+            except Exception: pass
+        if not chunks:
+            return JSONResponse({"ok": False, "error": "未采集到音频"}, status_code=400)
+        raw = b"".join(chunks)
+        pcm16 = _float32_to_pcm16(raw)
+        wav = _build_wav(pcm16, sr, ch)
+        import base64 as _b64
+        b64 = _b64.b64encode(wav).decode()
+        duration_s = len(pcm16) / 2 / sr / ch
+        return JSONResponse({"ok": True, "audio_b64": b64, "ext": ".wav", "duration_s": round(duration_s, 2)})
+
 
     return app

@@ -1,5 +1,5 @@
 """
-Lancer1911 TTS Offline v0.5k — 主入口
+Lancer1911 TTS Offline v0.5w — 主入口
 基于 MLX Qwen3-TTS，支持 docx/txt/md/srt/pdf/epub 等文本格式转语音
 """
 import sys, threading, time, urllib.request, queue, os
@@ -277,7 +277,42 @@ class FileDialogAPI:
             return {"ok": False, "error": str(e)}
 
 
+def _trigger_macos_microphone_permission() -> None:
+    """Best-effort native macOS microphone permission trigger.
+
+    This is intentionally optional: if PyObjC is not installed in the external
+    runtime environment, the WebView getUserMedia() call used by the record
+    button will still be attempted.
+    """
+    if sys.platform != "darwin":
+        return
+    if os.environ.get("TTS_OFFLINE_SKIP_MIC_PERMISSION") == "1":
+        return
+    try:
+        import threading
+        from AVFoundation import (
+            AVCaptureDevice,
+            AVMediaTypeAudio,
+            AVAuthorizationStatusNotDetermined,
+        )
+        status = AVCaptureDevice.authorizationStatusForMediaType_(AVMediaTypeAudio)
+        if status != AVAuthorizationStatusNotDetermined:
+            return
+        done = threading.Event()
+
+        def _handler(granted):
+            done.set()
+
+        AVCaptureDevice.requestAccessForMediaType_completionHandler_(
+            AVMediaTypeAudio, _handler
+        )
+        done.wait(8)
+    except Exception:
+        pass
+
+
 def main():
+    _trigger_macos_microphone_permission()
     _cleanup()
 
     threading.Thread(target=_start_server, args=(_dialog_request_q,), daemon=True).start()

@@ -1,5 +1,5 @@
 """
-Lancer1911 TTS Offline v0.4w — 模型工作进程
+Lancer1911 TTS Offline v0.5q — 模型工作进程
 使用 mlx_audio (https://github.com/Blaizzy/mlx-audio) 驱动 Qwen3-TTS MLX 推理。
 """
 from __future__ import annotations
@@ -151,10 +151,24 @@ class BadAudioError(RuntimeError):
 
 
 def _expected_duration_s(text: str) -> float:
-    t = str(text or "")
+    """Estimate spoken duration for bad-audio detection and safe token budgets.
+
+    v0.5o: English must not be estimated by raw character count.
+    The old 220 ms/character rule made a 100-character English sentence look
+    like about 22 s, so drone/unfinished outputs were tolerated for too long
+    and repairs became slow. English is now estimated by word count with a
+    generous margin; Chinese keeps the character-based estimate.
+    """
+    t = str(text or "").strip()
+    if not t:
+        return 1.0
     zh_ratio = sum(1 for c in t if '一' <= c <= '鿿') / max(len(t), 1)
-    ms_per_char = 400 if zh_ratio > 0.2 else 220
-    return max(1.5, len(t) * ms_per_char / 1000)
+    if zh_ratio > 0.2:
+        return max(1.2, len(t) * 0.40)
+    words = re.findall(r"[A-Za-z0-9]+(?:[’'][A-Za-z0-9]+)?", t)
+    word_count = max(1, len(words))
+    punct_count = len(re.findall(r"[,.!?;:—-]", t))
+    return max(1.2, word_count * 0.50 + punct_count * 0.12)
 
 
 def _audio_zcr_stats(arr: np.ndarray, sr: int) -> dict:
@@ -220,16 +234,17 @@ def _bad_audio_reason(metrics: dict, text: str = "") -> str:
 
 def _sanitize_retry_text(text: str) -> str:
     t = str(text or "").strip()
-    # Do not rewrite semantic content; only remove terminal symbols that often
-    # make Qwen3-TTS continue with a drone/unfinished utterance.
-    t = t.replace("……", "。").replace("...", "。")
+    is_zh = _is_chinese(t)
+    if is_zh:
+        t = t.replace("……", "。").replace("...", "。")
+    else:
+        t = t.replace("……", ".").replace("...", ".")
+        t = re.sub(r"\s+", " ", t)
+        t = t.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
     t = t.rstrip("—-–")
-    # Retry text should be TTS-friendly.  Quotation marks are useful for
-    # reading but often destabilize short cloned-voice Base generations,
-    # especially when only one side of the quote remains after splitting.
     for _q in "「」『』“”\"'":
         t = t.replace(_q, "")
-    t = t.replace("（", "，").replace("）", "，")
+    t = t.replace("（", "，" if is_zh else ",").replace("）", "，" if is_zh else ",")
     t = t.replace("(", ",").replace(")", ",")
     return t.strip() or str(text or "").strip()
 
@@ -245,46 +260,89 @@ def _repair_split_level_count() -> int:
 def _split_text_for_repair(text: str, max_chars: int = 45, level: int = 0) -> list[str]:
     """Progressively split a bad chunk for repair.
 
-    The earlier levels preserve natural phrasing.  Later levels are deliberately
-    aggressive so a pathological sentence can still be synthesized in small,
-    controllable pieces before we give up and replace the whole chunk with
-    short silence.
+    v0.5o adds a separate English path. The previous generic repair splitter
+    could cut English by character counts at early levels and then jump to
+    single-word retries, which hurt both naturalness and speed. English is now
+    split by sentence/phrase first, then by small word groups.
     """
     t = _sanitize_retry_text(text)
     if not t:
         return []
     level = max(0, int(level or 0))
+    is_zh = _is_chinese(t)
 
-    # Level 0: only hard sentence punctuation.
+    if not is_zh:
+        if level == 0:
+            parts = _split_english_sentences(t)
+            limit = 180
+        elif level == 1:
+            parts = re.split(r'(?<=[.!?;:])\s+', t)
+            limit = 130
+        elif level == 2:
+            parts = re.split(r'(?<=[,;:])\s+', t)
+            limit = 95
+        elif level == 3:
+            parts = re.split(r'(?<=[,;:])\s+|\s+[-—]\s+', t)
+            limit = 65
+        elif level == 4:
+            parts = [t]
+            limit = 45
+        else:
+            words = re.findall(r"[A-Za-z0-9]+(?:[’'][A-Za-z0-9]+)?|[^\w\s]", t)
+            group = 8 if level == 5 else 5 if level == 6 else 3 if level == 7 else 1
+            out, buf = [], []
+            for tok in words:
+                if re.fullmatch(r"[^\w\s]", tok):
+                    if buf:
+                        buf[-1] += tok
+                    continue
+                buf.append(tok)
+                if len(buf) >= group:
+                    out.append(" ".join(buf).strip())
+                    buf = []
+            if buf:
+                out.append(" ".join(buf).strip())
+            return [x for x in out if x]
+
+        merged: list[str] = []
+        for part in parts:
+            part = str(part or '').strip()
+            if not part:
+                continue
+            if len(part) <= limit:
+                merged.append(part)
+            else:
+                words = part.split()
+                cur = ''
+                for w in words:
+                    if not cur:
+                        cur = w
+                    elif len(cur) + 1 + len(w) <= limit:
+                        cur += ' ' + w
+                    else:
+                        merged.append(cur)
+                        cur = w
+                if cur:
+                    merged.append(cur)
+        return merged or [t]
+
+    # Chinese / mixed-CJK path: keep previous behavior.
     if level == 0:
         separators = r'(?<=[。！？!?；;])'
         limit = max_chars
-    # Level 1: include comma-like punctuation.
     elif level == 1:
         separators = r'(?<=[。！？!?；;，,、：:])'
         limit = min(max_chars, 32)
-    # Level 2: phrase-level, still readable.
     elif level == 2:
         separators = r'(?<=[。！？!?；;，,、：:———\-])'
         limit = 22
-    # Level 3: short phrase-level.
     elif level == 3:
         separators = r'(?<=[。！？!?；;，,、：:———\-])'
         limit = 14
-    # Level 4: very short phrase-level.
     elif level == 4:
         separators = r'(?<=[。！？!?；;，,、：:———\-])'
         limit = 8
     else:
-        # Level 5+: approximate word/character-level.  For Chinese we cannot
-        # rely on a tokenizer.  The chunk size is gradually reduced from
-        # 4 Chinese characters down to 1 character.  This prevents a sentence
-        # such as "我的天哪！我的粉盒在哪儿？" from staying stuck as the same
-        # two punctuation-based subchunks; later levels become "我的天哪 /
-        # 我的粉盒 / 在哪儿", then "我的 / 天哪 / 我的 / 粉盒 / 在哪 / 儿",
-        # and finally single characters.  Punctuation is removed in these
-        # emergency levels because exclamation/question marks are a common
-        # trigger for cloned-voice Base-model drone tails.
         if level == 5:
             token_limit = 4
         elif level == 6:
@@ -293,18 +351,13 @@ def _split_text_for_repair(text: str, max_chars: int = 45, level: int = 0) -> li
             token_limit = 2
         else:
             token_limit = 1
-
-        # Remove punctuation and brackets for the most aggressive retries.
-        # Keep Latin words/numbers intact; split CJK text by character count.
-        clean = re.sub(r'''[。！？!?；;，,、：:、\.．…—\-「」『』“”"'（）()\[\]【】《》<>\s]+''', '', t)
+        clean = re.sub(r"""[。！？!?；;，,、：:、\.．…—\-「」『』“”"'（）()\[\]【】《》<>\s]+""", '', t)
         if not clean:
             clean = re.sub(r'\s+', '', t) or t
         pieces = re.findall(r'[\u4e00-\u9fff]|[A-Za-z0-9]+(?:[\'’][A-Za-z0-9]+)?|.', clean)
         out = []
         buf = ''
         for piece in pieces:
-            # Keep non-CJK word tokens intact where possible, but still flush
-            # the buffer first to avoid making mixed chunks too long.
             if re.fullmatch(r'[A-Za-z0-9]+(?:[\'’][A-Za-z0-9]+)?', piece):
                 if buf.strip():
                     out.append(buf.strip())
@@ -329,9 +382,6 @@ def _split_text_for_repair(text: str, max_chars: int = 45, level: int = 0) -> li
         if len(piece) <= limit:
             parts.append(piece)
             continue
-
-        # Secondary forced split for overlong phrases.  Prefer natural breaks;
-        # if none exist, cut by character length as a last resort for this level.
         soft = re.split(r'(?<=[，,、：:])', piece)
         buf = ''
         for sp in soft:
@@ -365,7 +415,10 @@ def _safer_retry_advanced(advanced: dict, text: str, attempt: int = 1) -> dict:
     adv["top_p"] = min(float(adv.get("top_p") or 0.85), top_p_cap)
     adv["top_k"] = min(int(float(adv.get("top_k") or 20)), top_k_cap)
     # Shorter sub-chunks should not get the same token budget as whole lines.
-    safe_tokens = max(96, min(512, int(len(str(text or "")) * 7 + 96)))
+    if _is_chinese(text):
+        safe_tokens = max(96, min(512, int(len(str(text or "")) * 7 + 96)))
+    else:
+        safe_tokens = max(80, min(384, int(_expected_duration_s(text) * 90 + 64)))
     adv["max_tokens"] = min(int(float(adv.get("max_tokens") or safe_tokens)), safe_tokens)
     return adv
 
@@ -558,36 +611,40 @@ def _safe_dialog_instruction(raw: str) -> str:
 
 
 def _safe_base_advanced(advanced: dict, text: str = "") -> dict:
-    """Apply conservative defaults for Base/clone mode, but respect user overrides.
+    """Apply safe defaults for Base/clone mode.
 
-    max_tokens is computed dynamically from text length to prevent the model from
-    hitting a fixed ceiling and filling the remainder with noise/continuation:
-      - English TTS: ~80 codec tokens/second, ~4 chars/token
-      - Safety multiplier ×2.5 accounts for slow speech, pauses, punctuation
-      - Floor of 256 tokens for very short strings
-      - Hard ceiling of 4096 (never needed in practice, guards against bugs)
+    v0.5q: Base+clone is much slower than CustomVoice because every chunk must
+    condition on a reference audio.  English therefore uses a smaller token
+    budget and tighter sampling by default.  Chinese keeps the earlier budget so
+    the currently good Chinese behavior is not disturbed.
     """
     adv = dict(advanced or {})
-    adv.setdefault("temperature", 0.20)
-    adv.setdefault("top_p",       0.85)
-    adv.setdefault("top_k",       20)
-    # Dynamic max_tokens based on text length.
-    # If the user has explicitly set max_tokens in Advanced Settings, honour it
-    # only when it is LOWER than our computed value (they want tighter control).
-    # If they set a very high value (e.g. 4096 default), use our tighter limit.
-    text_len = len(str(text or ""))
-    # ~4 chars per codec token, ×2.5 safety margin, +64 overhead
-    dynamic = max(256, int(text_len * 4 * 2.5) + 64)
-    dynamic = min(dynamic, 4096)
+    t = str(text or "")
+    is_zh = _is_chinese(t)
+    adv.setdefault("temperature", 0.16 if not is_zh else 0.20)
+    adv.setdefault("top_p",       0.72 if not is_zh else 0.85)
+    adv.setdefault("top_k",       8    if not is_zh else 20)
+
+    expected_s = _expected_duration_s(t)
+    if is_zh:
+        dynamic = int(expected_s * 95 * 2.0 + 80)
+        dynamic = max(128, min(dynamic, 3072))
+    else:
+        # The old 95*2 token budget was deliberately generous, but in Base clone
+        # it made each failed English attempt expensive.  This budget is still
+        # above normal spoken length, but small enough to prevent long tails.
+        dynamic = int(expected_s * 105 + 72)
+        dynamic = max(96, min(dynamic, 1024))
+
     user_val = adv.get("max_tokens")
     try:
         user_val = int(float(user_val)) if user_val is not None else None
     except Exception:
         user_val = None
     if user_val and user_val < dynamic:
-        adv["max_tokens"] = user_val   # user explicitly tightened → respect it
+        adv["max_tokens"] = user_val
     else:
-        adv["max_tokens"] = dynamic    # use dynamic limit
+        adv["max_tokens"] = dynamic
     return adv
 
 
@@ -616,9 +673,15 @@ def _handle_tts(task: dict, result_q):
     if is_mainly_chinese:
         lang_limit = 100
     else:
-        lang_limit = 600
+        # v0.5o: English is less stable when one request contains many clauses.
+        # Shorter word-boundary chunks improve success rate and often improve
+        # end-to-end speed by avoiding expensive repair loops.
+        lang_limit = 340
     if _model_type == "base":
-        lang_limit = min(lang_limit, 100 if is_mainly_chinese else 500)
+        # Base+clone is reference-conditioned and slower than CustomVoice.
+        # Smaller English chunks reduce continuation/drone failures and usually
+        # improve total time despite creating a few more chunks.
+        lang_limit = min(lang_limit, 100 if is_mainly_chinese else 220)
     chunk_size = min(chunk_size, lang_limit)
 
     # 普通文本：整体分段；多人对话 CSV：按每行 speaker/instruction/text 分段；
@@ -980,9 +1043,14 @@ def _synth_chunk_to_file(text: str, voice_id: str, speed: float,
         # ── 稳定性默认值（方案一）──────────────────────────────
         # 用户未显式传入采样参数时，使用更保守的默认值以减少 identity drift。
         # setdefault 保证用户通过高级设置面板手动调整的值不被覆盖。
-        _STABLE_DEFAULTS = {"temperature": 0.2, "top_k": 20, "top_p": 0.85}
+        if _is_chinese(text):
+            _STABLE_DEFAULTS = {"temperature": 0.2, "top_k": 20, "top_p": 0.85}
+        else:
+            _STABLE_DEFAULTS = {"temperature": 0.18, "top_k": 12, "top_p": 0.78}
         for _k, _v in _STABLE_DEFAULTS.items():
             advanced.setdefault(_k, _v)
+        if "max_tokens" not in advanced or not advanced.get("max_tokens"):
+            advanced["max_tokens"] = max(128, min(2048, int(_expected_duration_s(text) * 95 * 2.0 + 80)))
 
         # generate_custom_voice() 也是生成器
         kwargs = _generation_kwargs({
@@ -1086,15 +1154,35 @@ def _synth_chunk_to_file(text: str, voice_id: str, speed: float,
                 raw_reason = _bad_audio_reason(raw_metrics, text)
                 speech_ratio = float(np.sum(real_speech)) / max(1, len(real_speech))
                 truncated_fraction = 1.0 - (cut_sample / max(1, arr.size))
+                cut_duration_s = cut_sample / sr_est
+                expected_s = _expected_duration_s(text)
                 msg = (f"TRUNCATE would cut {truncated_fraction*100:.0f}% "
                        f"({cut_sample/sr_est:.2f}s / {arr.size/sr_est:.2f}s), "
                        f"speech_ratio={speech_ratio:.2f}")
-                if raw_reason or truncated_fraction > 0.25 or speech_ratio < 0.65:
-                    raise BadAudioError(f"raw_tail_before_complete_repair: {msg}; {raw_reason or 'significant_tail'}")
-                print(f"[synth] chunk={idx} seg={seg_i} → TRUNCATE at "
-                      f"{cut_sample/sr_est:.2f}s / {arr.size/sr_est:.2f}s "
-                      f"(last real speech win={last_speech_win})", flush=True)
-                arr = arr[:cut_sample]
+
+                # v0.5q Base+clone fast path: cloned Base English often creates a
+                # valid utterance followed by a long low-frequency tail.  For that
+                # mode, accepting a defensible tail crop is much faster than
+                # re-synthesizing the same sentence many times.  The guard keeps
+                # this limited to English Base mode and only when the retained
+                # portion is plausibly long enough to contain the utterance.
+                base_clone_fast_crop = (
+                    _model_type == "base"
+                    and not _is_chinese(text)
+                    and cut_duration_s >= max(0.65, expected_s * 0.45)
+                    and speech_ratio >= 0.22
+                )
+                if base_clone_fast_crop:
+                    print(f"[synth] chunk={idx} seg={seg_i} → FAST CROP Base/clone English at "
+                          f"{cut_duration_s:.2f}s / {arr.size/sr_est:.2f}s; {msg}", flush=True)
+                    arr = arr[:cut_sample]
+                else:
+                    if raw_reason or truncated_fraction > 0.25 or speech_ratio < 0.65:
+                        raise BadAudioError(f"raw_tail_before_complete_repair: {msg}; {raw_reason or 'significant_tail'}")
+                    print(f"[synth] chunk={idx} seg={seg_i} → TRUNCATE at "
+                          f"{cut_sample/sr_est:.2f}s / {arr.size/sr_est:.2f}s "
+                          f"(last real speech win={last_speech_win})", flush=True)
+                    arr = arr[:cut_sample]
             else:
                 print(f"[synth] chunk={idx} seg={seg_i} → OK", flush=True)
 
@@ -1107,18 +1195,22 @@ def _synth_chunk_to_file(text: str, voice_id: str, speed: float,
         #         改为：找最后一个"持续语音块"（连续 ≥3 个 >=200/s 窗口）的末尾
         #   Bug3: 截断后若 peak 极低，用 expected_s 兜底
         if raw_arr_size > 0:
-            zh_ratio = sum(1 for c in text if '一' <= c <= '鿿') / max(len(text), 1)
-            ms_per_char = 400 if zh_ratio > 0.2 else 220
-            expected_s = max(1.5, len(text) * ms_per_char / 1000)
+            expected_s = _expected_duration_s(text)
             raw_actual_s = raw_arr_size / sr_est
             if raw_actual_s > expected_s * 2.0:
-                # Do not silently accept a duration-ceiling crop.  Cropping often
-                # removes the drone tail, but in user testing it also masked cases
-                # where the sentence had not been fully spoken.  Treat the raw long
-                # output as bad audio so the repair path re-generates the whole
-                # sentence or smaller sub-sentences.
+                # Do not silently accept a duration-ceiling crop in general.
+                # Exception: v0.5q Base+clone English fast path may already have
+                # removed a drone tail above; in that case accept the cropped audio
+                # if the retained duration is plausible.
                 zcr_already_handled = (arr.size < raw_arr_size * 0.9)
-                if zcr_already_handled:
+                if zcr_already_handled and _model_type == "base" and not _is_chinese(text):
+                    cropped_s = arr.size / sr_est
+                    if cropped_s >= max(0.65, expected_s * 0.45):
+                        print(f"[synth] chunk={idx} duration ceiling accepted after Base/clone fast crop "
+                              f"cropped={cropped_s:.1f}s raw={raw_actual_s:.1f}s expected={expected_s:.1f}s", flush=True)
+                    else:
+                        raise BadAudioError(f"raw_long_output_after_zcr_cut raw={raw_actual_s:.1f}s expected={expected_s:.1f}s cropped={cropped_s:.1f}s")
+                elif zcr_already_handled:
                     raise BadAudioError(f"raw_long_output_after_zcr_cut raw={raw_actual_s:.1f}s expected={expected_s:.1f}s")
                 else:
                     raw_metrics = _audio_metrics(arr, text, sr_est)
@@ -1159,7 +1251,10 @@ def _synth_chunk_with_repair(text: str, voice_id: str, speed: float,
       4) after 20 bad-audio events, replace the whole chunk with short silence
          and mark it in the UI.
     """
-    MAX_BAD_AUDIO_RETRIES = 20
+    # Base+clone English is expensive because each retry conditions on ref_audio.
+    # Use fewer full regeneration attempts there and rely on the fast-tail crop
+    # in _synth_chunk_to_file.  Chinese and CustomVoice keep the previous budget.
+    MAX_BAD_AUDIO_RETRIES = 10 if (_model_type == "base" and not _is_chinese(text)) else 20
     failures = 0
     last_error = ''
 
@@ -1658,7 +1753,8 @@ def _is_sentence_boundary(text: str, dot_pos: int) -> bool:
     start = dot_pos - 1
     while start >= 0 and text[start].isalpha():
         start -= 1
-    word = text[start+1:dot_pos].lower()
+    raw_word = text[start+1:dot_pos]
+    word = raw_word.lower()
 
     if not word:
         return False  # 孤立的点，不算句子结束
@@ -1667,7 +1763,7 @@ def _is_sentence_boundary(text: str, dot_pos: int) -> bool:
         return False  # 缩写，不算句子结束
 
     # 单个大写字母（首字母缩写如 U.S.A.）
-    if len(word) == 1 and word.isupper():
+    if len(raw_word) == 1 and raw_word.isupper():
         return False
 
     # . 后面紧跟大写字母+点（如 U.S.A.）→ 不是句子结束
@@ -1694,7 +1790,7 @@ def _is_sentence_boundary(text: str, dot_pos: int) -> bool:
         return False
 
     # 单个大写字母后接 . 且后面还有大写字母（如 U.S.）
-    if len(word) == 1 and after < len(text) and text[after].isupper():
+    if len(raw_word) == 1 and raw_word.isupper() and after < len(text) and text[after].isupper():
         return False
 
     return True

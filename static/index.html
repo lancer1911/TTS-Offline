@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lancer1911 TTS Offline v0.5l</title>
+<title>Lancer1911 TTS Offline v0.5w</title>
 <style>
 /* ── CSS Variables ─────────────────────────────────────────── */
 :root{
@@ -416,7 +416,7 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
       <span>TTS OFFLINE</span>
     </div>
     <div class="brand-sub">
-      <span class="brand-ver">v0.5l</span>
+      <span class="brand-ver">v0.5w</span>
       <span id="author-badge" title="">
         <svg width="11" height="13" viewBox="0 0 11 13" fill="none" aria-hidden="true">
           <path d="M5.5 0.5L1 2.5V6C1 9 3 11.5 5.5 12.5C8 11.5 10 9 10 6V2.5L5.5 0.5Z"
@@ -618,14 +618,18 @@ select optgroup{color:var(--ac);font-weight:600;font-style:normal}.dl-wizard{wid
             <div class="clone-label" data-i18n="anchor_sample_text">样本文字</div>
             <textarea class="clone-input" id="ANCHOR_SAMPLE_TEXT" data-i18n-ph="ph_anchor_sample_text">你好，这是用于固定角色音色的参考样本。请保持平稳、自然、清晰的表达。</textarea>
           </div>
+          <label class="anchor-row" style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--tx);line-height:1.45;cursor:pointer;user-select:none">
+            <input type="checkbox" id="ANCHOR_MAKE_ENGLISH" style="margin-top:2px;accent-color:var(--ac)">
+            <span data-i18n="anchor_make_english">同时制作英文锚定音色（会额外生成 - English 卡片，耗时更长）</span>
+          </label>
           <button class="btn btn-primary" onclick="submitRoleAnchor()" style="width:100%" data-i18n="create_role_anchor">生成并保存角色锚点</button>
           <div class="anchor-bulk-row" style="display:flex;flex-direction:column;gap:8px">
             <button class="btn" onclick="submitAllBuiltInAnchors()" style="width:100%;padding:7px 10px;font-size:12px" data-i18n="create_all_builtin_anchors">锚定所有内置音色与预设情绪</button>
             <button class="btn btn-danger" onclick="clearAllAnchorVoices()" style="width:100%;padding:7px 10px;font-size:12px" data-i18n="clear_all_anchor_voices">清空全部锚定</button>
           </div>
-          <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
-            <button class="btn" onclick="exportAnchorPack()" style="width:100%;padding:6px 10px;font-size:12px" data-i18n="export_anchor_pack">导出锚定包 (.ttscx)</button>
-            <button class="btn" onclick="chooseAnchorPackFile()" style="width:100%;padding:6px 10px;font-size:12px" data-i18n="import_anchor_pack">导入锚定包 (.ttscx)</button>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <button class="btn" onclick="exportAnchorPack()" style="flex:1;padding:6px 10px;font-size:12px" data-i18n="export_anchor_pack">导出锚定包</button>
+            <button class="btn" onclick="chooseAnchorPackFile()" style="flex:1;padding:6px 10px;font-size:12px" data-i18n="import_anchor_pack">导入锚定包</button>
             <input type="file" id="ANCHOR_PACK_INPUT" accept=".ttscx,.json" style="display:none" onchange="if(this.files[0])importAnchorPack(this.files[0]);this.value=''">
           </div>
         </div>
@@ -1214,10 +1218,10 @@ start_clone:"开始克隆", mic_device:"麦克风", mic_hint:"点击麦克风按
     toast_reset_defaults:"已恢复默认值",
     voice_clone_need_base:"声音克隆 · 需切换至 Base 模型", voice_desc_anchor:"角色锚点", clone_unsupported_hint:"请先在「模型」标签页加载 Base 模型或 CustomVoice / VoiceDesign 模型。",
     role_anchor_title:"角色锚定（测试）", role_anchor_help:"先用当前 CustomVoice/VoiceDesign 生成一段满意样本，并保存为可复用锚点；随后切换到 Base 模型，在音色或 CSV speaker 中选择该锚点，可减少长文本身份漂移。",
-    anchor_name:"锚点名称", anchor_source_speaker:"来源音色", anchor_emotion:"锚定情绪", anchor_emotion_hint:"建议同一角色分别保存“平静/高兴/悲伤/亢奋”等多个锚点；锚点名称会按来源音色和情绪自动更新，手动编辑后不再覆盖。后续 CSV speaker 列可直接选择对应锚点。", anchor_instruction:"锚定指令", anchor_sample_text:"样本文字", create_role_anchor:"生成并保存角色锚点",
+    anchor_name:"锚点名称", anchor_source_speaker:"来源音色", anchor_emotion:"锚定情绪", anchor_emotion_hint:"建议同一角色分别保存“平静/高兴/悲伤/亢奋”等多个锚点；锚点名称会按来源音色和情绪自动更新，手动编辑后不再覆盖。后续 CSV speaker 列可直接选择对应锚点。", anchor_instruction:"锚定指令", anchor_sample_text:"样本文字", anchor_make_english:"同时制作英文锚定音色（会额外生成 - English 卡片，耗时更长）", create_role_anchor:"生成并保存角色锚点",
     ph_anchor_name:"角色-情绪锚点", ph_anchor_instruction:"平静自然，语速适中，发音清晰，保持同一角色音色，不夸张表演。", ph_anchor_sample_text:"你好，这是用于固定角色平静音色的参考样本。请保持平稳、自然、清晰的表达。",
     toast_anchor_creating:"正在生成角色锚点…", toast_anchor_done:"角色锚点已保存：", toast_anchor_err:"角色锚点失败：",
-    create_all_builtin_anchors:"锚定所有内置音色与预设情绪", clear_all_anchor_voices:"清空全部锚定", export_anchor_pack:"导出锚定包 (.ttscx)", import_anchor_pack:"导入锚定包 (.ttscx)", toast_pack_exporting:"正在导出锚定包…", toast_pack_exported:"锚定包已导出", toast_pack_importing:"正在导入锚定包…", toast_pack_imported:"锚定包导入完成", toast_pack_err:"锚定包操作失败:", anchor_bulk_hint:"批量锚定会自动内部保存，并会在 CustomVoice 模式下立即显示为下方音色卡片；退出程序后下次会默认调入，无需重复锚定。已有同名锚点会跳过。", anchor_group_hint:"点击展开情绪锚点", anchor_bulk_confirm:"将为所有内置音色生成全部预设情绪锚点，并自动保存到本机。已有同名锚点会跳过。是否继续？", anchor_bulk_progress:"正在批量锚定", anchor_bulk_done:"批量锚定完成", anchor_bulk_skipped:"已跳过", anchor_clear_confirm:"确定清空全部角色锚点吗？普通克隆音色不会删除。", anchor_clear_done:"已清空角色锚点", anchor_clear_none:"没有需要清空的角色锚点",
+    create_all_builtin_anchors:"锚定所有内置音色与预设情绪", clear_all_anchor_voices:"清空全部锚定", export_anchor_pack:"导出锚定包", import_anchor_pack:"导入锚定包", toast_pack_exporting:"正在导出锚定包…", toast_pack_exported:"锚定包已导出", toast_pack_importing:"正在导入锚定包…", toast_pack_imported:"锚定包导入完成", toast_pack_err:"锚定包操作失败:", anchor_bulk_hint:"批量锚定会自动内部保存，并会在 CustomVoice 模式下立即显示为下方音色卡片；退出程序后下次会默认调入，无需重复锚定。已有同名锚点会跳过。", anchor_group_hint:"点击展开情绪锚点", anchor_bulk_confirm:"将为所有内置音色生成全部预设情绪锚点，并自动保存到本机。已有同名锚点会跳过。是否继续？", anchor_bulk_progress:"正在批量锚定", anchor_bulk_done:"批量锚定完成", anchor_bulk_skipped:"已跳过", anchor_clear_confirm:"确定清空全部角色锚点吗？普通克隆音色不会删除。", anchor_clear_done:"已清空角色锚点", anchor_clear_none:"没有需要清空的角色锚点",
 
   },
   en: {
@@ -1326,10 +1330,10 @@ start_clone:"开始克隆", mic_device:"麦克风", mic_hint:"点击麦克风按
     toast_reset_defaults:"Defaults restored",
     voice_clone_need_base:"Cloned Voice · requires Base model", voice_desc_anchor:"Role Anchor", clone_unsupported_hint:"Load a Base model or a CustomVoice / VoiceDesign model in the Model tab first.",
     role_anchor_title:"Role Anchor (test)", role_anchor_help:"Generate one stable sample from the current CustomVoice/VoiceDesign model and save it as a reusable anchor. Then switch to a Base model and select this anchor in Voice or CSV speaker to reduce long-text identity drift.",
-    anchor_name:"Anchor Name", anchor_source_speaker:"Source Speaker", anchor_instruction:"Anchor Instruction", anchor_sample_text:"Sample Text", create_role_anchor:"Generate & Save Role Anchor",
+    anchor_name:"Anchor Name", anchor_source_speaker:"Source Speaker", anchor_instruction:"Anchor Instruction", anchor_sample_text:"Sample Text", anchor_make_english:"Also create an English anchor voice (adds a - English card and takes longer)", create_role_anchor:"Generate & Save Role Anchor",
     ph_anchor_name:"Narrator Anchor", ph_anchor_instruction:"Calm and natural; keep the same speaker identity; do not over-act.", ph_anchor_sample_text:"Hello, this is a reference sample for anchoring the character voice. Please speak steadily, naturally, and clearly.",
     toast_anchor_creating:"Creating role anchor…", toast_anchor_done:"Role anchor saved: ", toast_anchor_err:"Role anchor failed: ",
-    create_all_builtin_anchors:"Anchor all voices & emotions", clear_all_anchor_voices:"Clear all anchors", export_anchor_pack:"Export Anchor Pack (.ttscx)", import_anchor_pack:"Import Anchor Pack (.ttscx)", toast_pack_exporting:"Exporting anchor pack…", toast_pack_exported:"Anchor pack exported", toast_pack_importing:"Importing anchor pack…", toast_pack_imported:"Anchor pack imported", toast_pack_err:"Anchor pack error:", anchor_bulk_hint:"Batch anchors are saved internally and shown immediately as anchor cards under CustomVoice; they will be loaded automatically next time. Existing anchors with the same name will be skipped.", anchor_group_hint:"Click to expand emotion anchors", anchor_bulk_confirm:"Generate all preset emotion anchors for every built-in voice and save them locally? Existing anchors with the same name will be skipped.", anchor_bulk_progress:"Batch anchoring", anchor_bulk_done:"Batch anchoring completed", anchor_bulk_skipped:"skipped", anchor_clear_confirm:"Clear all role anchors? Normal cloned voices will be kept.", anchor_clear_done:"Role anchors cleared", anchor_clear_none:"No role anchors to clear",
+    create_all_builtin_anchors:"Anchor all voices & emotions", clear_all_anchor_voices:"Clear all anchors", export_anchor_pack:"Export Anchor Pack", import_anchor_pack:"Import Anchor Pack", toast_pack_exporting:"Exporting anchor pack…", toast_pack_exported:"Anchor pack exported", toast_pack_importing:"Importing anchor pack…", toast_pack_imported:"Anchor pack imported", toast_pack_err:"Anchor pack error:", anchor_bulk_hint:"Batch anchors are saved internally and shown immediately as anchor cards under CustomVoice; they will be loaded automatically next time. Existing anchors with the same name will be skipped.", anchor_group_hint:"Click to expand emotion anchors", anchor_bulk_confirm:"Generate all preset emotion anchors for every built-in voice and save them locally? Existing anchors with the same name will be skipped.", anchor_bulk_progress:"Batch anchoring", anchor_bulk_done:"Batch anchoring completed", anchor_bulk_skipped:"skipped", anchor_clear_confirm:"Clear all role anchors? Normal cloned voices will be kept.", anchor_clear_done:"Role anchors cleared", anchor_clear_none:"No role anchors to clear",
   }
 };
 
@@ -1878,6 +1882,10 @@ function handleWS(msg) {
           emotion: msg.emotion || oldMeta.emotion || "",
           emotion_label: msg.emotion_label || oldMeta.emotion_label || "",
           instruction: msg.instruction || oldMeta.instruction || "",
+          language_hint: msg.language_hint || (msg.meta && msg.meta.language_hint) || oldMeta.language_hint || "",
+          derived_english_clone: !!(msg.derived_english_clone || (msg.meta && msg.meta.derived_english_clone) || oldMeta.derived_english_clone),
+          derived_from: msg.derived_from || (msg.meta && msg.meta.derived_from) || oldMeta.derived_from || "",
+          paired_with: msg.paired_with || (msg.meta && msg.meta.paired_with) || oldMeta.paired_with || "",
         };
       }
       if (typeof _isSynthesizing === "undefined" || !_isSynthesizing) {
@@ -2360,11 +2368,15 @@ function renderClonedList() {
       card.className = "voice-card";
       card.style.cursor = "default";
       card.style.alignItems = "center";
+      const meta = cloneMetaByName(cloneName);
+      const langTag = meta.language_hint === "en" ? (_lang === "zh" ? "英文参考" : "English ref") : (meta.language_hint === "zh" ? (_lang === "zh" ? "中文参考" : "Chinese ref") : "");
+      const derived = meta.derived_english_clone && meta.derived_from ? ((_lang === "zh" ? " · 来源: " : " · from: ") + meta.derived_from) : "";
+      const desc = `${t("voice_desc_clone")}${langTag ? " · " + langTag : ""}${derived}`;
       card.innerHTML = `
         <div class="voice-avatar">${ICON_DNA}</div>
         <div class="voice-info">
           <div class="voice-name">${esc(v.name)}</div>
-          <div class="voice-desc">${esc(t("voice_desc_clone"))}</div>
+          <div class="voice-desc">${esc(desc)}</div>
         </div>`;
       card.appendChild(cloneActionButtons(cloneName));
       list.appendChild(card);
@@ -3254,9 +3266,8 @@ function anchorCountForBaseVoice(baseName) {
   return count;
 }
 function baseVoiceChoiceLabel(name) {
-  const count = anchorCountForBaseVoice(name);
-  if (!count) return name;
-  return `${name} (${count}/${ANCHOR_EMOTION_PRESETS.length})`;
+  // CSV/Base 模式下只显示人物/基础音色名；不要显示内部锚点数量，例如 (24/12)。
+  return String(name || "");
 }
 function baseVoiceOptionsHtml(selected) {
   const choices = baseVoiceChoices();
@@ -3264,29 +3275,90 @@ function baseVoiceOptionsHtml(selected) {
   if (!choices.length) return `<option value="" disabled>${_lang==="zh"?"暂无克隆/锚定音色":"No cloned/anchored voices"}</option>`;
   return choices.map(name => `<option value="${esc(name)}" ${name===sel?"selected":""}>${esc(baseVoiceChoiceLabel(name))}</option>`).join("");
 }
+function _isLikelyEnglishDialogText(text) {
+  const s = String(text || "").trim();
+  if (!s) return false;
+  const latin = (s.match(/[A-Za-z]/g) || []).length;
+  const cjk = (s.match(/[\u3400-\u9fff]/g) || []).length;
+  // 英文句子通常拉丁字母显著多于 CJK；短词也要达到最低字母数。
+  return latin >= 6 && latin >= Math.max(6, cjk * 3);
+}
+function _cloneLanguageHint(name) {
+  const meta = cloneMetaByName(name) || {};
+  const hint = String(meta.language_hint || "").toLowerCase();
+  if (hint === "en" || hint === "english") return "en";
+  if (hint === "zh" || hint === "cn" || hint === "chinese") return "zh";
+  if (/\s-\sEnglish\s*$/i.test(String(name || ""))) return "en";
+  if (/\s-\sChinese\s*$/i.test(String(name || ""))) return "zh";
+  return "";
+}
+function _cloneSourceBaseName(name) {
+  const meta = cloneMetaByName(name);
+  if (meta && meta.anchor && meta.source_speaker) return sourceDisplayNameById(meta.source_speaker || "");
+  return String(_voiceBaseNameFromClone(name) || name || "")
+    .replace(/\s*[-–—]\s*(Chinese|English|中文|英文)\s*$/i, "")
+    .trim();
+}
+function _cloneMatchesBase(name, voice) {
+  const v = String(voice || "").trim().toLowerCase();
+  if (!v) return false;
+  const meta = cloneMetaByName(name);
+  const src = _cloneSourceBaseName(name);
+  return String(name || "").trim().toLowerCase() === v
+    || String(src || "").trim().toLowerCase() === v
+    || String(meta && meta.source_speaker || "").trim().toLowerCase() === v;
+}
+function _cloneMatchesEmotion(name, emotion, emoLabel) {
+  const meta = cloneMetaByName(name);
+  if (!meta || !meta.anchor) return false;
+  return normalizeDialogEmotion(meta.emotion || meta.emotion_label) === emotion
+    || String(meta.emotion_label || "").split(" / ")[0].trim() === emoLabel;
+}
+function _rankBaseDialogClone(name, voice, emotion, emoLabel, targetLang) {
+  if (!_cloneMatchesBase(name, voice)) return -1;
+  const meta = cloneMetaByName(name);
+  const lang = _cloneLanguageHint(name);
+  const exactEmotion = _cloneMatchesEmotion(name, emotion, emoLabel);
+  const neutralEmotion = meta && meta.anchor && normalizeDialogEmotion(meta.emotion || meta.emotion_label) === "neutral";
+  const exactVoice = String(name || "").trim().toLowerCase() === String(voice || "").trim().toLowerCase();
+  let score = 0;
+  // 语言优先：英文文本优先 English；没有 English 时自然回落到 Chinese。
+  if (lang === targetLang) score += 1000;
+  else if (targetLang === "en" && lang === "zh") score += 700;
+  else if (targetLang === "zh" && lang === "en") score += 400;
+  else score += 500;
+  if (exactEmotion) score += 120;
+  else if (neutralEmotion) score += 60;
+  if (meta && meta.anchor) score += 20;
+  if (exactVoice) score += 10;
+  return score;
+}
 function resolveBaseDialogSpeaker(row) {
   const clones = baseCloneNames();
   const cloneSet = new Set(clones);
   const voice = String(row.voice || row.speaker || "").trim();
   const emotion = normalizeDialogEmotion(row.emotion || "neutral");
   const emoLabel = dialogEmotionLabelById(emotion);
-  if (cloneSet.has(voice)) return voice;
+  const targetLang = _isLikelyEnglishDialogText(row.text || "") ? "en" : "zh";
+
+  // 如果 CSV/表格中直接填了完整克隆名，且语言匹配，则直接使用。
+  if (cloneSet.has(voice) && (_cloneLanguageHint(voice) === targetLang || !_cloneLanguageHint(voice))) return voice;
+
+  // 兼容旧命名：人物-情绪。
   const direct = `${voice}-${emoLabel}`;
-  if (cloneSet.has(direct)) return direct;
-  // 支持按 anchor 的 source_speaker / 显示名 + emotion 匹配
+  if (cloneSet.has(direct) && (_cloneLanguageHint(direct) === targetLang || !_cloneLanguageHint(direct))) return direct;
+
+  let best = "";
+  let bestScore = -1;
   for (const name of clones) {
-    const meta = cloneMetaByName(name);
-    if (!meta || !meta.anchor) continue;
-    const src = sourceDisplayNameById(meta.source_speaker || "");
-    const sourceOk = src.toLowerCase() === voice.toLowerCase() || String(meta.source_speaker||"").toLowerCase() === voice.toLowerCase();
-    const emoOk = normalizeDialogEmotion(meta.emotion || meta.emotion_label) === emotion || String(meta.emotion_label||"").split(" / ")[0].trim() === emoLabel;
-    if (sourceOk && emoOk) return name;
+    const score = _rankBaseDialogClone(name, voice, emotion, emoLabel, targetLang);
+    if (score > bestScore) { best = name; bestScore = score; }
   }
-  // 没有对应情绪锚点时，退回同一来源下的平静锚点或第一个同源 clone
+  if (best) return best;
+
+  // 没有对应情绪/语言锚点时，退回同一来源下的任意 clone。
   for (const name of clones) {
-    const meta = cloneMetaByName(name);
-    const src = meta && meta.anchor ? sourceDisplayNameById(meta.source_speaker || "") : _voiceBaseNameFromClone(name);
-    if (src.toLowerCase() === voice.toLowerCase()) return name;
+    if (_cloneMatchesBase(name, voice)) return name;
   }
   return clones[0] || voice;
 }
@@ -3410,7 +3482,7 @@ function getDialogRowsForSubmit() {
       voice,
       emotion,
       emotion_label: dialogEmotionLabelById(emotion),
-      speaker: isBase ? resolveBaseDialogSpeaker({voice, emotion, speaker:r.speaker}) : String(r.speaker || "").trim(),
+      speaker: isBase ? resolveBaseDialogSpeaker({voice, emotion, speaker:r.speaker, text:r.text}) : String(r.speaker || "").trim(),
       instruction: isBase ? "" : String(r.instruction || "").trim(),
       text: String(r.text || "").trim(),
       start_ms: Number.isFinite(Number(r.start_ms)) ? Number(r.start_ms) : null,
@@ -4542,25 +4614,27 @@ function extFromMime(mime) {
   return ".wav";
 }
 async function ensureCloneMicDevices() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-    showToast(_lang==="zh"?"当前环境不支持麦克风录音":"Microphone recording is not supported in this environment", "err");
+  // Use Python-side sounddevice API — avoids WKWebView non-secure-context block on http://127.0.0.1
+  try {
+    const r = await fetch("/api/mic/devices");
+    const data = await r.json();
+    if (!data.ok) {
+      showToast((_lang==="zh"?"麦克风设备获取失败: ":"Mic device error: ") + data.error, "err");
+      return [];
+    }
+    const devices = data.devices || [];
+    const sel = document.getElementById("CLONE_MIC_SELECT");
+    if (sel) {
+      const cur = _cloneMicDeviceId;
+      sel.innerHTML = `<option value="">${t("mic_default")}</option>` +
+        devices.map(d => `<option value="${esc(String(d.id))}">${esc(d.name)}</option>`).join("");
+      sel.value = cur || "";
+    }
+    return devices;
+  } catch(e) {
+    showToast((_lang==="zh"?"麦克风设备获取失败: ":"Mic device error: ") + (e.message||e), "err");
     return [];
   }
-  try {
-    // Request permission once so device labels become visible.
-    const tmpStream = await navigator.mediaDevices.getUserMedia({audio:true});
-    tmpStream.getTracks().forEach(t => t.stop());
-  } catch(e) {
-    showToast((_lang==="zh"?"无法访问麦克风: ":"Cannot access microphone: ") + (e && e.message ? e.message : e), "err");
-  }
-  const devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "audioinput");
-  const sel = document.getElementById("CLONE_MIC_SELECT");
-  if (sel) {
-    const cur = _cloneMicDeviceId;
-    sel.innerHTML = `<option value="">${t("mic_default")}</option>` + devices.map((d, i) => `<option value="${esc(d.deviceId)}">${esc(d.label || (t("mic_device") + " " + (i+1)))}</option>`).join("");
-    sel.value = cur || "";
-  }
-  return devices;
 }
 async function toggleCloneMicSettings(evt) {
   if (evt) evt.stopPropagation();
@@ -4573,7 +4647,7 @@ async function toggleCloneMicSettings(evt) {
   }
 }
 function onCloneMicDeviceChange(val) {
-  _cloneMicDeviceId = val || "";
+  _cloneMicDeviceId = val || "";   // now stores numeric device id string
 }
 function cloneRecMicSvg(){
   return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/><path d="M8 22h8"/></svg>`;
@@ -4597,62 +4671,68 @@ function setCloneRecButtonState(recording){
   }
 }
 setCloneRecButtonState(false);
+// _pyMicRecording: tracks whether Python-side recording is active
+let _pyMicRecording = false;
+
 async function toggleCloneRecording(evt) {
   if (evt) evt.stopPropagation();
-  if (_cloneMediaRecorder && _cloneMediaRecorder.state === "recording") {
-    _cloneMediaRecorder.stop();
+  if (_pyMicRecording) {
+    await stopPyMicRecording();
     return;
   }
   await startCloneRecording();
 }
 async function startCloneRecording() {
-  if (!navigator.mediaDevices || !window.MediaRecorder) {
-    showToast(_lang==="zh"?"当前环境不支持麦克风录音":"Microphone recording is not supported in this environment", "err");
-    return;
-  }
+  // Uses Python /api/mic/* endpoints so recording works inside WKWebView
+  // on http://127.0.0.1 where navigator.mediaDevices is unavailable.
+  if (_pyMicRecording) return;
   try {
-    const constraints = {audio: _cloneMicDeviceId ? {deviceId:{exact:_cloneMicDeviceId}} : true};
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    const mime = cloneAudioMime();
-    _cloneRecordChunks = [];
-    _cloneMediaRecorder = mime ? new MediaRecorder(stream, {mimeType:mime}) : new MediaRecorder(stream);
-    _cloneMediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) _cloneRecordChunks.push(e.data); };
-    _cloneMediaRecorder.onstop = async () => {
-      clearTimeout(_cloneRecordTimer); _cloneRecordTimer = null;
-      stream.getTracks().forEach(t => t.stop());
-      setCloneRecButtonState(false);
-      const usedMime = _cloneMediaRecorder.mimeType || mime || "audio/webm";
-      const blob = new Blob(_cloneRecordChunks, {type: usedMime});
-      const sec = Math.max(0.1, (Date.now() - _cloneRecordStartedAt) / 1000);
-      const b64 = await new Promise((res, rej) => {
-        const r = new FileReader();
-        r.onload = () => res(String(r.result || "").split(",")[1] || "");
-        r.onerror = () => rej(new Error(_lang==="zh"?"录音读取失败":"Failed to read recording"));
-        r.readAsDataURL(blob);
-      });
-      const ext = extFromMime(usedMime);
-      _cloneAudioFile = null;
-      _cloneAudioData = {name:`mic_recording_${Math.round(sec)}s${ext}`, ext, b64};
-      document.getElementById("CLONE_AUDIO_ZONE")?.classList.add("has-file");
-      const lab = document.getElementById("CLONE_AUDIO_LABEL");
-      if (lab) lab.textContent = _cloneAudioData.name;
-      const st = document.getElementById("CLONE_MIC_STATUS");
-      if (st) st.textContent = `${t("mic_record_done")} · ${sec.toFixed(1)}s`;
-      showToast(`${t("mic_record_done")} · ${sec.toFixed(1)}s`, "ok");
-      _cloneMediaRecorder = null;
-    };
+    const deviceId = _cloneMicDeviceId ? parseInt(_cloneMicDeviceId, 10) : null;
+    const body = {samplerate: 16000};
+    if (deviceId !== null && !isNaN(deviceId)) body.device_id = deviceId;
+    const r = await fetch("/api/mic/start", {method:"POST",
+      headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+    const data = await r.json();
+    if (!data.ok) {
+      showToast((_lang==="zh"?"录音启动失败: ":"Recording failed: ") + data.error, "err");
+      return;
+    }
+    _pyMicRecording = true;
     _cloneRecordStartedAt = Date.now();
-    _cloneMediaRecorder.start();
     setCloneRecButtonState(true);
     const st = document.getElementById("CLONE_MIC_STATUS");
     if (st) st.textContent = t("mic_recording");
     showToast(t("mic_recording"), "warn");
-    _cloneRecordTimer = setTimeout(() => {
-      try { if (_cloneMediaRecorder && _cloneMediaRecorder.state === "recording") _cloneMediaRecorder.stop(); } catch(e) {}
-    }, 30000);
+    // Auto-stop after 30 s
+    _cloneRecordTimer = setTimeout(() => { stopPyMicRecording(); }, 30000);
   } catch(e) {
     setCloneRecButtonState(false);
-    showToast((_lang==="zh"?"录音失败: ":"Recording failed: ") + (e && e.message ? e.message : e), "err");
+    showToast((_lang==="zh"?"录音启动失败: ":"Recording failed: ") + (e.message||e), "err");
+  }
+}
+async function stopPyMicRecording() {
+  if (!_pyMicRecording) return;
+  clearTimeout(_cloneRecordTimer); _cloneRecordTimer = null;
+  _pyMicRecording = false;
+  setCloneRecButtonState(false);
+  try {
+    const r = await fetch("/api/mic/stop", {method:"POST"});
+    const data = await r.json();
+    if (!data.ok) {
+      showToast((_lang==="zh"?"录音停止失败: ":"Stop failed: ") + data.error, "err");
+      return;
+    }
+    const sec = data.duration_s || Math.max(0.1, (Date.now() - _cloneRecordStartedAt) / 1000);
+    _cloneAudioFile = null;
+    _cloneAudioData = {name:`mic_recording_${Math.round(sec)}s.wav`, ext:".wav", b64: data.audio_b64};
+    document.getElementById("CLONE_AUDIO_ZONE")?.classList.add("has-file");
+    const lab = document.getElementById("CLONE_AUDIO_LABEL");
+    if (lab) lab.textContent = _cloneAudioData.name;
+    const st = document.getElementById("CLONE_MIC_STATUS");
+    if (st) st.textContent = `${t("mic_record_done")} · ${sec.toFixed(1)}s`;
+    showToast(`${t("mic_record_done")} · ${sec.toFixed(1)}s`, "ok");
+  } catch(e) {
+    showToast((_lang==="zh"?"录音读取失败: ":"Recording read failed: ") + (e.message||e), "err");
   }
 }
 
@@ -4713,34 +4793,55 @@ async function submitRoleAnchor() {
   }
   showToast(t("toast_anchor_creating"), "warn");
   try {
-    const body = {name, speaker, emotion, emotion_label: (_lang==="zh" ? preset.zh : preset.en), instruction, sample_text: sampleText, speed: _speed, advanced: collectAdvParams()};
+    const makeEnglish = !!document.getElementById("ANCHOR_MAKE_ENGLISH")?.checked;
+    const body = {name, speaker, emotion, emotion_label: (_lang==="zh" ? preset.zh : preset.en), instruction, sample_text: sampleText, speed: _speed, advanced: collectAdvParams(), make_english: makeEnglish};
     const r = await fetch("/api/create_role_anchor", {
       method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.ok) throw new Error(j.error || r.statusText || "failed");
     if (!_settings.cloned_voices) _settings.cloned_voices = {};
-    _settings.cloned_voices[name] = {...(_settings.cloned_voices[name] || {}), ...(j.meta || {}), anchor:true, source_speaker:speaker, emotion, emotion_label: (_lang==="zh" ? preset.zh : preset.en), instruction};
+    const savedName = j.name || name;
+    _settings.cloned_voices[savedName] = {...(_settings.cloned_voices[savedName] || {}), ...(j.meta || {}), anchor:true, source_speaker:speaker, emotion, emotion_label: (_lang==="zh" ? preset.zh : preset.en), instruction};
+    if (j.english_anchor && j.english_anchor.name) {
+      _settings.cloned_voices[j.english_anchor.name] = {...(_settings.cloned_voices[j.english_anchor.name] || {}), ...(j.english_anchor.meta || {}), anchor:true, source_speaker:speaker, emotion, emotion_label: (_lang==="zh" ? preset.zh : preset.en), instruction, language_hint:"en"};
+    }
     renderClonedList();
-    showToast(t("toast_anchor_done") + name, "ok");
+    showToast(t("toast_anchor_done") + savedName + (j.english_anchor && j.english_anchor.name ? ` / ${j.english_anchor.name}` : ""), "ok");
   } catch(e) {
     showToast(t("toast_anchor_err") + (e && e.message ? e.message : e), "err");
   }
 }
 
 
-async function createRoleAnchorRequest({name, speaker, preset}){
+function anchorChineseCardName(baseName){
+  const raw = String(baseName || "").trim();
+  const base = raw.replace(/\s*-\s*(Chinese|English|中文|英文)\s*$/i, "").trim() || raw || "Anchor";
+  return `${base} - Chinese`;
+}
+
+function anchorEnglishCardName(baseName){
+  const raw = String(baseName || "").trim();
+  const base = raw.replace(/\s*-\s*(Chinese|English|中文|英文)\s*$/i, "").trim() || raw || "Anchor";
+  return `${base} - English`;
+}
+
+async function createRoleAnchorRequest({name, speaker, preset, makeEnglish=false}){
   const instruction = preset.instruction || t("ph_anchor_instruction");
   const sampleText = preset.sample || t("ph_anchor_sample_text");
   const emotionLabel = (_lang === "zh" ? preset.zh : preset.en);
-  const body = {name, speaker, emotion:preset.id, emotion_label: emotionLabel, instruction, sample_text: sampleText, speed: _speed, advanced: collectAdvParams()};
+  const body = {name, speaker, emotion:preset.id, emotion_label: emotionLabel, instruction, sample_text: sampleText, speed: _speed, advanced: collectAdvParams(), make_english: !!makeEnglish};
   const r = await fetch("/api/create_role_anchor", {
     method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body)
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok || !j.ok) throw new Error(j.error || r.statusText || "failed");
   if (!_settings.cloned_voices) _settings.cloned_voices = {};
-  _settings.cloned_voices[name] = {...(_settings.cloned_voices[name] || {}), ...(j.meta || {}), anchor:true, source_speaker:speaker, emotion:preset.id, emotion_label: emotionLabel, instruction};
+  const savedName = j.name || anchorChineseCardName(name);
+  _settings.cloned_voices[savedName] = {...(_settings.cloned_voices[savedName] || {}), ...(j.meta || {}), anchor:true, source_speaker:speaker, emotion:preset.id, emotion_label: emotionLabel, instruction, language_hint:"zh"};
+  if (j.english_anchor && j.english_anchor.name) {
+    _settings.cloned_voices[j.english_anchor.name] = {...(_settings.cloned_voices[j.english_anchor.name] || {}), ...(j.english_anchor.meta || {}), anchor:true, source_speaker:speaker, emotion:preset.id, emotion_label: emotionLabel, instruction, language_hint:"en"};
+  }
   renderClonedList();
   return j;
 }
@@ -4755,20 +4856,30 @@ async function submitAllBuiltInAnchors(){
   const speakers = getAnchorSpeakerItems();
   const presets = ANCHOR_EMOTION_PRESETS;
   if (!speakers.length || !presets.length) return;
+  const makeEnglish = !!document.getElementById("ANCHOR_MAKE_ENGLISH")?.checked;
   const total = speakers.length * presets.length;
-  const ok = await htmlConfirm(t("anchor_bulk_confirm"), _lang==="zh"?"开始":"Start", _lang==="zh"?"取消":"Cancel");
+  const ok = await htmlConfirm(
+    t("anchor_bulk_confirm") + (makeEnglish ? (_lang==="zh" ? "\n\n已勾选英文锚定：将同时额外生成 - English 卡片，耗时会显著增加。" : "\n\nEnglish anchor is checked: - English cards will also be generated and this will take significantly longer.") : ""),
+    _lang==="zh"?"开始":"Start",
+    _lang==="zh"?"取消":"Cancel"
+  );
   if (!ok) return;
   let created = 0, skipped = 0, failed = 0, done = 0;
   for (const sp of speakers) {
     for (const preset of presets) {
       const name = `${sp.name || sp.id}-${anchorEmotionLabel(preset)}`;
-      if ((_settings.cloned_voices || {})[name]) {
+      const zhName = anchorChineseCardName(name);
+      const enName = anchorEnglishCardName(name);
+      const voices = _settings.cloned_voices || {};
+      const zhExists = !!voices[zhName];
+      const enExists = !!voices[enName];
+      if (zhExists && (!makeEnglish || enExists)) {
         skipped++; done++;
         continue;
       }
-      showToast(`${t("anchor_bulk_progress")} ${done+1}/${total}: ${name}`, "warn");
+      showToast(`${t("anchor_bulk_progress")} ${done+1}/${total}: ${name}${makeEnglish ? " + English" : ""}`, "warn");
       try {
-        await createRoleAnchorRequest({name, speaker:sp.id, preset});
+        await createRoleAnchorRequest({name, speaker:sp.id, preset, makeEnglish});
         created++;
       } catch(e) {
         failed++;
